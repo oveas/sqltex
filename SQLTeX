@@ -8,7 +8,7 @@
 # Purpose:     This script is a preprocessor for LaTeX. It reads a LaTeX file
 # ========     containing SQL commands, and replaces them their values.
 #
-# The latest version can always be found at http://software.oveas.net/sqltex
+# The latest version can always be found at http://freeware.oveas.com/sqltex
 #
 # $Revision$
 # $Date$
@@ -16,8 +16,8 @@
 # This software is subject to the terms of the LaTeX Project Public License; 
 # see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 #
-# Copyright:  (c) 2001, Oscar van Eijk, Oveas, support@oveas.net
-# ==========
+# Copyright:  (c) 2001-2002, Oscar van Eijk, Oveas Functionality Provider
+# ==========                 support@oveas.com
 #
 ################################################################################
 #
@@ -39,6 +39,8 @@ $main::sql_row     = "row";
 $main::less_av     = 1;
 $main::more_av     = 1;
 #
+$main::repl_step   = "OSTX";
+#
 ################################################################################
 # Do not make any modifications below this line                                #
 ################################################################################
@@ -51,7 +53,7 @@ sub parse_options {
 
    $main::NULLallowed = 0;
 
-   if (!getopts ('E:NPU:Ve:fho:p:qs:', \%main::options)) {
+   if (!getopts ('E:NPU:Ve:fho:p:r:qs:', \%main::options)) {
       print (&short_help (1));
       exit(1);
    }
@@ -124,6 +126,12 @@ sub print_help {
    $helptext .= "                     (e.g. \\sqldb[user]{database}), but this can be overwritten\n";
    $helptext .= "                     if it conflicts with other user-defined commands.\n";
    $helptext .= "       -q            run in quiet mode\n";
+   $helptext .= "       -r file       specify a file that contains replace characters. This is a list with\n";
+   $helptext .= "                     two tab- seperated fields per line. The first field holds a string\n";
+   $helptext .= "                     that will be replaced in the SQL output by the second string.\n";
+   $helptext .= "                     By default the file \'$main::my_location\'/SQLTeX_r.dat\' is used.\n";
+   $helptext .= "         -rn         do not use a replace file. -r file and -rn are handled in the same\n";
+   $helptext .= "                     as they where specified on the command line.\n";
    $helptext .= "       -s server     SQL server to connect to. Default is \'localhost\'\n";
 
    $helptext .= "\n       file          is the input file that should be read. By default,\n";
@@ -251,6 +259,15 @@ sub get_filenames {
    } else {
       $main::outputfile = $main::options{'o'};
    }
+   if (defined $main::options{'r'}) {
+      $main::replacefile = $main::options{'r'};
+   } else {
+      $main::replacefile = "$main::my_location/SQLTeX_r.dat";
+   }
+   if (!-e $main::replacefile) {
+      warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
+      undef $main::replacefile;
+   }
    return;
 }
 
@@ -330,6 +347,24 @@ sub check_options ($) {
    }
 }
 
+#####
+# Replace values from the query result as specified in the replace files.
+# This is done in two steps, to prevent characters from being replaces again
+# if they occus both as key and as value.
+#
+sub replace_values ($) {
+   my $sqlresult = shift;
+   my $rk;
+
+   foreach $rk (keys %main::repl_key) {
+      $sqlresult =~ s/\Q$rk\E/$main::repl_key{$rk}/g;
+   }
+
+   foreach $rk (keys %main::repl_key) {
+      $sqlresult =~ s/$main::repl_key{$rk}/$main::repl_val{$main::repl_key{$rk}}/g;
+   }
+   return ($sqlresult);
+}
 
 #####
 # Select multiple rows from the database. This function can have
@@ -353,6 +388,13 @@ sub sql_row ($$) {
 
    while (@values = $stat_handle->fetchrow_array ()) {
       $fc = $#values + 1;
+      if (defined $main::replacefile) {
+         my $list_cnt = 0;
+	 foreach (@values) {
+	    $values[$list_cnt] = replace_values ($values[$list_cnt]);
+	    $list_cnt++;
+	 }
+      }
       push @return_values, (join "$main::fldsep", @values);
    }
    $stat_handle->finish ();
@@ -398,7 +440,11 @@ sub sql_field ($$) {
          $main::var[$main::var_no] = $result[0];
          return "";
       } else {
-         return ($result[0]);
+         if (defined $main::replacefile) {
+            return (replace_values ($result[0]));
+	 } else {
+            return ($result[0]);
+	 }
       }
    }
 }
@@ -512,12 +558,18 @@ sub parse_command ($) {
    } else {
       &just_died (8);
    }
+      
    return;
 }
 
 #####
 # Some globals
 #
+{
+   my @dir_list = split /\//, $0;
+   pop @dir_list;
+   $main::my_location = join "/", @dir_list;
+}
 $main::myself      = $ENV{'_'};
 while ($main::myself =~ /\//) { $main::myself = $'; }
 $main::version = '$Revision$';
@@ -533,6 +585,23 @@ $main::rdate = $act;
 if (-e "$main::path$main::outputfile") {
    die ("outputfile $main::path$main::outputfile already exists\n")
       unless (defined $main::options{'f'});
+}
+
+if (defined $main::replacefile) {
+   my $repl_cnt = "000";
+   open (RF, "<$main::replacefile");
+   while ($main::line = <RF>) {
+      next if ($main::line =~ /^\s*;/);
+      chomp $main::line;
+      $main::line =~ s/\t+/\t/;
+      my ($rk, $rv) = split /\t/, $main::line;
+      if ($rk ne "") {
+         $main::repl_key{$rk} = "$main::repl_step$repl_cnt";
+         $main::repl_val{"$main::repl_step$repl_cnt"} = $rv;
+	 $repl_cnt++;
+      }
+   }
+   close RF;
 }
 
 open (FI, "<$main::path$main::inputfile");
