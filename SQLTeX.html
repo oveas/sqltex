@@ -1,0 +1,1028 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>SQLTEX v1.3</TITLE>
+<META NAME="description" CONTENT="SQLTEX v1.3">
+<META NAME="keywords" CONTENT="SQLTeX">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+</HEAD>
+
+<body bgcolor="White" text="Black" link="Green" vlink="Teal" alink="Lime" background="http://www.oveas.net/graphics/obgb.gif" bgproperties="FIXED">
+
+<center><img src="http://www.oveas.net/graphics/oveaslogo.gif" width=230 height=95 border=0 alt=""></center>
+
+<H1 ALIGN="CENTER">SQLT<SMALL>E</SMALL>X 
+<BR>
+v1.3</H1>
+<P ALIGN="CENTER"><STRONG>Oscar van Eijk</STRONG></P>
+<P ALIGN="CENTER"><STRONG>March 16, 2001</STRONG></P>
+
+<P>
+ 
+<BR>
+
+<H2><A NAME="SECTION00010000000000000000">
+Contents</A>
+</H2>
+<!--Table of Contents-->
+
+<UL>
+<LI><A NAME="tex2html20"
+ HREF="SQLTeX.html">Contents</A>
+<LI><A NAME="tex2html21"
+ HREF="SQLTeX.html#SECTION00020000000000000000">Introduction</A>
+<UL>
+<LI><A NAME="tex2html22"
+ HREF="SQLTeX.html#SECTION00021000000000000000">Known limitations</A>
+</UL>
+<LI><A NAME="tex2html23"
+ HREF="SQLTeX.html#SECTION00030000000000000000">Installing SQLTEX</A>
+<UL>
+<LI><A NAME="tex2html24"
+ HREF="SQLTeX.html#SECTION00031000000000000000">Configuration</A>
+</UL>
+<LI><A NAME="tex2html25"
+ HREF="SQLTeX.html#SECTION00040000000000000000">Write your SQLTEX file</A>
+<UL>
+<LI><A NAME="tex2html26"
+ HREF="SQLTeX.html#SECTION00041000000000000000">SQL statements</A>
+<LI><A NAME="tex2html27"
+ HREF="SQLTeX.html#SECTION00042000000000000000">Opening the database</A>
+<LI><A NAME="tex2html28"
+ HREF="SQLTeX.html#SECTION00043000000000000000">Reading a single field</A>
+<LI><A NAME="tex2html29"
+ HREF="SQLTeX.html#SECTION00044000000000000000">Reading rows of data</A>
+</UL>
+<LI><A NAME="tex2html30"
+ HREF="SQLTeX.html#SECTION00050000000000000000">Process your SQLTEX file</A>
+<UL>
+<LI><A NAME="tex2html31"
+ HREF="SQLTeX.html#SECTION00051000000000000000">Parameters</A>
+<LI><A NAME="tex2html32"
+ HREF="SQLTeX.html#SECTION00052000000000000000">Command line options</A>
+</UL>
+<LI><A NAME="tex2html33"
+ HREF="SQLTeX.html#SECTION00060000000000000000">SQLTEX errors and warnings</A>
+<LI><A NAME="tex2html50"
+ HREF="SQLTeX.html#SECTION00080000000000000000">Copyright and disclaimer</A>
+</UL>
+<!--End of Table of Contents--> 
+
+<P>
+
+<H1><A NAME="SECTION00020000000000000000">
+Introduction</A>
+</H1>
+
+<P>
+SQLT<SMALL>E</SMALL>X  is a preprocessor to enable the use of SQL statements in L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X . It is a perl script that reads
+an input file containing the SQL commands, and writes a L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  file that can be processed with your
+L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  package.
+
+<P>
+The SQL commands will be replaced by their values. It's possible to select a single field for substitution
+substitution in your L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  document, or to be used as input in another SQL command.
+
+<P>
+When an SQL command returns multiple fields and or rows, the values can only be used for substitution
+in the document.
+
+<P>
+
+<H2><A NAME="SECTION00021000000000000000">
+Known limitations</A>
+</H2>
+
+<P>
+
+<UL>
+<LI>The current version only supports the MySQL database environment.</LI>
+<LI>SQLT<SMALL>E</SMALL>X  reads only one input file; the L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  <TT>\include</TT> directive is ignored</LI>
+<LI>Currently, only 9 command- line parameters (1-9), and 10 variables (0-9) can be used in SQL
+statements</LI>
+<LI>With SQLT<SMALL>E</SMALL>X  it is only possible to read from a database (no updates).</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION00030000000000000000">
+Installing SQLT<SMALL>E</SMALL>X</A>
+</H1>
+
+<P>
+Before installing SQLT<SMALL>E</SMALL>X , you need to have it. The latest version can always be found at
+<I><a href="http://software.oveas.net/sqltex">http://software.oveas.net/sqltex</a></I>.
+The download consists of this documentation, an installation script for Unix
+(<TT>install</TT>), and the Perl script <TT>SQLTeX</TT>. The last file is all
+you actually need.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+On a Unix system, make sure the file <TT>install</TT> is executable by issueing
+the command:
+<BR>
+<TT>bash$ chmod +x install</TT>
+<BR>
+then execute it with:
+<BR>
+<TT>bash$ ./install</TT>
+
+<P>
+The script will ask in which directory SQLT<SMALL>E</SMALL>X  should be installed. If you are
+logged in as `root', the default will be <TT>/usr/local/bin</TT>, otherwise the
+current directory.
+<BR>
+Make sure the directory where SQLT<SMALL>E</SMALL>X  is installed is in your path.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+For other operating systems, there is no install script, you will have to install
+it manually.
+
+<P>
+On O<SMALL>PEN</SMALL>VMS it would be something like:
+<BR>
+<TT>$ SET FILE/PROTECTION=(W:RE) SQLTEX.<A NAME="tex2html1"
+ HREF="#foot266"><SUP>1</SUP></A>
+<BR>
+$ COPY SQLTEX. SYS$SYSTEM:</TT>
+<BR>
+However, on O<SMALL>PEN</SMALL>VMS you also need to define the command <TT>SQLTEX</TT> by setting a symbol,
+either in the <TT>LOGIN.COM</TT> for all users who need to execute this script, or in some group- or
+system wide login procedure, with the command:
+<BR>
+<TT>$ SQLTEX :== "PERL SYS$SYSTEM:SQLTEX."</TT>
+<BR>
+
+<P>
+
+<H2><A NAME="SECTION00031000000000000000"></A><A NAME="config"></A>
+<BR>
+Configuration
+</H2>
+
+<P>
+The program starts with a configuration section. The default values are displayed
+here:
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<FONT SIZE="-1"> </FONT><PRE>
+
+#
+################################################################################
+# Configurable part
+#
+$main::texex       = "tex";    # default tex- file extension
+$main::stx         = "_stx";   # file name extension to insert before the last '.'
+#
+$main::cmd_prefix  = "sql";    # prefix for sql-commands (\sql&lt;command&gt;[]{})
+$main::sql_open    = "db";     # database declaration, e.g. \sqldb[user,passw]{database}
+$main::sql_field   = "field";  # select a single field from db, e.g. \sqlfield{select field from....}
+$main::sql_row     = "row";    # select rows from db, e.g. \sqlfield{select * from....}
+#
+$main::less_av     = 1;        # Is the command 'less' available on this system ?
+$main::more_av     = 1;        # Is the command 'more' available on this system ?
+#
+################################################################################
+# Do not make any modifications below this line                                #
+################################################################################
+</PRE>
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+These values are default values; most values can be overwritten using command line
+options (see section&nbsp;<A HREF="SQLTeX.html#cmdline">4.2</A>). When the command line options are
+omitted, the default values from the configuration section will be used.
+
+<P>
+ 
+<DL>
+<DT><STRONG>$main::texex</STRONG></DT>
+<DD>The default file extension for L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  file. When SQLT<SMALL>E</SMALL>X  is called, the first
+parameter should be the name of the input file. If this filename has no extension,
+SQLT<SMALL>E</SMALL>X  looks for one with the default extension.
+<P>
+ </DD>
+<DT><STRONG>$main::stx</STRONG></DT>
+<DD>An output file can be given explicitly using the `<TT>-o</TT>' option. When omitted,
+SQLT<SMALL>E</SMALL>X  composes an output file name using this string.
+<BR>
+E.g, if your input file is called <TT>db-doc.tex</TT>, SQLT<SMALL>E</SMALL>X  will produce an
+outputfile with the name <TT>db-doc_stx.tex</TT>.
+
+<P>
+ </DD>
+<DT><STRONG>$main::cmd_prefix</STRONG></DT>
+<DD><A NAME="prefix"></A> SQLT<SMALL>E</SMALL>X  looks for SQL commands in the input file. Commands are specified in the
+same way all L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  commands are specified: a backslash (\) followed by the
+name of the command.
+<BR>
+All SQLT<SMALL>E</SMALL>X  commands start with the same string. By default, this is the string
+<TT><B>sql</B></TT>. When user commands are defined that start with the same
+string, this can be changed here to prevent conflicts.
+
+<P>
+ </DD>
+<DT><STRONG>$main::sql_open</STRONG></DT>
+<DD>This string is appended to the $main::cmd_prefix to form the complete SQLT<SMALL>E</SMALL>X  for opening a database.
+<BR>
+With the default configuration this command is ``<TT>\sqlopen</TT>''.
+
+<P>
+ </DD>
+<DT><STRONG>$main::sql_field</STRONG></DT>
+<DD>This string is appended to the $main::cmd_prefix to form the complete SQLT<SMALL>E</SMALL>X  to read a single field from the database.
+<BR>
+With the default configuration this command is ``<TT>\sqlfield</TT>''.
+
+<P>
+ </DD>
+<DT><STRONG>$main::sql_row</STRONG></DT>
+<DD>This string is appended to the $main::cmd_prefix to form the complete SQLT<SMALL>E</SMALL>X  to read one or more rows from the database.
+<BR>
+With the default configuration this command is ``<TT>\sqlrow</TT>''.
+
+<P>
+ </DD>
+<DT><STRONG>$main::less_av &amp; $main::more_av</STRONG></DT>
+<DD>These settings are used to determin how the <I>help</I> output should be displayed. If the
+command `<TT>less</TT>' is available on the current system, the output will be
+parsed through this program. Otherwise the output will be parsed through the
+program `<TT>more</TT>' if availeble. Both programs are usually available on Unix
+system (<TT>more</TT> is standard on most Unix systems), but ports for other
+operating systems are available as well.
+<BR>
+Set the values to ``0'' for the program(s) that is (are) not available, or if
+you don't want to use it.
+<BR>
+If none of these programs is available, the <I>help</I> output is plain echoed
+to the display.
+
+<P></DD>
+</DL>
+
+<P>
+
+<H1><A NAME="SECTION00040000000000000000">
+Write your SQLT<SMALL>E</SMALL>X  file</A>
+</H1>
+
+<P>
+For SQLT<SMALL>E</SMALL>X , you write your L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  document just as you're used to. SQLT<SMALL>E</SMALL>X  provides you with
+some extra commands that you can include in your file.
+<BR>
+The basic format<A NAME="tex2html2"
+ HREF="#foot269"><SUP>2</SUP></A> of an SQLT<SMALL>E</SMALL>X  command is: 
+<BR>
+<TT>\sql<I>cmd</I>[options]{SQL statement}</TT>
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+All SQLT<SMALL>E</SMALL>X  commands can be specified anywhere in a line, and can span multiple lines.
+When SQLT<SMALL>E</SMALL>X  executes, the commands are read, executed, and their results--if they return
+any--are written to the output:
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TABLE  WIDTH="50%">
+<TR><TD><I>Input file:</I>
+<BR><TT><FONT SIZE="-1"> \documentclass[article] 
+<BR>
+\pagestyle{empty} 
+<BR>
+\sqldb[oscar]{mydb} 
+<BR>
+\begin{document} 
+<BR>
+</FONT></TT></TD></TR>
+</TABLE><TABLE  WIDTH="50%">
+<TR><TD><I>Output file:</I>
+<BR><TT><FONT SIZE="-1"> \documentclass[article] 
+<BR>
+\pagestyle{empty} 
+<BR>
+ 
+<BR>
+\begin{document} 
+<BR>
+</FONT></TT></TD></TR>
+</TABLE>
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+Above you see the SQLT<SMALL>E</SMALL>X  command <TT>\sqldb</TT> was removed. Only the command was removed, not
+the <I>newline</I> character at the end of the line, so an empty line will be printed instead.
+The example below shows the output is an SQLT<SMALL>E</SMALL>X  command was found on a line with other L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  directives:
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TABLE  WIDTH="50%">
+<TR><TD><I>Input file:</I>
+<BR><TT><FONT SIZE="-1"> \documentclass[article] 
+<BR>
+\<FONT SIZE="-1">pagestyle{empty}</FONT>\sqldb[oscar]{mydb} 
+<BR>
+\begin{document} 
+<BR>
+</FONT></TT></TD></TR>
+</TABLE><TABLE  WIDTH="50%">
+<TR><TD><I>Output file:</I>
+<BR><TT><FONT SIZE="-1"> \documentclass[article] 
+<BR>
+\pagestyle{empty} 
+<BR>
+\begin{document} 
+<BR>
+</FONT></TT></TD></TR>
+</TABLE>
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+In these examples the SQLT<SMALL>E</SMALL>X  commands did not return a value. When commands actually read from
+the database, the returned value is written instead:
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TABLE  WIDTH="50%">
+<TR><TD><I>Input file:</I>
+<BR><TT><FONT SIZE="-1"> This invoice has \sqlfield{SELECT COUNT(*) FROM INVOICE_LINE 
+<BR>
+WHERE INVOICE_NR = 12345} lines.
+<BR>
+</FONT></TT></TD></TR>
+</TABLE><TABLE  WIDTH="50%">
+<TR><TD><I>Output file:</I>
+<BR><TT><FONT SIZE="-1"> This invoice has 4 lines 
+<BR>
+</FONT></TT></TD></TR>
+</TABLE>
+
+<P>
+
+<H2><A NAME="SECTION00041000000000000000"></A><A NAME="sqlstatements"></A>
+<BR>
+SQL statements
+</H2>
+
+<P>
+This document assumes the reader is familiar with SQL commands. This section only tells something about
+implementing them in SQLT<SMALL>E</SMALL>X  files, especially with the use of command parameters and variables.
+Details about the SQLT<SMALL>E</SMALL>X  commands will be described in the next sections.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+Let's look at a simple example. Suppose we want to retreive all header information from the database
+for a specific invoice. The SQL statement could look something like this: 
+<BR>
+<TT>SELECT * FROM INVOICE WHERE INVOICE_NR = 12345;</TT>
+<BR>
+To implement this statement in an SQLT<SMALL>E</SMALL>X  file, the <TT>\sqlrow</TT> command should be used (see
+section&nbsp;<A HREF="SQLTeX.html#sqlrow">3.4</A>):
+
+<P>
+First, it is important to know that SQL statements should <I>not</I> contain the ending semicolon (;) in
+any of the SQLT<SMALL>E</SMALL>X  commands. The command in SQLT<SMALL>E</SMALL>X  would be:
+<BR>
+<TT>\sqlrow{SELECT * FROM INVOICE WHERE INVOICE_NR = 12345}</TT>
+
+<P>
+Next, SQLT<SMALL>E</SMALL>X  would be useless if you have to change your input file every time you want to generate
+the same document for another invoice.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+Therefore, you parameters or variables can be used in your SQL statement. Parameters are given at the command
+line (see section&nbsp;<A HREF="SQLTeX.html#params">4.1</A>), variables can be defined using the <TT>\sqlfield</TT> command as
+described in section&nbsp;<A HREF="SQLTeX.html#vars">3.3.1</A>.
+
+<P>
+Given the example above, the invoice number can be passed as a parameter by rewriting the command as: 
+<BR>
+<TT>\sqlrow{SELECT * FROM INVOICE WHERE INVOICE_NR = $PAR1}</TT> 
+<BR>
+or as as variable with the code line: 
+<BR>
+<TT>\sqlrow{SELECT * FROM INVOICE WHERE INVOICE_NR = $VAR0}</TT>
+
+<P>
+Note you have to know what datatype is expected by your database. In the example here the datatype is
+<SMALL>INTEGER</SMALL>. If the field ``<SMALL>INVOICE</SMALL>_<SMALL>NR</SMALL>'' contains a <SMALL>VARCHAR</SMALL> type, the
+<TT>$PAR</TT>amater or <TT>$VAR</TT>iable should be enclosed by quotes: 
+<BR>
+<TT>\sqlrow{SELECT * FROM INVOICE WHERE INVOICE_NR = '$PAR1'}</TT>
+
+<P>
+
+<H2><A NAME="SECTION00042000000000000000">
+Opening the database</A>
+</H2>
+
+<P>
+Before any information can be read from a database, this database should be opened.
+This is done with the <TT><B>\sqlopen</B></TT> command.
+<TT>\sqlopen</TT> requires the name of the dabatase. Optionally, a username and password can be given. When
+omitted, SQLT<SMALL>E</SMALL>X  assumes no username and password is required to connect to the database (the user that
+executes SQLT<SMALL>E</SMALL>X  should have access to the specified database). 
+<BR>
+The format of the command is:
+<BR>
+<TT>\sqlopen[username,password]{database}</TT>
+
+<P>
+The command can be used anywhere in your input file, but should occur before the first command that tries to
+read data from the database.
+
+<P>
+
+<H2><A NAME="SECTION00043000000000000000"></A><A NAME="sqlfield"></A>
+<BR>
+Reading a single field
+</H2>
+
+<P>
+When a single field of information is to be read from the database, the command <TT><B>\sqlfield</B></TT>
+is used. By default, the command in the inputfile is replaced by its result in the outputfile.
+<BR>
+The SQL command is enclosed by curly braces. Square brackets can optionally be used to enter some extra options.
+Currently, the only supported option is <TT>setvar</TT> (see section&nbsp;<A HREF="SQLTeX.html#vars">3.3.1</A>).
+
+<P>
+The full syntax or the <TT>\sqlfield</TT> command is:
+<BR>
+<TT>\sqlrow[<I>options</I>]{SELECT <I>fieldname</I> FROM <I>tablename</I> WHERE <I>your where-clause</I>}</TT> 
+<BR>
+By default, the SQLT<SMALL>E</SMALL>X  command is replaced with the value returned by the SQL query. This behaviour
+can be changed with options.
+
+<P>
+
+<H3><A NAME="SECTION00043100000000000000"></A><A NAME="vars"></A>
+<BR>
+Define variables
+</H3>
+
+<P>
+The <TT>\sqlfield</TT> can also be used to set a variable. The value returned by the SQL query is not
+displayed in this case. Instead, a variable is created which can be used in any other SQL query later in
+the document (see also section&nbsp;<A HREF="SQLTeX.html#sqlstatements">3.1</A>).
+
+<P>
+Therefore, the option <TT><B>[setvar=<I>n</I>]</B></TT> is used, where <I>n</I> is an integer between
+0 and 9.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+Suppose you have an invoice in L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X . SQLT<SMALL>E</SMALL>X  is executed to retrieve the invoice header information
+from the database for a specific customer. Next, the invoice lines are read from the database.
+
+<P>
+You could pass the invoice number as a paramater to SQLT<SMALL>E</SMALL>X  for use in your queries, but that could
+change every month. It is easier to :
+<BR>
+
+<UL>
+<LI>pass the customer number as a parameter,</LI>
+<LI>retrieve the current date (asuming that is the invoice date as stored in
+the database by another program), and store it in a variable: 
+<BR>
+<TT>\sqlfield[setvar=0]{SELECT DATE_FORMAT(NOW(), "%Y-%m-%d")}</TT> 
+<BR>
+This creates a variable that can be used as <TT>$VAR0</TT>,</LI>
+<LI>retrieve the invoice number using the customer number (a command line parameter,
+see also section&nbsp;<A HREF="SQLTeX.html#params">4.1</A>) and the variable containing the invoice date.
+Store this invoice number in <TT>$VAR1</TT>: 
+<BR>
+<TT>\sqlfield[setvar=1]{SELECT INVOICE_NR FROM INVOICES 
+<BR>
+WHERE CUST_NR = '$PAR1' AND INVOICE_DATE = '$VAR0'}</TT></LI>
+<LI>use <TT>$VAR1</TT> to retrieve all invoice information.</LI>
+</UL>
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+The SQL queries used here do not display any output in your L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X document.
+
+<P>
+
+<H2><A NAME="SECTION00044000000000000000"></A><A NAME="sqlrow"></A>
+<BR>
+Reading rows of data
+</H2>
+
+<P>
+When an SQL query returns more information than one single field, the SQLT<SMALL>E</SMALL>X  command <TT><B>\sqlrow</B></TT> should be used. As with the <TT>\sqlfield</TT>,
+command, SQLT<SMALL>E</SMALL>X  replaces the command with the values it returns, but <TT>\sqlrow</TT>
+accepts different options for formating the output.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+By default, fields are separated by a comma and a blank (`<TT>,&nbsp;</TT>'), and rows by 
+a newline character (`<TT>\\</TT>'). To change this, the options ``<TT>fldsep</TT>''
+and ``<TT>rowsep</TT>'' can be used.
+
+<P>
+e.g. In a <TT>tabular</TT> enviroment the fields should be seperated by an amphesand (<TT>&amp;</TT>),
+perhaps a line should seperate the rows of information. (<TT>\\&nbsp;\hline</TT>).
+To do this, the options can be used with <TT>\sqlrow</TT> as shown here: 
+<BR>
+<TT>\sqlrow[fldsep=&amp;,rowsep=\\&nbsp;\hline]{SELECT I.LINE_NR, A.ARTICLE_NR, 
+A.PRICE, I.AMOUNT, (A.PRICE * I.AMOUNT) FROM ARTICLE A, INVOICE_LINE I WHERE I.INVOICE_NR = $VAR1 
+AND I.ARTICLE_NR = A.ARTICLE_NR}</TT>
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+This will produce an output like: 
+<BR>
+<TT>1 &amp; 9712 &amp; 12 &amp; 1 &amp; 12 \\&nbsp;\hline 
+<BR>
+2 &amp; 4768 &amp; 9.75 &amp; 3 &amp; 29,25 \\&nbsp;\hline 
+<BR>
+3 &amp; 4363 &amp; 1.95 &amp; 10 &amp; 19.5 \\&nbsp;\hline 
+<BR>
+4 &amp; 8375 &amp; 12.5 &amp; 2 &amp; 25 \\&nbsp;\hline</TT>
+
+<P>
+
+<H1><A NAME="SECTION00050000000000000000">
+Process your SQLT<SMALL>E</SMALL>X  file</A>
+</H1>
+
+<P>
+To process you SQLT<SMALL>E</SMALL>X  file and create a L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  file with all information read from
+the database, call SQLT<SMALL>E</SMALL>X  with the parameter(s) and (optional) commandline options as
+described here:
+
+<P>
+
+<H2><A NAME="SECTION00051000000000000000"></A><A NAME="params"></A>
+<BR>
+Parameters
+</H2>
+
+<P>
+SQLT<SMALL>E</SMALL>X  accepts more than one parameter. The first parameter is required; this should
+be the input file, pointing to your L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X  document containing the SQLT<SMALL>E</SMALL>X  commands.
+
+<P>
+By default, SQLT<SMALL>E</SMALL>X  looks for a file with extension `<TT>.tex</TT>'.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+All other parameters are used by the queries, if required. If an SQL query contains the
+string <TT>$PAR<I>n</I></TT><A NAME="tex2html3"
+ HREF="#foot283"><SUP>3</SUP></A>, it is replaced by that parameter
+(see also section&nbsp;<A HREF="SQLTeX.html#sqlstatements">3.1</A>).
+
+<P>
+
+<H2><A NAME="SECTION00052000000000000000"></A><A NAME="cmdline"></A>
+<BR>
+Command line options
+</H2>
+
+<P>
+SQLT<SMALL>E</SMALL>X  accepts the followint command- line options:
+
+<P>
+ 
+<DL>
+<DT><STRONG>-E <I>string</I></STRONG></DT>
+<DD>replace input file extension in outputfile:
+<TT>input.tex</TT> will be <TT>input.<I>string</I></TT> 
+<BR>
+For further notes, see option <TT>-e</TT> below</DD>
+<DT><STRONG>-N</STRONG></DT>
+<DD><TT>NULL</TT> return values allowed. By default SQLT<SMALL>E</SMALL>X  exits if a
+query returns an empty set.</DD>
+<DT><STRONG>-P</STRONG></DT>
+<DD>prompt for database password. This overwrites the password in the
+input file.</DD>
+<DT><STRONG>-U <I>user</I></STRONG></DT>
+<DD>database username. This overwrites the username in the
+input file.</DD>
+<DT><STRONG>-V</STRONG></DT>
+<DD>print version number and exit.</DD>
+<DT><STRONG>-e <I>string</I></STRONG></DT>
+<DD>add <I>string</I> to the output filename:
+<TT>input.tex</TT> will be <TT>input<I>string</I>.tex</TT>. This overwrites
+the configuration setting <TT>$main::stx</TT> 
+<BR>
+In <I>string</I>, the values between curly braces {} will be substituted:
+<DL>
+<DT><STRONG>P<I>n</I></STRONG></DT>
+<DD>parameter <I>n</I></DD>
+<DT><STRONG>M</STRONG></DT>
+<DD>current monthname (<I>Mon</I>)</DD>
+<DT><STRONG>W</STRONG></DT>
+<DD>current weekday (<I>Wdy</I>)</DD>
+<DT><STRONG>D</STRONG></DT>
+<DD>current date (<I>yyyymmdd</I>)</DD>
+<DT><STRONG>DT</STRONG></DT>
+<DD>current date and time (<I>yyyymmddhhmmss</I>)</DD>
+<DT><STRONG>T</STRONG></DT>
+<DD>current time (<I>hhmmss</I>)</DD>
+</DL>
+e.g., the command `<TT>SQLTeX -e _{P1}_{W} my_file code</TT>'
+will read `<TT>my_file.tex</TT>' and write `<TT>myfile_code_Tue.tex</TT>'
+The same command, but with option <TT>-E</TT> would create the
+outputfile <TT>myfile._code_Tuesday</TT>
+By default (without <TT>-e</TT> or <TT>-E</TT>) the outputfile
+<TT>myfile_stx.tex</TT> would have been written.
+The options <TT>-E</TT> and <TT>-e</TT> cannot be used together or with <TT>-o</TT>.</DD>
+<DT><STRONG>-f</STRONG></DT>
+<DD>force overwrite of existing files. By default, SQLT<SMALL>E</SMALL>X  exists with a
+warning message it the outputfile already exists.</DD>
+<DT><STRONG>-h</STRONG></DT>
+<DD>print this help message and exit.</DD>
+<DT><STRONG>-o <I>file</I></STRONG></DT>
+<DD>specify an output file. Cannot be used with <TT>-e</TT> or <TT>-E</TT>.</DD>
+<DT><STRONG>-p <I>prefix</I></STRONG></DT>
+<DD>prefix used in the SQLT<SMALL>E</SMALL>X  file. Default is <TT>sql</TT> (see also section&nbsp;<A HREF="SQLTeX.html#config">2.1</A>,
+<A HREF="SQLTeX.html#prefix">here</A>. This overwrites the configurarion setting <TT>$main::cms_prefix</TT>.</DD>
+<DT><STRONG>-q</STRONG></DT>
+<DD>run in quiet mode.</DD>
+<DT><STRONG>-s <I>server</I></STRONG></DT>
+<DD>SQL server to connect to. Default is <TT>localhost</TT>.</DD>
+</DL>
+
+<P>
+
+<H1><A NAME="SECTION00060000000000000000">
+SQLT<SMALL>E</SMALL>X  errors and warnings</A>
+</H1>
+
+<P>
+ 
+<TT>no input file specified</TT>
+
+<P>
+ 
+<BR>
+
+<P>
+SQLT<SMALL>E</SMALL>X  was called without any parameters.
+<BR>
+<I>Action:</I> Specify at least one parameter at the commandline. This parameter should be
+the name of your input file.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>File <I>input filename</I> does not exist</TT>
+
+<P>
+ 
+<BR>
+
+<P>
+The input file does not exist.
+<BR>
+<I>Action:</I> Make sure the first parameter points to the input file.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>outputfile <I>output filename</I> already exists</TT>
+
+<P>
+ 
+<BR>
+
+<P>
+The outputfile cannot be created because it already exists.
+<BR>
+<I>Action:</I> Specify another output filename with command line option <TT>-e</TT>,
+<TT>-E</TT> or <TT>-o</TT>, or force an overwrite with option <TT>-f</TT> (see also section<A HREF="SQLTeX.html#cmdline">4.2</A>).
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>no database opened at line <I>line nr</I></TT>
+
+<P>
+ 
+<BR>
+
+<P>
+A query starts at line <I>line nr</I>, but at that point no database was opened yet. 
+<BR>
+<I>Action:</I> Add an <TT>\sqlopen</TT> command prior to the first query statement.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>insufficient parameters to substitute variable on line <I>line nr</I></TT>
+
+<P>
+ 
+<BR>
+
+<P>
+The query starting at line <I>line nr</I> uses a parameter in a <SMALL>WHERE</SMALL>- clause with
+<TT>$PAR<I>n</I></TT>, where <I>n</I> is a number bigger than the number of parameters
+passed to SQLT<SMALL>E</SMALL>X .
+<BR>
+<I>Action:</I> Specify all required parameters at the command line.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>trying to substitute with non existing on line <I>line nr</I></TT>
+
+<P>
+ 
+<BR>
+
+<P>
+The query starting at line <I>line nr</I> requires a variable <TT>$VAR<I>n</I></TT> in its
+<SMALL>WHERE</SMALL>- clause, where <I>n</I> points to a variable that has not (yet) been set. 
+<BR>
+<I>Action:</I> Change the number or set the variable prior to this statement.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>trying to overwrite an existing variable on line <I>line nr</I></TT>
+
+<P>
+ 
+<BR>
+
+<P>
+At line <I>line nr</I>, a <TT>\sqlfield</TT> query tries to set a variable <I>n</I>
+using the option <TT>[setvar=<I>n</I>]</TT>, but <TT>$VAR<I>n</I></TT> already
+exists at that point. 
+<BR>
+<I>Action:</I> Change the number.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>no result set found on line <I>line nr</I></TT>
+
+<P>
+ 
+<BR>
+
+<P>
+The query starting at line <I>line nr</I> returned a <TT>NULL</TT> value. If the
+option <TT>-N</TT> was specified at the commandline, this is just a warning message.
+Otherwise, SQLT<SMALL>E</SMALL>X  exits. 
+<BR>
+<I>Action:</I> None.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>result set too big on line <I>line nr</I></TT>
+
+<P>
+ 
+<BR>
+
+<P>
+The query starting at line <I>line nr</I>, called with <TT>\sqlfield</TT> returned more than one field. 
+<BR>
+<I>Action:</I> Change your query or use <TT>\sqlrow</TT> instead.
+
+<P>
+ 
+<BR>
+<BR>
+
+<P>
+ 
+<TT>unrecognized command on line <I>line nr</I></TT>
+
+<P>
+ 
+<BR>
+
+<P>
+At line <I>line nr</I>, a command was found that starts with ``<TT>\sql</TT>'',
+but this command was not recognized by SQLT<SMALL>E</SMALL>X .
+<BR>
+<I>Action:</I> Check for typos. If the command is a user- defined command, it will
+conflict with default SQLT<SMALL>E</SMALL>X commands. Change the SQLT<SMALL>E</SMALL>X command prefix (see section&nbsp;<A HREF="SQLTeX.html#config">2.1</A>).
+
+<P>
+<BR>
+<BR>
+
+<P>
+<TT>no sql statements found in <I>input filename</I></TT>
+
+<P>
+<BR>
+
+<P>
+SQLT<SMALL>E</SMALL>X did not find any valid SQLT<SMALL>E</SMALL>X commands. 
+<BR>
+<I>Action:</I> Check your input file.
+
+<P>
+
+<H1><A NAME="SECTION00080000000000000000">
+Copyright and disclaimer</A>
+</H1>
+
+<BR>
+The latest release is always available at <a href="http://software.oveas.net/sqltex">http://software.oveas.net/sqltex</a>
+For bugs, questions and comments, please contact me at
+<a href="mailto:oscar.van.eijk@oveas.net">oscar.van.eijk@oveas.net</a>.
+
+<BR>
+<BR>
+Copyright &copy; 2001 - Oscar van Eijk, Oveas Internet Services
+
+<HR>
+
+<BR>
+
+<FONT SIZE="-1">
+ANY SOFTWARE PROVIDED BY OVEAS INTERNET SERVICES IS ``AS IS'' AND ANY
+EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL OVEAS INTERNET SERVICES OR ITS CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE. 
+<BR>
+THIS SCRIPT IS PROVIDED WITHOUT SUPPORT.
+
+<BR>
+THIS SOFWTARE CAN BE USED FREELY FOR NON-COMMERCIAL USE AS LONG AS ALL
+COPYRIGHT NOTICES AND DISCLAIMERS ARE NOT REMOVED.
+MODIFICATION OF THIS SOFTWARE IS NOT ALLOWED WITHOUT PERMISSION OF THE
+COPYRIGHT HOLDERS.
+</FONT>
+
+<HR>
+
+<H1><A NAME="SECTION00070000000000000000">
+About this document ...</A>
+</H1>
+ <STRONG>SQLT<SMALL>E</SMALL>X 
+<BR>
+v1.3</STRONG><P>
+This document was generated using the
+<A HREF="http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/"><STRONG>LaTeX</STRONG>2<tt>HTML</tt></A> translator Version 99.1 release (March 30, 1999)
+<P>
+Copyright &#169; 1993, 1994, 1995, 1996,
+<A HREF="http://cbl.leeds.ac.uk/nikos/personal.html">Nikos Drakos</A>, 
+Computer Based Learning Unit, University of Leeds.
+<BR>
+Copyright &#169; 1997, 1998, 1999,
+<A HREF="http://www.maths.mq.edu.au/~ross/">Ross Moore</A>, 
+Mathematics Department, Macquarie University, Sydney.
+<P>
+The command line arguments were: <BR>
+ <STRONG>latex2html</STRONG> <TT>-split 0 -no_footnode SQLTeX.tex</TT>
+<P>
+The translation was initiated by Oscar van Eijk on 2001-03-16
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot266">... SQLTEX.</A><A NAME="foot266"
+ HREF="SQLTeX.html#tex2html1"><SUP>1</SUP></A>
+<DD>Note the dot (`.') at the end of the file; on
+O<SMALL>PEN</SMALL>VMS systems, all files must to have a file extension, which can
+be empty, in which case the filename ends with a dot.
+
+<DT><A NAME="foot269">... format</A><A NAME="foot269"
+ HREF="SQLTeX.html#tex2html2"><SUP>2</SUP></A>
+<DD>in this document, in all examples will be asumed the default values in the
+configuration section as described in section&nbsp;<A HREF="SQLTeX.html#config">2.1</A>, have not been changed
+
+<DT><A NAME="foot283">...$PAR<I>n</I></A><A NAME="foot283"
+ HREF="SQLTeX.html#tex2html3"><SUP>3</SUP></A>
+<DD>where <I>n</I> is a number between 1 and 9. Note 
+parameter `0' cannot be used, since that contains the filename!
+
+</DL><HR>
+<ADDRESS>
+<I>Oscar van Eijk</I>
+<BR><I>2001-03-16</I>
+</ADDRESS>
+</BODY>
+</HTML>
