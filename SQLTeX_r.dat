@@ -1,0 +1,24 @@
+; This file contains all characters or character sequences that
+; will be be replaced by SQLTeX when the occur in the response
+; of an SQL query.
+; It is mainly used for escaping the (La)TeX special characters,
+; but any value can be added here.
+; The first column is the character (sequence) that will be replaced.
+; The second column is the value to replace col 1 with.
+; Columns are sepated with one or more tab- characters.
+;
+; Note all values are case sensitive; if you add the line:
+;   LaTeX	\LaTeX\ 
+; the word "latex" will be untouched, but "LaTeX" will be replaced.
+;
+$	\$
+_	\_
+%	\%
+&	\&
+<	\texttt{<}
+>	\texttt{>}
+{	\{
+}	\}
+#	\#
+~	\~{}
+\	\ensuremath{\backslash}
