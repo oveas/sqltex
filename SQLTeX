@@ -120,7 +120,7 @@ sub print_help {
    $helptext .= "       -f            force overwrite of existing files\n";
    $helptext .= "       -h            print this help message and exit\n";
    $helptext .= "       -o file       specify an output file. Cannot be used with \'-E\' or \'-e\'\n";
-   $helptext .= "                     In \'string\', the values between accolades \{\}\n";
+   $helptext .= "       -p prefix     prefix used in the SQLTeX file. Default is \'sql\'\n";
    $helptext .= "                     (e.g. \\sqldb[user]{database}), but this can be overwritten\n";
    $helptext .= "                     if it conflicts with other user-defined commands.\n";
    $helptext .= "       -q            run in quiet mode\n";
