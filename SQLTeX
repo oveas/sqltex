@@ -114,7 +114,7 @@ sub print_help {
    $helptext .= "                     will read \'my_file.tex\' and write \'myfile_code_Tue.tex\'\n";
    $helptext .= "                     The same command, but with option \'-E\' would create the\n";
    $helptext .= "                     outputfile \'myfile._code_Tuesday\'\n";
-   $helptext .= "                     exists if a query returns an empty set\n";
+   $helptext .= "                     By default (without \'-e\' or \'-E\') the outputfile\n";
    $helptext .= "                     \'myfile_stx.tex\' would have been written.\n";
    $helptext .= "                     The options \'-E\' and \'-e\' cannot be used together or with \'-o\'.\n";
    $helptext .= "       -f            force overwrite of existing files\n";
@@ -538,10 +538,10 @@ if (-e "$main::path$main::outputfile") {
 open (FI, "<$main::path$main::inputfile");
 open (FO, ">$main::path$main::outputfile");
 
-$main::version = '$Revision$';
+$main::sql_statements = 0;
 $main::db_opened = 0;
 $main::lcount = 0;
-my $rdate   = '$Date$';
+
 while ($main::line = <FI>) {
    $main::lcount++;
 
