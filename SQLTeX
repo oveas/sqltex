@@ -1,0 +1,570 @@
+################################################################################
+#
+# SQLTeX - SQL preprocessor for Latex
+#
+# File:        SQLTeX
+# =====
+#
+# Purpose:     This script is a preprocessor for LaTeX. It reads a LaTeX file
+# ========     containing SQL commands, and replaces them their values.
+#
+# The latest version can always be found at http://software.oveas.net/sqltex
+#
+# $Revision$
+# $Date$
+#
+# This software is subject to the terms of the LaTeX Project Public License; 
+# see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
+#
+# Copyright:  (c) 2001, Oscar van Eijk, Oveas, support@oveas.net
+# ==========
+#
+################################################################################
+#
+use strict;
+use DBI;
+use Getopt::Std;
+#
+################################################################################
+# Configurable part
+#
+$main::texex       = "tex";
+$main::stx         = "_stx";
+#
+$main::cmd_prefix  = "sql";
+$main::sql_open    = "db";
+$main::sql_field   = "field";
+$main::sql_row     = "row";
+#
+$main::less_av     = 1;
+$main::more_av     = 1;
+#
+################################################################################
+# Do not make any modifications below this line                                #
+################################################################################
+
+#####
+# Find out if any command-line options have been given
+# Parse them using 'Getopt'
+#
+sub parse_options {
+
+   $main::NULLallowed = 0;
+
+   if (!getopts ('E:NPU:Ve:fho:p:qs:', \%main::options)) {
+      print (&short_help (1));
+      exit(1);
+   }
+
+   if (defined $main::options{'h'}) {
+      &print_help;
+      exit(0);
+   }
+   if (defined $main::options{'V'}) {
+      &print_version;
+      exit(0);
+   }
+
+   my $optcheck = 0;
+   $optcheck++ if (defined $main::options{'E'});
+   $optcheck++ if (defined $main::options{'e'});
+   $optcheck++ if (defined $main::options{'o'});
+   die ("options \"-E\", \"-e\" and \"-o\" cannot be combined\n") if ($optcheck > 1);
+
+   $main::NULLallowed = 1 if (defined $main::options{'N'});
+   $main::cmd_prefix = $main::options{'p'} if (defined $main::options{'p'});
+}
+
+#####
+# Print the Usage: line on errors and after the '-h' switch
+#
+sub short_help ($) {
+   my $onerror = shift;
+   my $helptext = "usage: $main::myself [-ENPUVefhopqs] <file[.$main::texex]> [parameter...]\n";
+   $helptext .= "       type \"$main::myself -h\" for help\n" if ($onerror);
+   return ($helptext);
+}
+
+
+#####
+# Print full help and after the '-h' switch
+#
+sub print_help {
+   my $helptext = &short_help (0);
+   $helptext .= "       Options:\n";
+   $helptext .= "       -E string     replace input file extension in outputfile:\n";
+   $helptext .= "                     \'input.tex\' will be \'input.string\'\n";
+   $helptext .= "                     For further notes, see option \'-e\' below\n";
+   $helptext .= "       -N            NULL return values allowed. By default SQLTeX\n";
+   $helptext .= "                     exits if a query returns an empty set\n";
+   $helptext .= "       -P            prompt for database password\n";
+   $helptext .= "       -U user       database username\n";
+   $helptext .= "       -V            print version number and exit\n";
+   $helptext .= "       -e string     add string to the output filename:\n";
+   $helptext .= "                     \'input.tex\' will be \"inputstring.tex\"\n";
+   $helptext .= "                     In \'string\', the values between curly braces \{\}\n";
+   $helptext .= "                       will be substituted:\n";
+   $helptext .= "                       Pn      parameter n\n";
+   $helptext .= "                       M       current monthname (Mon)\n";
+   $helptext .= "                       W       current weekday (Wdy)\n";
+   $helptext .= "                       D       current date (yyyymmdd)\n";
+   $helptext .= "                       DT      current date and time (yyyymmddhhmmss)\n";
+   $helptext .= "                       T       current time (hhmmss)\n";
+   $helptext .= "                     e.g., the command \'$main::myself -e _{P1}_{W} my_file code\'\n";
+   $helptext .= "                     will read \'my_file.tex\' and write \'myfile_code_Tue.tex\'\n";
+   $helptext .= "                     The same command, but with option \'-E\' would create the\n";
+   $helptext .= "                     outputfile \'myfile._code_Tuesday\'\n";
+   $helptext .= "                     exists if a query returns an empty set\n";
+   $helptext .= "                     \'myfile_stx.tex\' would have been written.\n";
+   $helptext .= "                     The options \'-E\' and \'-e\' cannot be used together or with \'-o\'.\n";
+   $helptext .= "       -f            force overwrite of existing files\n";
+   $helptext .= "       -h            print this help message and exit\n";
+   $helptext .= "       -o file       specify an output file. Cannot be used with \'-E\' or \'-e\'\n";
+   $helptext .= "                     In \'string\', the values between accolades \{\}\n";
+   $helptext .= "                     (e.g. \\sqldb[user]{database}), but this can be overwritten\n";
+   $helptext .= "                     if it conflicts with other user-defined commands.\n";
+   $helptext .= "       -q            run in quiet mode\n";
+   $helptext .= "       -s server     SQL server to connect to. Default is \'localhost\'\n";
+
+   $helptext .= "\n       file          is the input file that should be read. By default,\n";
+   $helptext .= "                     $main::myself looks for a file with extension \'.$main::texex\'.\n";
+   $helptext .= "\n       parameter(s)  are substituted in the SQL statements if they contain\n";
+   $helptext .= "                     the string \$PAR[x] somewhere in the statement, where\n";
+   $helptext .= "                     \'x\' is the number of the parameter.\n";
+
+   if ($main::less_av) {
+      system ("echo \"$helptext\" | less");
+   } elsif ($main::more_av) {
+      system ("echo \"$helptext\" | more");
+   } else {
+      print $helptext;
+   }
+}
+
+#####
+# Print the version number
+#
+sub print_version {
+   print "$main::myself v$main::version - $main::rdate\n";
+}
+
+#####
+# If we're not running in quiet mode (-q), this routine prints a message telling
+# the user what's going on.
+#
+sub print_message ($) {
+   my $message = shift;
+   print "$message\n" unless (defined $main::options{'q'});
+}
+
+
+#####
+# If we have to prompt for a password, disable terminal echo, get the password
+# and return it to the caller
+#
+sub get_password ($$) {
+   my ($usr, $srv) = @_;
+
+   print "Password for $usr\@$srv : ";
+
+   system('stty -echo');
+   my $pwd = <STDIN>;
+   chomp $pwd;
+   system('stty echo');
+   print "\n";
+
+   return $pwd;
+}
+
+#######
+# Find the file extension for the outputfile
+#
+sub file_extension ($) {
+   my $subst = shift;
+
+   my %mn = ('Jan','01', 'Feb','02', 'Mar','03', 'Apr','04',
+             'May','05', 'Jun','06', 'Jul','07', 'Aug','08',
+             'Sep','09', 'Oct','10', 'Nov','11', 'Dec','12' );
+   my $sydate = localtime (time);
+   my ($wday, $mname, $dnum, $time, $year) = split(/\s+/,$sydate);
+   $dnum = "0$dnum" if ($dnum < 10);
+   while ($subst =~ /\{[a-zA-Z0-9]+\}/) {
+      my $s1  = $`;
+      my $sub = $&;
+      my $s2  = $';
+      $sub =~ s/[\{\}]//g;
+      if ($sub =~ /P[0-9]/) {
+         $sub =~ s/P//;
+         die ("insuficient parameters to substitute \{P$sub\}\n") if ($sub > $#ARGV);
+         $sub = $ARGV[$sub];
+      } elsif ($sub eq "M") {
+         $sub = $mname;
+      } elsif ($sub eq "W") {
+         $sub = $wday;
+      } elsif ($sub eq "D") {
+         $sub = "$year$mn{$mname}$dnum";
+      } elsif ($sub eq "DT") {
+         $sub = "$year$mn{$mname}$dnum$time";
+         $sub =~ s/://g;
+      } elsif ($sub eq "T") {
+         $sub = $time;
+         $sub =~ s/://g;
+      } else  {
+         die ("unknown substitution code \{$sub\}\n");
+      }
+      $subst = "$s1$sub$s2";
+   }
+   return ($subst);
+}
+
+#####
+# Declare the filenames to use in this run.
+# If a file has been entered 
+#
+sub get_filenames {
+   $main::inputfile = $ARGV[0] || die "no input file specified\n";
+
+   $main::path = "";
+   while ($main::inputfile =~ /\//) {
+      $main::path .= "$`/";
+      $main::inputfile =~ s/$`\///;
+   }
+   $main::inputfile .= ".$main::texex" unless ($main::inputfile =~/\./);
+   die "File $main::path$main::inputfile does not exist\n" if (!-e "$main::path$main::inputfile");
+
+   if (!defined $main::options{'o'}) {
+      $main::inputfile =~ /\./;
+      $main::outputfile = "$`";
+      my $lastext = "$'";
+      while ($' =~ /\./) {
+         $main::outputfile .= ".$`";
+         $lastext = "$'";
+      }
+      if (defined $main::options{'E'} || defined $main::options{'e'}) {
+         $main::stx = &file_extension ($main::options{'E'} || $main::options{'e'});
+      }
+      if (defined $main::options{'E'}) {
+         $main::outputfile .= ".$main::stx";
+      } else {
+         $main::outputfile .= "$main::stx\.$lastext";
+      }
+   } else {
+      $main::outputfile = $main::options{'o'};
+   }
+   return;
+}
+
+#######
+# Connect to the database
+#
+sub db_connect($$) {
+   my ($up, $db) = @_;
+
+   $main::line =~ s/\[?$up\]?\{$db\}//;
+
+   my $un = "";
+   my $pw = "";
+   if ($up =~ /,/) {
+      $un = $`;
+      $pw = $'
+   } elsif ($up ne "") {
+      $un = $up;
+   }
+
+   $un = $main::options{'U'} if (defined $main::options{'U'});
+   $pw = &get_password ($un, $main::options{'s'} || "localhost") if (defined $main::options{'P'});
+
+   my $data_source = "DBI:mysql:$db";
+   $data_source .= ":$main::options{'s'}" unless (!defined $main::options{'s'});
+
+   if (!defined $main::options{'q'}) {
+      my $msg = "Connect to database $db on ";
+      $msg .= $main::options{'s'} || "localhost";
+      $msg .= " as user $un" unless ($un eq "");
+      $msg .= " using a password" unless ($pw eq "");
+      &print_message ($msg);
+   }
+
+   $main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &just_died (1);
+   return;
+}
+
+#####
+# Execute the SQL query and return the result in an array
+#
+sub execute_query ($) {
+   my $query = shift;
+
+   my (@result, @res);
+
+
+   return @result;
+}
+
+#####
+# Check if the SQL statement contains options
+# Supported options are:
+#   setvar=<i>, where <i> is the list location to store the variable.
+#
+# (currently, this is the only option supported)
+#
+sub check_options ($) {
+   my $options = shift;
+   return if ($options eq "");
+   $options =~ s/\[//;
+   $options =~ s/\]//;
+
+   my @optionlist = split /,/, $options;
+   while (@optionlist) {
+      my $opt = shift @optionlist;
+      if ($opt =~ /^setvar=/i) {
+         $main::var_no = $';
+         $main::setvar = 1;
+      }
+      if ($opt =~ /^fldsep=/i) {
+         $main::fldsep = qq{$'};
+      }
+      if ($opt =~ /^rowsep=/i) {
+         $main::rowsep = qq{$'};
+      }
+   }
+}
+
+
+#####
+# Select multiple rows from the database. This function can have
+# the [fldsep=s] and [rowsep=s] options to define the string which
+# should be used to seperate the fields and rows.
+# By default, fields are seperated with a comma and blank (', '), and rows
+# are seperated with a newline character ('\\')
+#
+sub sql_row ($$) {
+   my ($options, $query) = @_;
+   local $main::fldsep = ", ";
+   local $main::rowsep = "\\\\";
+   my (@values, @return_values, $rc, $fc);
+
+   &check_options ($options);
+
+   &print_message ("Retrieving rows with \"$query\"");
+   $main::sql_statements++;
+   my $stat_handle = $main::db_handle->prepare ($query);
+   $stat_handle->execute ();
+
+   while (@values = $stat_handle->fetchrow_array ()) {
+      $fc = $#values + 1;
+      push @return_values, (join "$main::fldsep", @values);
+   }
+   $stat_handle->finish ();
+
+   if ($#return_values < 0) {
+      &just_died (4);
+   }
+
+   $rc = $#return_values + 1;
+   &print_message ("Found $rc rows with $fc fields each");
+
+   return (join "$main::rowsep", @return_values);
+
+}
+
+
+#####
+# Select a single field from the database. This function can have
+# the [setvar=n] option to define an internal variable
+#
+sub sql_field ($$) {
+   my ($options, $query) = @_;
+   local $main::setvar = 0;
+
+   &check_options ($options);
+
+   $main::sql_statements++;
+
+   &print_message ("Retrieving field with \"$query\"");
+   my $stat_handle = $main::db_handle->prepare ($query);
+   $stat_handle->execute ();
+   my @result = $stat_handle->fetchrow_array ();
+   $stat_handle->finish ();
+
+   if ($#result < 0) {
+      &just_died (4);
+   } elsif ($#result > 0) {
+      &just_died (5);
+   } else {
+      &print_message ("Found 1 value: \"$result[0]\"");
+      if ($main::setvar) {
+         &just_died (7) if (defined $main::var[$main::var_no]);
+         $main::var[$main::var_no] = $result[0];
+         return "";
+      } else {
+         return ($result[0]);
+      }
+   }
+}
+
+##### 
+# Some error handling (mainly cleanup stuff)
+# Files will be closed if opened, and if no sql output was written yet,
+# the outputfile will be removed.
+#
+sub just_died ($) {
+   my $step = shift;
+   my $Resurect = 0;
+
+   $Resurect = 1 if ($step == 4 && $main::NULLallowed);
+
+   if ($step >= 1 && !$Resurect) {
+      close FI;
+      close FO;
+   }
+   if ($step > 2 && !$Resurect) {
+      $main::db_handle->disconnect();
+   }
+   if ($step >= 1 && $step <= 2 && !$Resurect) {
+      unlink ("$main::path$main::outputfile");
+   }
+   
+   #####
+   # Step specific exit
+   #
+   if ($step == 2) {
+      warn ("no database opened at line $main::lcount\n");
+   } elsif ($step == 3) {
+      warn ("insufficient parameters to substitute variable on line $main::lcount\n");
+   } elsif ($step == 4) {
+      warn ("no result set found on line $main::lcount\n");
+   } elsif ($step == 5) {
+      warn ("result set too big on line $main::lcount\n");
+   } elsif ($step == 6) {
+      warn ("trying to substitute with non existing on line $main::lcount\n");
+   } elsif ($step == 7) {
+      warn ("trying to overwrite an existing variable on line $main::lcount\n");
+   } elsif ($step == 8) {
+      warn ("unrecognized command on line $main::lcount\n");
+   }
+   return if ($Resurect);
+   exit (1);
+}
+
+#####
+# An SQL statement was found in the input file. If multiple lines are
+# used for this query, they will be read until the '}' is found, after which
+# the query will be executed.
+#
+sub parse_command ($) {
+   my $cmdfound = shift;
+   my $options = "";
+   my $varallowed = 1;
+
+   $varallowed = 0 if ($cmdfound =~ /$main::sql_open/);
+
+   chop $cmdfound;
+   $cmdfound =~ s/\\//;
+
+   $main::line =~ /\\$cmdfound/;
+   my $lin1 = $`;
+   $main::line = $';
+
+   while (!($main::line =~ /\}/)) {
+      chomp $main::line;
+      $main::line .= " ";
+      $main::line .= <FI>;
+      $main::lcount++;
+   }
+
+   $main::line =~ /\}/;
+   my $statement = $`;
+   my $lin2 = $';
+
+   $statement =~ s/(\[|\{)//g;
+   if ($statement =~ /\]/) {
+      $options = $`;
+      $statement = $';
+   }
+
+   if ($varallowed) {
+      for (my $i = 1; $i <= $#ARGV; $i++) {
+         $statement =~ s/\$PAR$i/$ARGV[$i]/g;
+      }
+      while ($statement =~ /\$VAR[0-9]/) {
+         my $varno = $&;
+         $varno =~ s/\$VAR//;
+         &just_died (6) if (!defined ($main::var[$varno]));
+         $statement =~ s/\$VAR$varno/$main::var[$varno]/g;
+      }
+      &just_died (3) if ($statement =~ /\$PAR/);
+      $statement =~ s/\{//;
+   }
+
+   if ($cmdfound =~ /$main::sql_open/) {
+      &db_connect($options, $statement);
+      $main::db_opened = 1;
+      return;
+   }
+
+   &just_died (2) if (!$main::db_opened);
+
+   if ($cmdfound =~ /$main::sql_field/) {
+      $main::line = $lin1 . " " . &sql_field($options, $statement) . $lin2;
+   } elsif ($cmdfound =~ /$main::sql_row/) {
+      $main::line = $lin1 . " " . &sql_row($options, $statement) . $lin2;
+   } else {
+      &just_died (8);
+   }
+   return;
+}
+
+#####
+# Some globals
+#
+$main::myself      = $ENV{'_'};
+while ($main::myself =~ /\//) { $main::myself = $'; }
+$main::version = '$Revision$';
+$main::version =~ s/(\$|:| |Revision)//g;
+
+my $rdate   = '$Date$';
+my ($dum1, $act, $rest_of_line ) = split / /, $rdate;
+$main::rdate = $act;
+
+&parse_options;
+&get_filenames;
+
+if (-e "$main::path$main::outputfile") {
+   die ("outputfile $main::path$main::outputfile already exists\n")
+      unless (defined $main::options{'f'});
+}
+
+open (FI, "<$main::path$main::inputfile");
+open (FO, ">$main::path$main::outputfile");
+
+$main::version = '$Revision$';
+$main::db_opened = 0;
+$main::lcount = 0;
+my $rdate   = '$Date$';
+while ($main::line = <FI>) {
+   $main::lcount++;
+
+   while (($main::line =~ /\\$main::cmd_prefix[a-z]+(\[|\{)/) &&
+    !($main::line =~ /\\\\$main::cmd_prefix[a-z]+(\[|\{)/)) {
+      &parse_command($&);
+   }
+   print FO "$main::line";
+}
+
+close FI;
+close FO;
+
+$main::db_handle->disconnect() if ($main::db_opened);
+
+if ($main::sql_statements == 0) {
+   unlink ("$main::path$main::outputfile");
+   print "no sql statements found in $main::path$main::inputfile\n";
+} else {
+   print "$main::sql_statements queries executed - TeX file $main::path$main::outputfile written\n";
+}
+exit (0);
+
+#
+# And that's about it.
+#####

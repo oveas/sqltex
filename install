@@ -1,0 +1,54 @@
+#!/bin/sh
+
+SRCF="SQLTeX"
+TMPF="SQLTeX.tmp"
+SQLT="SQLTeX"
+
+PI=`which perl` || PI=""
+
+## Is Perl installed ?
+if test -z "$PI"
+then
+   echo "Perl is either not installed on this system, or not included in your path"
+   echo "Please check and correct this error - you need Perl to use SQLTeX"
+   exit
+fi
+
+## Does the source file exist ?
+if ! test -f $SRCF
+then
+   echo "Error - the file $SRCF does not exist in the current directory"
+   exit
+fi
+
+## Where should SQLTeX be installed ?
+CUSR=`whoami`
+if test $CUSR = "root"
+then
+   DDIR="/usr/local/bin"
+else
+   DDIR=`pwd`
+fi
+while test -z "$IDIR"
+do
+   echo -n "Where should SQLTeX be installed [$DDIR] ? "
+   read IDIR
+   if test -z "$IDIR"
+   then
+      IDIR="$DDIR"
+   fi
+   if ! test -d $IDIR
+   then
+      echo "$IDIR does not exist or is not a directory"
+      IDIR=""
+   fi
+done
+
+echo "#!$PI -w" > $TMPF
+echo "" >> $TMPF
+cat $SRCF >> $TMPF
+chmod +x $TMPF
+mv $TMPF $IDIR/$SQLT
+
+echo "Installation complete---type $SQLT -h for help"
+exit
