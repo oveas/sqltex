@@ -1,4 +1,4 @@
-SQLTeX v1.3
+SQLTeX v1.4
 ===========
 
 SQLTeX is a preprocessor to enable the use of SQL statements in LaTeX.
@@ -18,8 +18,8 @@ Installing SQLTeX
 Before installing SQLTeX, you need to have it. The latest version can always
 be found at http://software.oveas.net/sqltex.
 The download consists of this readme, documentation in LaTeX and HTML format,
-an installation script for Unix (install), and the Perl script SQLTeX. The
-last file is all you actually need.
+an installation script for Unix (install), the Perl script SQLTeX and the
+default replace file.
 
 On a Unix system, make sure the file install is executable by issueing
 the command:
@@ -39,6 +39,7 @@ it manually.
 On OpenVMS it would be something like:
   $ SET FILE/PROTECTION=(W:RE) SQLTEX.
   $ COPY SQLTEX. SYS$SYSTEM:
+  $ COPY SQLTEX_R.DAT. SYS$SYSTEM:
 However, on OpenVMS you also need to define the command SQLTEX by setting a symbol,
 either in the LOGIN.COM for all users who need to execute this script, or in some
 group-- or system wide login procedure, with the command:
