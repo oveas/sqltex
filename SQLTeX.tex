@@ -1,0 +1,508 @@
+\documentclass{article}
+\newcommand{\bs}{\begin{math}\backslash\end{math}}
+\newcommand{\vs}{\vspace{3mm}}
+\usepackage{makeidx}
+\begin{document}
+
+\title{SQL\TeX\\v1.4}
+\date{May 2, 2002}
+\author{Oscar van Eijk}
+
+\maketitle
+
+\hrulefill
+
+\section{Introduction}
+
+SQL\TeX\ is a preprocessor to enable the use of SQL statements in \LaTeX. It is a perl script that reads
+an input file containing the SQL commands, and writes a \LaTeX\ file that can be processed with your
+\LaTeX\ package.
+
+The SQL commands will be replaced by their values. It's possible to select a single field for substitution
+substitution in your \LaTeX\ document, or to be used as input in another SQL command.
+
+When an SQL command returns multiple fields and or rows, the values can only be used for substitution
+in the document.
+
+\subsection{Known limitations}
+
+\begin{itemize}
+\item The current version only supports the MySQL database environment.
+\item SQL\TeX\ reads only one input file; the \LaTeX\ \texttt{\bs include} directive is ignored
+\item Currently, only 9 command- line parameters (1-9), and 10 variables (0-9) can be used in SQL
+statements
+\item With SQL\TeX\, it is only possible to read from a database (no updates).
+\end{itemize}
+
+\section{Installing SQL\TeX}
+
+Before installing SQL\TeX, you need to have it. The latest version can always be found at
+\textsf{http://software.oveas.net/sqltex}.
+The download consists of this do\-cumentation, an installation script for Unix
+(\texttt{install}), and the Perl script \texttt{SQLTeX}. The last file is all
+you actually need.
+
+\vs
+
+On a Unix system, make sure the file \texttt{install} is executable by issueing
+the command:\\
+\texttt{bash\$ chmod +x install}\\
+then execute it with:\\
+\texttt{bash\$ ./install}
+
+The script will ask in which directory SQL\TeX\ should be installed. If you are
+logged in as `root', the default will be \texttt{/usr/local/bin}, otherwise the
+current directory.\\
+Make sure the directory where SQL\TeX\ is installed is in your path.
+
+\vs
+
+For other operating systems, there is no install script, you will have to install
+it manually.
+
+On \textsc{OpenVMS} it would be something like:\\
+\texttt{\$ SET FILE/PROTECTION=(W:RE) SQLTEX.\footnote{Note the dot (`.') at the end of the file; on
+\textsc{OpenVMS} systems, all files must to have a file extension, which can
+be empty, in which case the filename ends with a dot.}\\
+\$ COPY SQLTEX. SYS\$SYSTEM:}\\
+However, on \textsc{OpenVMS} you also need to define the command \texttt{SQLTEX} by setting a symbol,
+either in the \texttt{LOGIN.COM} for all users who need to execute this script, or in some group-- or
+system wide login procedure, with the command:\\
+\texttt{\$ SQLTEX :== "PERL SYS\$SYSTEM:SQLTEX."}\\
+
+\subsection{Configuration}\label{config}
+
+The program starts with a configuration section. The default values are displayed
+here:
+
+\vs
+
+{\footnotesize\begin{verbatim}
+#
+################################################################################
+# Configurable part
+#
+$main::texex       = "tex";    # default tex- file extension
+$main::stx         = "_stx";   # file name extension to insert before the last '.'
+#
+$main::cmd_prefix  = "sql";    # prefix for sql-commands (\sql<command>[]{})
+$main::sql_open    = "db";     # database declaration, e.g. \sqldb[user,passw]{database}
+$main::sql_field   = "field";  # select a single field from db, e.g. \sqlfield{select field from....}
+$main::sql_row     = "row";    # select rows from db, e.g. \sqlfield{select * from....}
+#
+$main::less_av     = 1;        # Is the command 'less' available on this system ?
+$main::more_av     = 1;        # Is the command 'more' available on this system ?
+#
+################################################################################
+# Do not make any modifications below this line                                #
+################################################################################
+\end{verbatim}}
+
+\vs
+
+These values are default values; most values can be overwritten using command line
+options (see section~\ref{cmdline}). When the command line options are
+omitted, the default values from the configuration section will be used.
+
+\begin{description}
+
+\item[\$main::texex] The default file extension for \LaTeX\ file. When SQL\TeX\ is called, the first
+parameter should be the name of the input file. If this filename has no extension,
+SQL\TeX\ looks for one with the default extension.
+
+\item[\$main::stx] An output file can be given explicitly using the `\texttt{-o}' option. When omitted,
+SQL\TeX\ composes an output file name using this string.\\
+E.g, if your input file is called \texttt{db-doc.tex}, SQL\TeX\ will produce an
+outputfile with the name \texttt{db-doc\_stx.tex}.
+
+\item[\$main::cmd\_prefix]\label{prefix} SQL\TeX\ looks for SQL commands in the input file. Commands are specified in the
+same way all \LaTeX\ commands are specified: a backslash (\bs) followed by the
+name of the command.\\
+All SQL\TeX\ commands start with the same string. By default, this is the string
+\texttt{\textbf{sql}}. When user commands are defined that start with the same
+string, this can be changed here to prevent conflicts.
+
+\item[\$main::sql\_open] This string is appended to the \$main::cmd\_prefix to form the complete SQL\TeX\
+for opening a database.\\
+With the default configuration this command is ``\texttt{\bs sqlopen}''.
+
+\item[\$main::sql\_field] This string is appended to the \$main::cmd\_prefix to form the complete SQL\TeX\
+to read a single field from the database.\\
+With the default configuration this command is ``\texttt{\bs sqlfield}''.
+
+\item[\$main::sql\_row] This string is appended to the \$main::cmd\_prefix to form the complete SQL\TeX\
+to read one or more rows from the database.\\
+With the default configuration this command is ``\texttt{\bs sqlrow}''.
+
+\item[\$main::less\_av \& \$main::more\_av] These settings are used to determin how the \textsl{help} output should be displayed. If the
+command `\texttt{less}' is available on the current system, the output will be
+parsed through this program. Otherwise the output will be parsed through the
+program `\texttt{more}' if availeble. Both programs are usually available on Unix
+system (\texttt{more} is standard on most Unix systems), but ports for other
+operating systems are available as well.\\
+Set the values to ``0'' for the program(s) that is (are) not available, or if
+you don't want to use it.\\
+If none of these programs is available, the \textsl{help} output is plain echoed
+to the display.
+
+\end{description}
+
+\section{Write your SQL\TeX\ file}
+
+For SQL\TeX, you write your \LaTeX\ document just as you're used to. SQL\TeX\ provides you with
+some extra commands that you can include in your file.\\
+The basic format\footnote{in this document, in all examples will be asumed the default values in the
+configuration section as described in section~\ref{config}, have not been changed} of an SQL\TeX\ command is: \\
+\texttt{\bs sql\emph{cmd}[options]\{SQL statement\}}
+
+\vs
+
+All SQL\TeX\ commands can be specified anywhere in a line, and can span multiple lines.
+When SQL\TeX\ executes, the commands are read, executed, and their results---if they return
+any---are written to the output:
+
+\vs
+
+\begin{minipage}[t]{0.5\textwidth}\textsl{Input file:}\\\texttt{\footnotesize{\bs documentclass[article] \\
+\bs pagestyle\{empty\} \\
+\bs sqldb[oscar]\{mydb\} \\
+\bs begin\{document\} \\
+}}\end{minipage}\hfill\begin{minipage}[t]{0.5\textwidth}\textsl{Output file:}\\\texttt{\footnotesize{\bs documentclass[article] \\
+\bs pagestyle\{empty\} \\
+ \\
+\bs begin\{document\} \\
+}}\end{minipage}
+
+\vs
+
+Above you see the SQL\TeX\ command \texttt{\bs sqldb} was removed. Only the command was removed, not
+the \textsl{newline} character at the end of the line, so an empty line will be printed instead.
+The example below shows the output is an SQL\TeX\ command was found on a line with other \LaTeX\
+directives:
+
+\vs
+
+\begin{minipage}[t]{0.5\textwidth}\textsl{Input file:}\\\texttt{\footnotesize{\bs documentclass[article] \\
+\bs pagestyle\{empty\}\bs sqldb[oscar]\{mydb\} \\
+\bs begin\{document\} \\
+\hrulefill}}\end{minipage}\hfill\begin{minipage}[t]{0.5\textwidth}\textsl{Output file:}\\\texttt{\footnotesize{\bs documentclass[article] \\
+\bs pagestyle\{empty\} \\
+\bs begin\{document\} \\
+}}\end{minipage}
+
+\vs
+
+In these examples the SQL\TeX\ commands did not return a value. When commands actually read from
+the database, the returned value is written instead:
+
+\vs
+
+\begin{minipage}[t]{0.5\textwidth}\textsl{Input file:}\\\texttt{\footnotesize{This invoice has \bs sqlfield\{SELECT COUNT(*) FROM INVOICE\_LINE \\
+WHERE INVOICE\_NR = 12345\} lines.\\
+\hrulefill}}\end{minipage}\hfill\begin{minipage}[t]{0.5\textwidth}\textsl{Output file:}\\\texttt{\footnotesize{This invoice has 4 lines \\
+}}\end{minipage}
+
+\subsection{SQL statements}\label{sqlstatements}
+
+This document assumes the reader is familiar with SQL commands. This section only tells something about
+implementing them in SQL\TeX\ files, especially with the use of command parameters and variables.
+Details about the SQL\TeX\ commands will be described in the next sections.
+
+\vs
+
+Let's look at a simple example. Suppose we want to retreive all header information from the database
+for a specific invoice. The SQL statement could look something like this: \\
+\texttt{SELECT $\ast$ FROM INVOICE WHERE INVOICE\_NR = 12345;}\\
+To implement this statement in an SQL\TeX\ file, the \texttt{\bs sqlrow} command should be used (see
+section~\ref{sqlrow}):
+
+First, it is important to know that SQL statements should \textit{not} contain the ending semicolon (;) in
+any of the SQL\TeX\ commands. The command in SQL\TeX\ would be:\\
+\texttt{\bs sqlrow\{SELECT $\ast$ FROM INVOICE WHERE INVOICE\_NR = 12345\}}
+
+Next, SQL\TeX\ would be useless if you have to change your input file every time you want to generate
+the same document for another invoice.
+
+\vs
+
+Therefore, you parameters or variables can be used in your SQL statement. Parameters are given at the command
+line (see section~\ref{params}), variables can be defined using the \texttt{\bs sqlfield} command as
+described in section~\ref{vars}.
+
+Given the example above, the invoice number can be passed as a parameter by rewriting the command as: \\
+\texttt{\bs sqlrow\{SELECT $\ast$ FROM INVOICE WHERE INVOICE\_NR = \$PAR1\}} \\
+or as as variable with the code line: \\
+\texttt{\bs sqlrow\{SELECT $\ast$ FROM INVOICE WHERE INVOICE\_NR = \$VAR0\}}
+
+Note you have to know what datatype is expected by your database. In the example here the datatype is
+\textsc{integer}. If the field ``\textsc{invoice\_nr}'' contains a \textsc{varchar} type, the
+\texttt{\$PAR}amater or \texttt{\$VAR}iable should be enclosed by quotes: \\
+\texttt{\bs sqlrow\{SELECT $\ast$ FROM INVOICE WHERE INVOICE\_NR = '\$PAR1'\}}
+
+\subsection{Opening the database}
+
+Before any information can be read from a database, this database should be opened.
+This is done with the \texttt{\textbf{\bs sqlopen}} command.
+\texttt{\bs sqlopen} requires the name of the dabatase. Optionally, a username and password can be given. When
+omitted, SQL\TeX\ assumes no username and password is required to connect to the database (the user that
+executes SQL\TeX\ should have access to the specified database). \\
+The format of the command is:\\
+\texttt{\bs sqlopen[username,password]\{database\}}
+
+The command can be used anywhere in your input file, but should occur before the first command that tries to
+read data from the database.
+
+\subsection{Reading a single field}\label{sqlfield}
+
+When a single field of information is to be read from the database, the command \texttt{\textbf{\bs sqlfield}}
+is used. By default, the command in the inputfile is replaced by its result in the outputfile.\\
+The SQL command is enclosed by curly braces. Square brackets can optionally be used to enter some extra options.
+Currently, the only supported option is \texttt{setvar} (see section~\ref{vars}).
+
+The full syntax or the \texttt{\bs sqlfield} command is:\\
+\texttt{\bs sqlrow[\textit{options}]\{SELECT \textit{fieldname} FROM \textit{tablename} WHERE \textit{your where-clause}\}} \\
+By default, the SQL\TeX\ command is replaced with the value returned by the SQL query. This behaviour
+can be changed with options.
+
+
+\subsubsection{Define variables}\label{vars}
+
+The \texttt{\bs sqlfield} can also be used to set a variable. The value returned by the SQL query is not
+displayed in this case. Instead, a variable is created which can be used in any other SQL query later in
+the document (see also section~\ref{sqlstatements}).
+
+Therefore, the option \texttt{\textbf{[setvar=\textit{n}]}} is used, where \textit{n} is an integer between
+0 and 9.
+
+\vs
+
+Suppose you have an invoice in \LaTeX. SQL\TeX\ is executed to retrieve the invoice header information
+from the database for a specific customer. Next, the invoice lines are read from the database.
+
+You could pass the invoice number as a paramater to SQL\TeX\ for use in your queries, but that could
+change every month. It is easier to :\\
+\begin{itemize}
+\item pass the customer number as a parameter,
+\item retrieve the current date (asuming that is the invoice date as stored in
+the database by another program), and store it in a variable: \\
+\texttt{\bs sqlfield[setvar=0]\{SELECT DATE\_FORMAT(NOW(), "\%Y-\%m-\%d")\}} \\
+This creates a variable that can be used as \texttt{\$VAR0},
+\item retrieve the invoice number using the customer number (a command line parameter,
+see also section~\ref{params}) and the variable containing the invoice date.
+Store this invoice number in \texttt{\$VAR1}: \\
+\texttt{\bs sqlfield[setvar=1]\{SELECT INVOICE\_NR FROM INVOICES \\
+WHERE CUST\_NR = '\$PAR1' AND INVOICE\_DATE = '\$VAR0'\}}
+\item use \texttt{\$VAR1} to retrieve all invoice information.
+\end{itemize}
+
+\vs
+
+The SQL queries used here do not display any output in your \LaTeX document.
+
+
+\subsection{Reading rows of data}\label{sqlrow}
+
+When an SQL query returns more information than one single field, the SQL\TeX\
+command \texttt{\textbf{\bs sqlrow}} should be used. As with the \texttt{\bs sqlfield},
+command, SQL\TeX\ replaces the command with the values it returns, but \texttt{\bs sqlrow}
+accepts different options for formating the output.
+
+\vs
+
+By default, fields are separated by a comma and a blank (`\texttt{,~}'), and rows by 
+a newline character (`\texttt{\bs\bs}'). To change this, the options ``\texttt{fldsep}''
+and ``\texttt{rowsep}'' can be used.
+
+e.g. In a \texttt{tabular} enviroment the fields should be seperated by an amphesand (\texttt{\&}),
+perhaps a line should seperate the rows of information. (\texttt{\bs\bs~\bs hline}).
+To do this, the options can be used with \texttt{\bs sqlrow} as shown here: \\
+\texttt{\bs sqlrow[fldsep=\&,rowsep=\bs\bs~\bs hline]\{SELECT I.LINE\_NR, A.ARTICLE\_NR, 
+A.PRICE, I.AMOUNT, (A.PRICE * I.AMOUNT) FROM ARTICLE A, INVOICE\_LINE I WHERE I.INVOICE\_NR = \$VAR1 
+AND I.ARTICLE\_NR = A.ARTICLE\_NR\}}
+
+\vs
+
+This will produce an output like: \\
+\texttt{1 \& 9712 \& 12 \& 1 \& 12 \bs\bs~\bs hline \\
+2 \& 4768 \& 9.75 \& 3 \& 29,25 \bs\bs~\bs hline \\
+3 \& 4363 \& 1.95 \& 10 \& 19.5 \bs\bs~\bs hline \\
+4 \& 8375 \& 12.5 \& 2 \& 25 \bs\bs~\bs hline}
+
+
+\section{Process your SQL\TeX\ file}
+
+To process you SQL\TeX\ file and create a \LaTeX\ file with all information read from
+the database, call SQL\TeX\ with the parameter(s) and (optional) commandline options as
+described here:
+
+\subsection{Parameters}\label{params}
+
+SQL\TeX\ accepts more than one parameter. The first parameter is required; this should
+be the input file, pointing to your \LaTeX\ document containing the SQL\TeX\ commands.
+
+By default, SQL\TeX\ looks for a file with extension `\texttt{.tex}'.
+
+\vs
+
+All other parameters are used by the queries, if required. If an SQL query contains the
+string \texttt{\$PAR\textit{n}}\footnote{where \textit{n} is a number between 1 and 9. Note 
+parameter `0' cannot be used, since that contains the filename!}, it is replaced by that parameter
+(see also section~\ref{sqlstatements}).
+
+\subsection{Command line options}\label{cmdline}
+
+SQL\TeX\ accepts the followint command- line options:
+
+\begin{description}
+\item[-E \textit{string}] replace input file extension in outputfile:
+\texttt{input.tex} will be \texttt{input.\textit{string}} \\
+For further notes, see option \texttt{-e} below
+\item[-N] \texttt{NULL} return values allowed. By default SQL\TeX\ exits if a
+query returns an empty set.
+\item[-P] prompt for database password. This overwrites the password in the
+input file.
+\item[-U \textit{user}] database username. This overwrites the username in the
+input file.
+\item[-V] print version number and exit.
+\item[-e \textit{string}] add \textit{string} to the output filename:
+\texttt{input.tex} will be \texttt{input\textit{string}.tex}. This overwrites
+the configuration setting \texttt{\$main::stx} \\
+In \textit{string}, the values between curly braces \{\} will be substituted:
+\begin{description}
+\item[P\textit{n}] parameter \textit{n}
+\item[M] current monthname (\textit{Mon})
+\item[W] current weekday (\textit{Wdy})
+\item[D] current date (\textit{yyyymmdd})
+\item[DT] current date and time (\textit{yyyymmddhhmmss})
+\item[T] current time (\textit{hhmmss})
+\end{description}
+e.g., the command `\texttt{SQLTeX -e \_\{P1\}\_\{W\} my\_file code}'
+will read `\texttt{my\_file.tex}' and write `\texttt{myfile\_code\_Tue.tex}'
+The same command, but with option \texttt{-E} would create the
+outputfile \texttt{myfile.\_code\_Tuesday}
+By default (without \texttt{-e} or \texttt{-E}) the outputfile
+\texttt{myfile\_stx.tex} would have been written.
+The options \texttt{-E} and \texttt{-e} cannot be used together or with \texttt{-o}.
+\item[-f] force overwrite of existing files. By default, SQL\TeX\ exists with a
+warning message it the outputfile already exists.
+\item[-h] print this help message and exit.
+\item[-o \textit{file}] specify an output file. Cannot be used with \texttt{-e} or \texttt{-E}.
+\item[-p \textit{prefix}] prefix used in the SQL\TeX\ file. Default is \texttt{sql} (see also section~\ref{config}
+on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{\$main::cms\_prefix}.
+\item[-q] run in quiet mode.
+\item[-s \textit{server}] SQL server to connect to. Default is \texttt{localhost}.
+\end{description}
+
+
+\section{SQL\TeX\ errors and warnings}
+
+\noindent\texttt{no input file specified}
+
+\vspace{1mm}
+
+\noindent SQL\TeX\ was called without any parameters.\\
+\textit{Action:} Specify at least one parameter at the commandline. This parameter should be
+the name of your input file.
+
+\vs
+
+\noindent\texttt{File \textit{input filename} does not exist}
+
+\vspace{1mm}
+
+\noindent The input file does not exist.\\
+\textit{Action:} Make sure the first parameter points to the input file.
+
+\vs
+
+\noindent\texttt{outputfile \textit{output filename} already exists}
+
+\vspace{1mm}
+
+\noindent The outputfile cannot be created because it already exists.\\
+\textit{Action:} Specify another output filename with command line option \texttt{-e},
+\texttt{-E} or \texttt{-o}, or force an overwrite with option \texttt{-f} (see also section\ref{cmdline}).
+
+\vs
+
+\noindent\texttt{no database opened at line \textit{line nr}}
+
+\vspace{1mm}
+
+\noindent A query starts at line \textit{line nr}, but at that point no database was opened yet. \\
+\textit{Action:} Add an \texttt{\bs sqlopen} command prior to the first query statement.
+
+\vs
+
+\noindent\texttt{insufficient parameters to substitute variable on line \textit{line nr}}
+
+\vspace{1mm}
+
+\noindent The query starting at line \textit{line nr} uses a parameter in a \textsc{where}- clause with
+\texttt{\$PAR\textit{n}}, where \textit{n} is a number bigger than the number of parameters
+passed to SQL\TeX\. \\
+\textit{Action:} Specify all required parameters at the command line.
+
+\vs
+
+\noindent\texttt{trying to substitute with non existing on line \textit{line nr}}
+
+\vspace{1mm}
+
+\noindent The query starting at line \textit{line nr} requires a variable \texttt{\$VAR\textit{n}} in its
+\textsc{where}- clause, where \textit{n} points to a variable that has not (yet) been set. \\
+\textit{Action:} Change the number or set the variable prior to this statement.
+
+\vs
+
+\noindent\texttt{trying to overwrite an existing variable on line \textit{line nr}}
+
+\vspace{1mm}
+
+\noindent At line \textit{line nr}, a \texttt{\bs sqlfield} query tries to set a variable \textit{n}
+using the option \texttt{[setvar=\textit{n}]}, but \texttt{\$VAR\textit{n}} already
+exists at that point. \\
+\textit{Action:} Change the number.
+
+\vs
+
+\noindent\texttt{no result set found on line \textit{line nr}}
+
+\vspace{1mm}
+
+\noindent The query starting at line \textit{line nr} returned a \texttt{NULL} value. If the
+option \texttt{-N} was specified at the commandline, this is just a warning message.
+Otherwise, SQL\TeX\ exits. \\
+\textit{Action:} None.
+
+\vs
+
+\noindent\texttt{result set too big on line \textit{line nr}}
+
+\vspace{1mm}
+
+\noindent The query starting at line \textit{line nr}, called with \texttt{\bs sqlfield} returned more than one field. \\
+\textit{Action:} Change your query or use \texttt{\bs sqlrow} instead.
+
+\vs
+
+\noindent\texttt{unrecognized command on line \textit{line nr}}
+
+\vspace{1mm}
+
+\noindent At line \textit{line nr}, a command was found that starts with ``\texttt{\bs sql}'',
+but this command was not recognized by SQL\TeX\. \\
+\textit{Action:} Check for typos. If the command is a user- defined command, it will
+conflict with default SQL\TeX\ commands. Change the SQL\TeX\ command prefix (see section~\ref{config}).
+
+\vs
+
+\noindent\texttt{no sql statements found in \textit{input filename}}
+
+\vspace{1mm}
+
+\noindent SQL\TeX\ did not find any valid SQL\TeX\ commands. \\
+\textit{Action:} Check your input file.
+
+
+\end{document}
