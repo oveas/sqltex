@@ -3,6 +3,8 @@
 SRCF="SQLTeX"
 TMPF="SQLTeX.tmp"
 SQLT="SQLTeX"
+RFIL="SQLTeX_r.dat"
+TAB="\011"
 
 PI=`which perl` || PI=""
 
@@ -49,6 +51,41 @@ echo "" >> $TMPF
 cat $SRCF >> $TMPF
 chmod +x $TMPF
 mv $TMPF $IDIR/$SQLT
+
+Write_r_File () {
+	echo -E -n "$1" >> $IDIR/$RFIL
+	echo -e -n $TAB >> $IDIR/$RFIL
+	echo -E "$2" >> $IDIR/$RFIL
+}
+
+if ! test -e $IDIR/$RFIL
+then
+	touch $IDIR/$RFIL
+	echo -e "; This file contains all characters or character sequences that" >> $IDIR/$RFIL
+	echo -e "; will be be replaced by SQLTeX when the occur in the response" >> $IDIR/$RFIL
+	echo -e "; of an SQL query." >> $IDIR/$RFIL
+	echo -e "; It is mainly used for escaping the (La)TeX special characters," >> $IDIR/$RFIL
+	echo -e "; but any value can be added here." >> $IDIR/$RFIL
+	echo -e "; The first column is the character (sequence) that will be replaced." >> $IDIR/$RFIL
+	echo -e "; The second column is the value to replace col 1 with." >> $IDIR/$RFIL
+	echo -e "; Columns are sepated with one or more tab- characters." >> $IDIR/$RFIL
+	echo -e ";" >> $IDIR/$RFIL
+	echo -e "; Note all values are case sensitive; if you add the line:" >> $IDIR/$RFIL
+	echo -e ";   LaTeX	\LaTeX\ " >> $IDIR/$RFIL
+	echo -E "; the word \"latex\" will be untouched, but \"LaTeX\" will be replaced." >> $IDIR/$RFIL
+	echo -e ";" >> $IDIR/$RFIL
+	Write_r_File "$" '\$'
+	Write_r_File "_" "\_"
+	Write_r_File "%" "\%"
+	Write_r_File "&" "\&"
+	Write_r_File "<" "\texttt{<}"
+	Write_r_File ">" "\texttt{>}"
+	Write_r_File "{" "\{"
+	Write_r_File "}" "\}"
+	Write_r_File "#" "\#"
+	Write_r_File '~' "\~{}"
+	Write_r_File '\' "\ensuremath{\backslash}"
+fi
 
 echo "Installation complete---type $SQLT -h for help"
 exit
