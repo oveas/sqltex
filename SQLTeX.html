@@ -256,7 +256,7 @@ string, this can be changed here to prevent conflicts.
 <DT><STRONG>$main::sql_open</STRONG></DT>
 <DD>This string is appended to the $main::cmd_prefix to form the complete SQLT<SMALL>E</SMALL>X  for opening a database.
 <BR>
-With the default configuration this command is ``<TT>\sqlopen</TT>''.
+With the default configuration this command is ``<TT>\sqldb</TT>''.
 
 <P>
  </DD>
@@ -484,14 +484,14 @@ Opening the database</A>
 
 <P>
 Before any information can be read from a database, this database should be opened.
-This is done with the <TT><B>\sqlopen</B></TT> command.
-<TT>\sqlopen</TT> requires the name of the dabatase. Optionally, a username and password can be given. When
+This is done with the <TT><B>\sqldb</B></TT> command.
+<TT>\sqldb</TT> requires the name of the dabatase. Optionally, a username and password can be given. When
 omitted, SQLT<SMALL>E</SMALL>X  assumes no username and password is required to connect to the database (the user that
 executes SQLT<SMALL>E</SMALL>X  should have access to the specified database). 
 <BR>
 The format of the command is:
 <BR>
-<TT>\sqlopen[username,password]{database}</TT>
+<TT>\sqldb[username,password]{database}</TT>
 
 <P>
 The command can be used anywhere in your input file, but should occur before the first command that tries to
@@ -803,7 +803,7 @@ The outputfile cannot be created because it already exists.
 <P>
 A query starts at line <I>line nr</I>, but at that point no database was opened yet. 
 <BR>
-<I>Action:</I> Add an <TT>\sqlopen</TT> command prior to the first query statement.
+<I>Action:</I> Add an <TT>\sqldb</TT> command prior to the first query statement.
 
 <P>
  

@@ -128,7 +128,7 @@ string, this can be changed here to prevent conflicts.
 
 \item[\$main::sql\_open] This string is appended to the \$main::cmd\_prefix to form the complete SQL\TeX\
 for opening a database.\\
-With the default configuration this command is ``\texttt{\bs sqlopen}''.
+With the default configuration this command is ``\texttt{\bs sqldb}''.
 
 \item[\$main::sql\_field] This string is appended to the \$main::cmd\_prefix to form the complete SQL\TeX\
 to read a single field from the database.\\
@@ -246,12 +246,12 @@ Note you have to know what datatype is expected by your database. In the example
 \subsection{Opening the database}
 
 Before any information can be read from a database, this database should be opened.
-This is done with the \texttt{\textbf{\bs sqlopen}} command.
-\texttt{\bs sqlopen} requires the name of the dabatase. Optionally, a username and password can be given. When
+This is done with the \texttt{\textbf{\bs sqldb}} command.
+\texttt{\bs sqldb} requires the name of the dabatase. Optionally, a username and password can be given. When
 omitted, SQL\TeX\ assumes no username and password is required to connect to the database (the user that
 executes SQL\TeX\ should have access to the specified database). \\
 The format of the command is:\\
-\texttt{\bs sqlopen[username,password]\{database\}}
+\texttt{\bs sqldb[username,password]\{database\}}
 
 The command can be used anywhere in your input file, but should occur before the first command that tries to
 read data from the database.
@@ -400,7 +400,7 @@ on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{\$ma
 
 \section{SQL\TeX\ errors and warnings}
 
-\noindent\texttt{no input file specified}
+\noindent\textbf{\texttt{no input file specified}}
 
 \vspace{1mm}
 
@@ -410,7 +410,7 @@ the name of your input file.
 
 \vs
 
-\noindent\texttt{File \textit{input filename} does not exist}
+\noindent\textbf{\texttt{File \textit{input filename} does not exist}}
 
 \vspace{1mm}
 
@@ -419,7 +419,7 @@ the name of your input file.
 
 \vs
 
-\noindent\texttt{outputfile \textit{output filename} already exists}
+\noindent\textbf{\texttt{outputfile \textit{output filename} already exists}}
 
 \vspace{1mm}
 
@@ -429,16 +429,16 @@ the name of your input file.
 
 \vs
 
-\noindent\texttt{no database opened at line \textit{line nr}}
+\noindent\textbf{\texttt{no database opened at line \textit{line nr}}}
 
 \vspace{1mm}
 
 \noindent A query starts at line \textit{line nr}, but at that point no database was opened yet. \\
-\textit{Action:} Add an \texttt{\bs sqlopen} command prior to the first query statement.
+\textit{Action:} Add an \texttt{\bs sqldb} command prior to the first query statement.
 
 \vs
 
-\noindent\texttt{insufficient parameters to substitute variable on line \textit{line nr}}
+\noindent\textbf{\texttt{insufficient parameters to substitute variable on line \textit{line nr}}}
 
 \vspace{1mm}
 
@@ -449,7 +449,7 @@ passed to SQL\TeX\. \\
 
 \vs
 
-\noindent\texttt{trying to substitute with non existing on line \textit{line nr}}
+\noindent\textbf{\texttt{trying to substitute with non existing on line \textit{line nr}}}
 
 \vspace{1mm}
 
@@ -459,7 +459,7 @@ passed to SQL\TeX\. \\
 
 \vs
 
-\noindent\texttt{trying to overwrite an existing variable on line \textit{line nr}}
+\noindent\textbf{\texttt{trying to overwrite an existing variable on line \textit{line nr}}}
 
 \vspace{1mm}
 
@@ -470,7 +470,7 @@ exists at that point. \\
 
 \vs
 
-\noindent\texttt{no result set found on line \textit{line nr}}
+\noindent\textbf{\texttt{no result set found on line \textit{line nr}}}
 
 \vspace{1mm}
 
@@ -481,7 +481,7 @@ Otherwise, SQL\TeX\ exits. \\
 
 \vs
 
-\noindent\texttt{result set too big on line \textit{line nr}}
+\noindent\textbf{\texttt{result set too big on line \textit{line nr}}}
 
 \vspace{1mm}
 
@@ -490,7 +490,7 @@ Otherwise, SQL\TeX\ exits. \\
 
 \vs
 
-\noindent\texttt{unrecognized command on line \textit{line nr}}
+\noindent\textbf{\texttt{unrecognized command on line \textit{line nr}}}
 
 \vspace{1mm}
 
@@ -501,7 +501,7 @@ conflict with default SQL\TeX\ commands. Change the SQL\TeX\ command prefix (see
 
 \vs
 
-\noindent\texttt{no sql statements found in \textit{input filename}}
+\noindent\textbf{\texttt{no sql statements found in \textit{input filename}}}
 
 \vspace{1mm}
 
