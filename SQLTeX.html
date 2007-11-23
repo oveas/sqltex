@@ -28,11 +28,16 @@ v1.4">
 <center><img src="/graphics/logo.medium.jpg" width=128 height=47 border=0 alt=""></center>
 
 <P>
-<H1 ALIGN="CENTER">SQLT<SMALL>E</SMALL>X
+<H1 ALIGN="CENTER">SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN>
 <BR>
-v1.4</H1>
+v1.5</H1>
+<DIV CLASS="author_info">
+
 <P ALIGN="CENTER"><STRONG>Oscar van Eijk</STRONG></P>
-<P ALIGN="CENTER"><STRONG>May 2, 2002</STRONG></P>
+<P ALIGN="CENTER"><STRONG>November 21, 2007</STRONG></P>
+</DIV>
+
+<P>
 
 <P>
 <BR>
@@ -42,49 +47,53 @@ Contents</A>
 </H2>
 <!--Table of Contents-->
 
-<UL>
-<LI><A NAME="tex2html23"
-  HREF="SQLTeX.html">Contents</A>
-<LI><A NAME="tex2html24"
+<UL CLASS="TofC">
+<LI><A NAME="tex2html26"
   HREF="SQLTeX.html#SECTION00020000000000000000">Introduction</A>
 <UL>
-<LI><A NAME="tex2html25"
+<LI><A NAME="tex2html27"
   HREF="SQLTeX.html#SECTION00021000000000000000">Known limitations</A>
 </UL>
-<LI><A NAME="tex2html26"
-  HREF="SQLTeX.html#SECTION00030000000000000000">Installing SQLT<SMALL>E</SMALL>X</A>
-<UL>
-<LI><A NAME="tex2html27"
-  HREF="SQLTeX.html#SECTION00031000000000000000">Configuration</A>
+<BR>
 <LI><A NAME="tex2html28"
+  HREF="SQLTeX.html#SECTION00030000000000000000">Installing SQLTEX</A>
+<UL>
+<LI><A NAME="tex2html29"
+  HREF="SQLTeX.html#SECTION00031000000000000000">Configuration</A>
+<LI><A NAME="tex2html30"
   HREF="SQLTeX.html#SECTION00032000000000000000">Create replace files</A>
 </UL>
-<LI><A NAME="tex2html29"
-  HREF="SQLTeX.html#SECTION00040000000000000000">Write your SQLT<SMALL>E</SMALL>X file</A>
-<UL>
-<LI><A NAME="tex2html30"
-  HREF="SQLTeX.html#SECTION00041000000000000000">SQL statements</A>
+<BR>
 <LI><A NAME="tex2html31"
-  HREF="SQLTeX.html#SECTION00042000000000000000">Opening the database</A>
-<LI><A NAME="tex2html32"
-  HREF="SQLTeX.html#SECTION00043000000000000000">Reading a single field</A>
-<LI><A NAME="tex2html33"
-  HREF="SQLTeX.html#SECTION00044000000000000000">Reading rows of data</A>
-</UL>
-<LI><A NAME="tex2html34"
-  HREF="SQLTeX.html#SECTION00050000000000000000">Process your SQLT<SMALL>E</SMALL>X file</A>
+  HREF="SQLTeX.html#SECTION00040000000000000000">Write your SQLTEX file</A>
 <UL>
+<LI><A NAME="tex2html32"
+  HREF="SQLTeX.html#SECTION00041000000000000000">SQL statements</A>
+<LI><A NAME="tex2html33"
+  HREF="SQLTeX.html#SECTION00042000000000000000">Opening the database</A>
+<LI><A NAME="tex2html34"
+  HREF="SQLTeX.html#SECTION00043000000000000000">Reading a single field</A>
 <LI><A NAME="tex2html35"
-  HREF="SQLTeX.html#SECTION00051000000000000000">Parameters</A>
+  HREF="SQLTeX.html#SECTION00044000000000000000">Reading rows of data</A>
 <LI><A NAME="tex2html36"
+  HREF="SQLTeX.html#SECTION00045000000000000000">Output multiple documents</A>
+<LI><A NAME="tex2html37"
+  HREF="SQLTeX.html#SECTION00046000000000000000">Update database records</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html38"
+  HREF="SQLTeX.html#SECTION00050000000000000000">Process your SQLTEX file</A>
+<UL>
+<LI><A NAME="tex2html39"
+  HREF="SQLTeX.html#SECTION00051000000000000000">Parameters</A>
+<LI><A NAME="tex2html40"
   HREF="SQLTeX.html#SECTION00052000000000000000">Command line options</A>
 </UL>
-<LI><A NAME="tex2html37"
-  HREF="SQLTeX.html#SECTION00060000000000000000">SQLT<SMALL>E</SMALL>X errors and warnings</A>
-<LI><A NAME="tex2html38"
+<BR>
+<LI><A NAME="tex2html41"
+  HREF="SQLTeX.html#SECTION00060000000000000000">SQLTEX errors and warnings</A>
+<LI><A NAME="tex2html42"
   HREF="SQLTeX.html#SECTION00070000000000000000">Copyright and disclaimer</A>
-<LI><A NAME="tex2html39"
-  HREF="SQLTeX.html#SECTION00080000000000000000">About this document ...</A>
 </UL>
 <!--End of Table of Contents-->
 <P>
@@ -96,13 +105,13 @@ Introduction</A>
 </H1>
 
 <P>
-SQLT<SMALL>E</SMALL>X is a preprocessor to enable the use of SQL statements in L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X. It is a perl script that reads
-an input file containing the SQL commands, and writes a L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X file that can be processed with your
-L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X package.
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> is a preprocessor to enable the use of SQL statements in <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN>. It is a perl script that reads
+an input file containing the SQL commands, and writes a <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> file that can be processed with your
+<SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> package.
 
 <P>
 The SQL commands will be replaced by their values. It's possible to select a single field for substitution
-substitution in your L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X document, or to be used as input in another SQL command.
+substitution in your <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> document, or to be used as input in another SQL command.
 
 <P>
 When an SQL command returns multiple fields and or rows, the values can only be used for substitution
@@ -117,32 +126,30 @@ Known limitations</A>
 <P>
 
 <UL>
-<LI>The current version only supports the MySQL database environment.
-</LI>
-<LI>SQLT<SMALL>E</SMALL>X reads only one input file; the L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X <TT>\include</TT> directive is ignored.
+<LI>SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> reads only one input file; the <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> <TT>\include</TT> directive is ignored.
 </LI>
 <LI>Currently, only 9 command- line parameters (1-9), and 10 variables (0-9) can be used in SQL
 statements.
 </LI>
-<LI>With SQLT<SMALL>E</SMALL>X it is only possible to read from a database (no updates).
-</LI>
 <LI>Replace files can hold only 1,000 items.
+</LI>
+<LI>In multidocument mode, only one parameter can be retrieved.
 </LI>
 </UL>
 
 <P>
 
 <H1><A NAME="SECTION00030000000000000000">
-Installing SQLT<SMALL>E</SMALL>X</A>
+Installing SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN></A>
 </H1>
 
 <P>
-Before installing SQLT<SMALL>E</SMALL>X, you need to have it. The latest version can always be found at
-<I><a href="http://freeware.oveas.com/sqltex" target="_top">http://freeware.oveas.com/sqltex</a></I>.
+Before installing SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN>, you need to have it. The latest version can always be found at
+<SPAN  CLASS="textsf">http://freeware.oveas.com/sqltex</SPAN>.
 The download consists of this documentation, an installation script for Unix
 (<TT>install</TT>), and the Perl script <TT>SQLTeX</TT>, and a replace- file (<TT>SQLTeX_r.dat</TT>) for manual installation
 on non- unix platforms<A NAME="tex2html1"
-  HREF="#foot21"><SUP>1</SUP></A>.
+  HREF="#foot21"><SUP><SPAN CLASS="arabic">1</SPAN></SUP></A>.
 
 <P>
 <BR>
@@ -157,11 +164,11 @@ then execute it with:
 <BR><TT>bash$ ./install</TT>
 
 <P>
-The script will ask in which directory SQLT<SMALL>E</SMALL>X should be installed. If you are
+The script will ask in which directory SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> should be installed. If you are
 logged in as `root', the default will be <TT>/usr/local/bin</TT>, otherwise the
 current directory.
 <BR>
-Make sure the directory where SQLT<SMALL>E</SMALL>X is installed is in your path.
+Make sure the directory where SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> is installed is in your path.
 
 <P>
 <BR>
@@ -174,7 +181,7 @@ it manually.
 <P>
 On O<SMALL>PEN</SMALL>VMS it would be something like:
 <BR><TT>$ SET FILE/PROTECTION=(W:RE) SQLTEX.<A NAME="tex2html2"
-  HREF="#foot288"><SUP>2</SUP></A>
+  HREF="#foot328"><SUP><SPAN CLASS="arabic">2</SPAN></SUP></A>
 <BR>$ COPY SQLTEX. SYS$SYSTEM:
 <BR>$ COPY SQLTEX_R.DAT SYS$SYSTEM:</TT>
 <BR>
@@ -204,18 +211,22 @@ here:
 ################################################################################
 # Configurable part
 #
-$main::texex       = "tex";    # default tex- file extension
-$main::stx         = "_stx";   # file name extension to insert before the last '.'
+$main::dbdriver    = 'mysql';     # Pg, Sybase, Oracle, Ingres, mSQL, ...
 #
-$main::cmd_prefix  = "sql";    # prefix for sql-commands (\sql&lt;command&gt;[]{})
-$main::sql_open    = "db";     # database declaration, e.g. \sqldb[user,passw]{database}
-$main::sql_field   = "field";  # select a single field from db, e.g. \sqlfield{select field from....}
-$main::sql_row     = "row";    # select rows from db, e.g. \sqlfield{select * from....}
+$main::texex       = 'tex';       # default tex- file extension
+$main::stx         = '_stx';      # file name extension to insert before the last '.'
 #
-$main::less_av     = 1;        # Is the command 'less' available on this system ?
-$main::more_av     = 1;        # Is the command 'more' available on this system ?
+$main::cmd_prefix  = 'sql';       # prefix for sql-commands (\sql&lt;command&gt;[]{})
+$main::sql_open    = 'db';        # database declaration, e.g. \sqldb[user,passw]{database}
+$main::sql_field   = 'field';     # select a single field from db, e.g. \sqlfield{select field from....}
+$main::sql_row     = 'row';       # select rows from db, e.g. \sqlfield{select * from....}
+$main::sql_params  = 'setparams'; # set the input paramaterlist in multidocument mode.
+$main::sql_update  = 'update';    # update rows in db, e.g. \sqlupdate{update table set....}
 #
-$main::repl_step   = "OSTX";   # Temporary value for replace
+$main::less_av     = 1;           # Is the command 'less' available on this system ?
+$main::more_av     = 1;           # Is the command 'more' available on this system ?
+#
+$main::repl_step   = "OSTX";      # Temporary value for replace
 #
 ################################################################################
 # Do not make any modifications below this line                                #
@@ -228,61 +239,93 @@ $main::repl_step   = "OSTX";   # Temporary value for replace
 
 <P>
 These values are default values; most values can be overwritten using command line
-options (see section&nbsp;<A HREF="SQLTeX.html#cmdline">4.2</A>). When the command line options are
+options (see section&nbsp;<A HREF="#cmdline">4.2</A>). When the command line options are
 omitted, the default values from the configuration section will be used.
 
 <P>
 <DL>
+<DT><STRONG>$main::dbdriver</STRONG></DT>
+<DD>Database driver. The default is <TT>mysql</TT>.
+Other supported databases are <TT>Pg</TT>, <TT>Sybase</TT>, <TT>Oracle</TT>,
+<TT>Ingres</TT>, <TT>mSQL</TT> and <TT>PostgreSQL</TT>, but also others might
+work without modification. 
+<BR>
+If your database driver is not support, look for the function
+<TT>db_connect</TT> to add support (and please notify me :) 
+
+<P>
+</DD>
 <DT><STRONG>$main::texex</STRONG></DT>
-<DD>The default file extension for L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X file. When SQLT<SMALL>E</SMALL>X is called, the first
+<DD>The default file extension for <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> file. When SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> is called, the first
 parameter should be the name of the input file. If this filename has no extension,
-SQLT<SMALL>E</SMALL>X looks for one with the default extension.
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> looks for one with the default extension.
 
 <P>
 </DD>
 <DT><STRONG>$main::stx</STRONG></DT>
 <DD>An output file can be given explicitly using the `<TT>-o</TT>' option. When omitted,
-SQLT<SMALL>E</SMALL>X composes an output file name using this string.
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> composes an output file name using this string.
 <BR>
-E.g, if your input file is called <TT>db-doc.tex</TT>, SQLT<SMALL>E</SMALL>X will produce an
+E.g, if your input file is called <TT>db-doc.tex</TT>, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> will produce an
 outputfile with the name <TT>db-doc_stx.tex</TT>.
 
 <P>
 </DD>
 <DT><STRONG>$main::cmd_prefix</STRONG></DT>
-<DD><A NAME="prefix"></A> SQLT<SMALL>E</SMALL>X looks for SQL commands in the input file. Commands are specified in the
-same way all L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X commands are specified: a backslash (\) followed by the
+<DD><A NAME="prefix"></A> SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> looks for SQL commands in the input file. Commands are specified in the
+same way all <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> commands are specified: a backslash (\) followed by the
 name of the command.
 <BR>
-All SQLT<SMALL>E</SMALL>X commands start with the same string. By default, this is the string
-<TT><B>sql</B></TT>. When user commands are defined that start with the same
+All SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> commands start with the same string. By default, this is the string
+<TT><SPAN  CLASS="textbf">sql</SPAN></TT>. When user commands are defined that start with the same
 string, this can be changed here to prevent conflicts.
 
 <P>
 </DD>
 <DT><STRONG>$main::sql_open</STRONG></DT>
-<DD>This string is appended to the $main::cmd_prefix to form the complete SQLT<SMALL>E</SMALL>X for opening a database.
+<DD>This string is appended to the $main::cmd_prefix to
+get the complete SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command for opening a database.
 <BR>
 With the default configuration this command is ``<TT>\sqldb</TT>''.
 
 <P>
 </DD>
 <DT><STRONG>$main::sql_field</STRONG></DT>
-<DD>This string is appended to the $main::cmd_prefix to form the complete SQLT<SMALL>E</SMALL>X to read a single field from the database.
+<DD>This string is appended to the $main::cmd_prefix to
+get the complete SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command to read a single field from the database.
 <BR>
 With the default configuration this command is ``<TT>\sqlfield</TT>''.
 
 <P>
 </DD>
 <DT><STRONG>$main::sql_row</STRONG></DT>
-<DD>This string is appended to the $main::cmd_prefix to form the complete SQLT<SMALL>E</SMALL>X to read one or more rows from the database.
+<DD>This string is appended to the $main::cmd_prefix to
+get the complete SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command to read one or more rows from the database.
 <BR>
 With the default configuration this command is ``<TT>\sqlrow</TT>''.
 
 <P>
 </DD>
+<DT><STRONG>$main::sql_params</STRONG></DT>
+<DD>This string is appended to the $main::cmd_prefix
+to get the complete SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command to retrieve a list if fields that will be
+used as parameters (<TT>$PAR1</TT>, see section&nbsp;<A HREF="#params">4.1</A>) in the
+multidocument environment (see section&nbsp;<A HREF="#multidoc">3.5</A>).
+<BR>
+With the default configuration this command is ``<TT>\sqlparams</TT>''.
+
+<P>
+</DD>
+<DT><STRONG>$main::sql_update</STRONG></DT>
+<DD>This string is appended to the $main::cmd_prefix
+to get the complete SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command to update one or more rows in the database.
+<BR>
+With the default configuration this command is ``<TT>\sqlupdate</TT>''.
+
+<P>
+</DD>
 <DT><STRONG>$main::less_av &amp; $main::more_av</STRONG></DT>
-<DD>These settings are used to determin how the <I>help</I> output should be displayed. If the
+<DD>These settings are used to determin how the <SPAN  CLASS="textsl">help</SPAN> output should be displayed. If the
 command `<TT>less</TT>' is available on the current system, the output will be
 parsed through this program. Otherwise the output will be parsed through the
 program `<TT>more</TT>' if availeble. Both programs are usually available on Unix
@@ -292,13 +335,13 @@ operating systems are available as well.
 Set the values to ``0'' for the program(s) that is (are) not available, or if
 you don't want to use it.
 <BR>
-If none of these programs is available, the <I>help</I> output is plain echoed
+If none of these programs is available, the <SPAN  CLASS="textsl">help</SPAN> output is plain echoed
 to the display.
 
 <P>
 </DD>
 <DT><STRONG>$main::repl_step</STRONG></DT>
-<DD>Replacing strings (see section&nbsp;<A HREF="SQLTeX.html#replfiles">2.2</A> below) is done two steps, to prevent values from being replaced twice.
+<DD>Replacing strings (see section&nbsp;<A HREF="#replfiles">2.2</A> below) is done two steps, to prevent values from being replaced twice.
 This setting--followed by a three-digit integer - ``000'' to ``999''--is used in the first step and replaces values from the first column.
 In the second step, values from the second column replace the temporary value. 
 <BR>
@@ -318,10 +361,10 @@ Create replace files
 
 <P>
 Replace files can be used to substitute values in the output of your SQL commands with a different value. This is especially usefull when the database
-contains characters that are special characters in L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X, like the percent sign (`%'), underscore (`_') etc.
+contains characters that are special characters in <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN>, like the percent sign (`%'), underscore (`_') etc.
 
 <P>
-When SQLT<SMALL>E</SMALL>X is installed, it comes with a standard file--<TT>SQLTeX_r.dat</TT>--which is located in the same directory where SQLTeX is installed,
+When SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> is installed, it comes with a standard file--<TT>SQLTeX_r.dat</TT>--which is located in the same directory where SQLTeX is installed,
 with the following replacements:
 
 <P>
@@ -333,7 +376,7 @@ with the following replacements:
 $       \$
 _       \_
 %       \%
-&amp;       \&
+&amp;       \&amp;
 &lt;       \texttt{&lt;}
 &gt;       \texttt{&gt;}
 {       \{
@@ -349,7 +392,7 @@ _       \_
 
 <P>
 These are all single character replacements, but you can add your own replacements that consist of a single character or a character sequence. To do so,
-enter a new line with the character(string) that should be replaced, followed by a <TT>TAB</TT>- charater (<I>not</I> blanks!) and the character(string)
+enter a new line with the character(string) that should be replaced, followed by a <TT>TAB</TT>- charater (<SPAN  CLASS="textit">not</SPAN> blanks!) and the character(string)
 it should be replaced with.
 
 <P>
@@ -370,30 +413,30 @@ the word ``LaTeX'' will be changed, but ``latex'' is untouched.
 <BR>
 
 <P>
-Different replace files can be created. To select a different replace file for a certain SQLT<SMALL>E</SMALL>X source, use the commandline option
-`<TT>-r <I>filename</I></TT>'. To disable the use of replace files, use `<TT>-rn</TT>'.
+Different replace files can be created. To select a different replace file for a certain SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> source, use the commandline option
+`<TT>-r <SPAN  CLASS="textit">filename</SPAN></TT>'. To disable the use of replace files, use `<TT>-rn</TT>'.
 
 <P>
 
 <H1><A NAME="SECTION00040000000000000000">
-Write your SQLT<SMALL>E</SMALL>X file</A>
+Write your SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> file</A>
 </H1>
 
 <P>
-For SQLT<SMALL>E</SMALL>X, you write your L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X document just as you're used to. SQLT<SMALL>E</SMALL>X provides you with
+For SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN>, you write your <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> document just as you're used to. SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> provides you with
 some extra commands that you can include in your file.
 <BR>
 The basic format<A NAME="tex2html3"
-  HREF="#foot292"><SUP>3</SUP></A> of an SQLT<SMALL>E</SMALL>X command is: 
-<BR><TT>\sql<I>cmd</I>[options]{SQL statement}</TT>
+  HREF="#foot332"><SUP><SPAN CLASS="arabic">3</SPAN></SUP></A> of an SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command is: 
+<BR><TT>\sql<SPAN  CLASS="textit">cmd</SPAN>[options]{SQL statement}</TT>
 
 <P>
 <BR>
 <BR>
 
 <P>
-All SQLT<SMALL>E</SMALL>X commands can be specified anywhere in a line, and can span multiple lines.
-When SQLT<SMALL>E</SMALL>X executes, the commands are read, executed, and their results--if they return
+All SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> commands can be specified anywhere in a line, and can span multiple lines.
+When SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> executes, the commands are read, executed, and their results--if they return
 any--are written to the output:
 
 <P>
@@ -402,19 +445,19 @@ any--are written to the output:
 
 <P>
 <TABLE  WIDTH="50%">
-<TR><TD><I>Input file:</I>
-<BR><TT><FONT SIZE="-1">\documentclass[article] 
+<TR><TD><SPAN  CLASS="textsl">Input file:</SPAN>
+<BR><TT><SMALL CLASS="FOOTNOTESIZE">\documentclass[article] 
 <BR>\pagestyle{empty} 
 <BR>\sqldb[oscar]{mydb} 
 <BR>\begin{document} 
-<BR></FONT></TT></TD></TR>
+<BR></SMALL></TT></TD></TR>
 </TABLE><TABLE  WIDTH="50%">
-<TR><TD><I>Output file:</I>
-<BR><TT><FONT SIZE="-1">\documentclass[article] 
+<TR><TD><SPAN  CLASS="textsl">Output file:</SPAN>
+<BR><TT><SMALL CLASS="FOOTNOTESIZE">\documentclass[article] 
 <BR>\pagestyle{empty} 
 <BR> 
 <BR>\begin{document} 
-<BR></FONT></TT></TD></TR>
+<BR></SMALL></TT></TD></TR>
 </TABLE>
 
 <P>
@@ -422,9 +465,9 @@ any--are written to the output:
 <BR>
 
 <P>
-Above you see the SQLT<SMALL>E</SMALL>X command <TT>\sqldb</TT> was removed. Only the command was removed, not
-the <I>newline</I> character at the end of the line, so an empty line will be printed instead.
-The example below shows the output is an SQLT<SMALL>E</SMALL>X command was found on a line with other L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X directives:
+Above you see the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command <TT>\sqldb</TT> was removed. Only the command was removed, not
+the <SPAN  CLASS="textsl">newline</SPAN> character at the end of the line, so an empty line will be printed instead.
+The example below shows the output is an SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command was found on a line with other <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> directives:
 
 <P>
 <BR>
@@ -432,17 +475,17 @@ The example below shows the output is an SQLT<SMALL>E</SMALL>X command was found
 
 <P>
 <TABLE  WIDTH="50%">
-<TR><TD><I>Input file:</I>
-<BR><TT><FONT SIZE="-1">\documentclass[article] 
+<TR><TD><SPAN  CLASS="textsl">Input file:</SPAN>
+<BR><TT><SMALL CLASS="FOOTNOTESIZE">\documentclass[article] 
 <BR>\pagestyle{empty}\sqldb[oscar]{mydb} 
 <BR>\begin{document} 
-<BR></FONT></TT></TD></TR>
+<BR></SMALL></TT></TD></TR>
 </TABLE><TABLE  WIDTH="50%">
-<TR><TD><I>Output file:</I>
-<BR><TT><FONT SIZE="-1">\documentclass[article] 
+<TR><TD><SPAN  CLASS="textsl">Output file:</SPAN>
+<BR><TT><SMALL CLASS="FOOTNOTESIZE">\documentclass[article] 
 <BR>\pagestyle{empty} 
 <BR>\begin{document} 
-<BR></FONT></TT></TD></TR>
+<BR></SMALL></TT></TD></TR>
 </TABLE>
 
 <P>
@@ -450,7 +493,7 @@ The example below shows the output is an SQLT<SMALL>E</SMALL>X command was found
 <BR>
 
 <P>
-In these examples the SQLT<SMALL>E</SMALL>X commands did not return a value. When commands actually read from
+In these examples the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> commands did not return a value. When commands actually read from
 the database, the returned value is written instead:
 
 <P>
@@ -459,15 +502,15 @@ the database, the returned value is written instead:
 
 <P>
 <TABLE  WIDTH="50%">
-<TR><TD><I>Input file:</I>
-<BR><TT><FONT SIZE="-1">This invoice has \sqlfield{SELECT COUNT(*) FROM INVOICE_LINE 
+<TR><TD><SPAN  CLASS="textsl">Input file:</SPAN>
+<BR><TT><SMALL CLASS="FOOTNOTESIZE">This invoice has \sqlfield{SELECT COUNT(*) FROM INVOICE_LINE 
 <BR>
 WHERE INVOICE_NR = 12345} lines.
-<BR></FONT></TT></TD></TR>
+<BR></SMALL></TT></TD></TR>
 </TABLE><TABLE  WIDTH="50%">
-<TR><TD><I>Output file:</I>
-<BR><TT><FONT SIZE="-1">This invoice has 4 lines 
-<BR></FONT></TT></TD></TR>
+<TR><TD><SPAN  CLASS="textsl">Output file:</SPAN>
+<BR><TT><SMALL CLASS="FOOTNOTESIZE">This invoice has 4 lines 
+<BR></SMALL></TT></TD></TR>
 </TABLE>
 
 <P>
@@ -479,8 +522,8 @@ SQL statements
 
 <P>
 This document assumes the reader is familiar with SQL commands. This section only tells something about
-implementing them in SQLT<SMALL>E</SMALL>X files, especially with the use of command parameters and variables.
-Details about the SQLT<SMALL>E</SMALL>X commands will be described in the next sections.
+implementing them in SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> files, especially with the use of command parameters and variables.
+Details about the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> commands will be described in the next sections.
 
 <P>
 <BR>
@@ -491,16 +534,16 @@ Let's look at a simple example. Suppose we want to retreive all header informati
 for a specific invoice. The SQL statement could look something like this: 
 <BR><TT>SELECT * FROM INVOICE WHERE INVOICE_NR = 12345;</TT>
 <BR>
-To implement this statement in an SQLT<SMALL>E</SMALL>X file, the <TT>\sqlrow</TT> command should be used (see
-section&nbsp;<A HREF="SQLTeX.html#sqlrow">3.4</A>):
+To implement this statement in an SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> file, the <TT>\sqlrow</TT> command should be used (see
+section&nbsp;<A HREF="#sqlrow">3.4</A>):
 
 <P>
-First, it is important to know that SQL statements should <I>not</I> contain the ending semicolon (;) in
-any of the SQLT<SMALL>E</SMALL>X commands. The command in SQLT<SMALL>E</SMALL>X would be:
+First, it is important to know that SQL statements should <SPAN  CLASS="textit">not</SPAN> contain the ending semicolon (;) in
+any of the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> commands. The command in SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> would be:
 <BR><TT>\sqlrow{SELECT * FROM INVOICE WHERE INVOICE_NR = 12345}</TT>
 
 <P>
-Next, SQLT<SMALL>E</SMALL>X would be useless if you have to change your input file every time you want to generate
+Next, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> would be useless if you have to change your input file every time you want to generate
 the same document for another invoice.
 
 <P>
@@ -509,8 +552,8 @@ the same document for another invoice.
 
 <P>
 Therefore, you parameters or variables can be used in your SQL statement. Parameters are given at the command
-line (see section&nbsp;<A HREF="SQLTeX.html#params">4.1</A>), variables can be defined using the <TT>\sqlfield</TT> command as
-described in section&nbsp;<A HREF="SQLTeX.html#vars">3.3.1</A>.
+line (see section&nbsp;<A HREF="#params">4.1</A>), variables can be defined using the <TT>\sqlfield</TT> command as
+described in section&nbsp;<A HREF="#vars">3.3.1</A>.
 
 <P>
 Given the example above, the invoice number can be passed as a parameter by rewriting the command as: 
@@ -533,10 +576,10 @@ Opening the database</A>
 
 <P>
 Before any information can be read from a database, this database should be opened.
-This is done with the <TT><B>\sqldb</B></TT> command.
+This is done with the <TT><SPAN  CLASS="textbf">\sqldb</SPAN></TT> command.
 <TT>\sqldb</TT> requires the name of the dabatase. Optionally, a username and password can be given. When
-omitted, SQLT<SMALL>E</SMALL>X assumes no username and password is required to connect to the database (the user that
-executes SQLT<SMALL>E</SMALL>X should have access to the specified database). 
+omitted, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> assumes no username and password is required to connect to the database (the user that
+executes SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> should have access to the specified database). 
 <BR>
 The format of the command is:
 <BR><TT>\sqldb[username,password]{database}</TT>
@@ -553,17 +596,17 @@ Reading a single field
 </H2>
 
 <P>
-When a single field of information is to be read from the database, the command <TT><B>\sqlfield</B></TT>
+When a single field of information is to be read from the database, the command <TT><SPAN  CLASS="textbf">\sqlfield</SPAN></TT>
 is used. By default, the command in the inputfile is replaced by its result in the outputfile.
 <BR>
 The SQL command is enclosed by curly braces. Square brackets can optionally be used to enter some extra options.
-Currently, the only supported option is <TT>setvar</TT> (see section&nbsp;<A HREF="SQLTeX.html#vars">3.3.1</A>).
+Currently, the only supported option is <TT>setvar</TT> (see section&nbsp;<A HREF="#vars">3.3.1</A>).
 
 <P>
 The full syntax or the <TT>\sqlfield</TT> command is:
-<BR><TT>\sqlrow[<I>options</I>]{SELECT <I>fieldname</I> FROM <I>tablename</I> WHERE <I>your where-clause</I>}</TT> 
+<BR><TT>\sqlrow[<SPAN  CLASS="textit">options</SPAN>]{SELECT <SPAN  CLASS="textit">fieldname</SPAN> FROM <SPAN  CLASS="textit">tablename</SPAN> WHERE <SPAN  CLASS="textit">your where-clause</SPAN>}</TT> 
 <BR>
-By default, the SQLT<SMALL>E</SMALL>X command is replaced with the value returned by the SQL query. This behaviour
+By default, the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command is replaced with the value returned by the SQL query. This behaviour
 can be changed with options.
 
 <P>
@@ -576,10 +619,10 @@ Define variables
 <P>
 The <TT>\sqlfield</TT> can also be used to set a variable. The value returned by the SQL query is not
 displayed in this case. Instead, a variable is created which can be used in any other SQL query later in
-the document (see also section&nbsp;<A HREF="SQLTeX.html#sqlstatements">3.1</A>).
+the document (see also section&nbsp;<A HREF="#sqlstatements">3.1</A>).
 
 <P>
-Therefore, the option <TT><B>[setvar=<I>n</I>]</B></TT> is used, where <I>n</I> is an integer between
+Therefore, the option <TT><SPAN  CLASS="textbf">[setvar=<SPAN  CLASS="textit">n</SPAN>]</SPAN></TT> is used, where <SPAN  CLASS="textit">n</SPAN> is an integer between
 0 and 9.
 
 <P>
@@ -587,11 +630,11 @@ Therefore, the option <TT><B>[setvar=<I>n</I>]</B></TT> is used, where <I>n</I> 
 <BR>
 
 <P>
-Suppose you have an invoice in L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X. SQLT<SMALL>E</SMALL>X is executed to retrieve the invoice header information
+Suppose you have an invoice in <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN>. SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> is executed to retrieve the invoice header information
 from the database for a specific customer. Next, the invoice lines are read from the database.
 
 <P>
-You could pass the invoice number as a paramater to SQLT<SMALL>E</SMALL>X for use in your queries, but that could
+You could pass the invoice number as a paramater to SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> for use in your queries, but that could
 change every month. It is easier to :
 <BR>
 <UL>
@@ -604,7 +647,7 @@ the database by another program), and store it in a variable:
 This creates a variable that can be used as <TT>$VAR0</TT>,
 </LI>
 <LI>retrieve the invoice number using the customer number (a command line parameter,
-see also section&nbsp;<A HREF="SQLTeX.html#params">4.1</A>) and the variable containing the invoice date.
+see also section&nbsp;<A HREF="#params">4.1</A>) and the variable containing the invoice date.
 Store this invoice number in <TT>$VAR1</TT>: 
 <BR><TT>\sqlfield[setvar=1]{SELECT INVOICE_NR FROM INVOICES 
 <BR>
@@ -619,7 +662,7 @@ WHERE CUST_NR = '$PAR1' AND INVOICE_DATE = '$VAR0'}</TT>
 <BR>
 
 <P>
-The SQL queries used here do not display any output in your L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>Xdocument.
+The SQL queries used here do not display any output in your <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN>document.
 
 <P>
 
@@ -629,8 +672,8 @@ Reading rows of data
 </H2>
 
 <P>
-When an SQL query returns more information than one single field, the SQLT<SMALL>E</SMALL>X command <TT><B>\sqlrow</B></TT> should be used. As with the <TT>\sqlfield</TT>,
-command, SQLT<SMALL>E</SMALL>X replaces the command with the values it returns, but <TT>\sqlrow</TT>
+When an SQL query returns more information than one single field, the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command <TT><SPAN  CLASS="textbf">\sqlrow</SPAN></TT> should be used. As with the <TT>\sqlfield</TT>,
+command, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> replaces the command with the values it returns, but <TT>\sqlrow</TT>
 accepts different options for formating the output.
 
 <P>
@@ -662,17 +705,98 @@ This will produce an output like:
 <BR>
 3 &amp; 4363 &amp; 1.95 &amp; 10 &amp; 19.5 \\&nbsp;\hline 
 <BR>
-4 &amp; 8375 &amp; 12.5 &amp; 2 &amp; 25 \\&nbsp;\hline</TT>
+4 &amp; 8375 &amp; 12.5 &amp; 2 &amp; 25 \\\&nbsp;\hline</TT>
+
+<P>
+
+<H3><A NAME="SECTION00044100000000000000">
+Output rows on seperate lines</A>
+</H3>
+
+<P>
+Some <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> packages require input on a seperate line. If this output is to be
+read from a database, this can be set with the <TT>rowsep</TT> option using the
+fixed text ``<TT>NEWLINE</TT>''.
+
+<P>
+
+<H2><A NAME="SECTION00045000000000000000"></A><A NAME="multidoc"></A>
+<BR>
+Output multiple documents
+</H2>
+
+<P>
+A single input file can be created to generate more output files. This options
+retrieves the first parameter (see section&nbsp;<A HREF="#params">4.1</A>) from the database
+(ignoring any parameters that where given on the command line!).
+
+<P>
+<BR>
+<BR>
+
+<P>
+The input document must contain the command <TT>\sqlsetparams</TT> (in the
+default configuration) without any options. The query that follows can return an
+unlimited number of rows all containing exactly 1 field: 
+<BR><TT>\sqlsetparams{SELECT INVOICE_NR FROM INVOICES WHERE PAY_DATE = NULL}</TT>
+
+<P>
+<BR>
+<BR>
+
+<P>
+By processing this command, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> builds a list with all values retrieved and
+processes the input file again for each value.
+<BR>
+In those runs, the queries are executed as described in the previous sections,
+using the value as a parameter:
+<BR><TT>\sqlrow{SELECT * FROM INVOICES WHERE INVOICE_NR = $PAR1}</TT>
+
+<P>
+<BR>
+<BR>
+
+<P>
+To enable the multidocument mode, the command line switch <TT>-m</TT> must be
+given and no parameters are allowed.
+<BR>
+Without the <TT>-m</TT> switch, a parameter can be given and a single output
+document will be created, ignoring the <TT>\sqlsetparams</TT> command.
+
+<P>
+<BR>
+<BR>
+
+<P>
+Output filenames will be numbered <TT><SPAN  CLASS="textit">filename</SPAN>_1.tex</TT> to <TT><SPAN  CLASS="textit">filename</SPAN>_<SPAN  CLASS="textit">n</SPAN>.tex</TT>.
+
+<P>
+
+<H2><A NAME="SECTION00046000000000000000">
+Update database records</A>
+</H2>
+
+<P>
+Since version 1.5, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> supports database updates as well: 
+<BR><TT>\sqlupdate{UPDATE INVOICES SET REMINDERS = REMINDERS + 1,
+LAST_REMINDER = NOW() INVOICE_NR = $VAR1}</TT>
+
+<P>
+<BR>
+<BR>
+
+<P>
+This command accepts no options.
 
 <P>
 
 <H1><A NAME="SECTION00050000000000000000">
-Process your SQLT<SMALL>E</SMALL>X file</A>
+Process your SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> file</A>
 </H1>
 
 <P>
-To process you SQLT<SMALL>E</SMALL>X file and create a L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X file with all information read from
-the database, call SQLT<SMALL>E</SMALL>X with the parameter(s) and (optional) commandline options as
+To process you SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> file and create a <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> file with all information read from
+the database, call SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> with the parameter(s) and (optional) commandline options as
 described here:
 
 <P>
@@ -683,11 +807,11 @@ Parameters
 </H2>
 
 <P>
-SQLT<SMALL>E</SMALL>X accepts more than one parameter. The first parameter is required; this should
-be the input file, pointing to your L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X document containing the SQLT<SMALL>E</SMALL>X commands.
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> accepts more than one parameter. The first parameter is required; this should
+be the input file, pointing to your <SPAN CLASS="logo,LaTeX">L<SUP><SMALL>A</SMALL></SUP>T<SMALL>E</SMALL>X</SPAN> document containing the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> commands.
 
 <P>
-By default, SQLT<SMALL>E</SMALL>X looks for a file with extension `<TT>.tex</TT>'.
+By default, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> looks for a file with extension `<TT>.tex</TT>'.
 
 <P>
 <BR>
@@ -695,9 +819,9 @@ By default, SQLT<SMALL>E</SMALL>X looks for a file with extension `<TT>.tex</TT>
 
 <P>
 All other parameters are used by the queries, if required. If an SQL query contains the
-string <TT>$PAR<I>n</I></TT><A NAME="tex2html4"
-  HREF="#foot306"><SUP>4</SUP></A>, it is replaced by that parameter
-(see also section&nbsp;<A HREF="SQLTeX.html#sqlstatements">3.1</A>).
+string <TT>$PAR<SPAN  CLASS="textit">n</SPAN></TT><A NAME="tex2html4"
+  HREF="#foot348"><SUP><SPAN CLASS="arabic">4</SPAN></SUP></A>, it is replaced by that parameter
+(see also section&nbsp;<A HREF="#sqlstatements">3.1</A>).
 
 <P>
 
@@ -707,55 +831,55 @@ Command line options
 </H2>
 
 <P>
-SQLT<SMALL>E</SMALL>X accepts the followint command- line options:
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> accepts the followint command- line options:
 
 <P>
 <DL>
-<DT><STRONG>-E <I>string</I></STRONG></DT>
+<DT><STRONG>-E <SPAN  CLASS="textit">string</SPAN></STRONG></DT>
 <DD>replace input file extension in outputfile:
-<TT>input.tex</TT> will be <TT>input.<I>string</I></TT> 
+<TT>input.tex</TT> will be <TT>input.<SPAN  CLASS="textit">string</SPAN></TT> 
 <BR>
 For further notes, see option <TT>-e</TT> below
 </DD>
 <DT><STRONG>-N</STRONG></DT>
-<DD><TT>NULL</TT> return values allowed. By default SQLT<SMALL>E</SMALL>X exits if a
+<DD><TT>NULL</TT> return values allowed. By default SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> exits if a
 query returns an empty set.
 </DD>
 <DT><STRONG>-P</STRONG></DT>
 <DD>prompt for database password. This overwrites the password in the
 input file.
 </DD>
-<DT><STRONG>-U <I>user</I></STRONG></DT>
+<DT><STRONG>-U <SPAN  CLASS="textit">user</SPAN></STRONG></DT>
 <DD>database username. This overwrites the username in the
 input file.
 </DD>
 <DT><STRONG>-V</STRONG></DT>
 <DD>print version number and exit.
 </DD>
-<DT><STRONG>-e <I>string</I></STRONG></DT>
-<DD>add <I>string</I> to the output filename:
-<TT>input.tex</TT> will be <TT>input<I>string</I>.tex</TT>. This overwrites
+<DT><STRONG>-e <SPAN  CLASS="textit">string</SPAN></STRONG></DT>
+<DD>add <SPAN  CLASS="textit">string</SPAN> to the output filename:
+<TT>input.tex</TT> will be <TT>input<SPAN  CLASS="textit">string</SPAN>.tex</TT>. This overwrites
 the configuration setting <TT>$main::stx</TT> 
 <BR>
-In <I>string</I>, the values between curly braces {} will be substituted:
+In <SPAN  CLASS="textit">string</SPAN>, the values between curly braces {} will be substituted:
 <DL>
-<DT><STRONG>P<I>n</I></STRONG></DT>
-<DD>parameter <I>n</I>
+<DT><STRONG>P<SPAN  CLASS="textit">n</SPAN></STRONG></DT>
+<DD>parameter <SPAN  CLASS="textit">n</SPAN>
 </DD>
 <DT><STRONG>M</STRONG></DT>
-<DD>current monthname (<I>Mon</I>)
+<DD>current monthname (<SPAN  CLASS="textit">Mon</SPAN>)
 </DD>
 <DT><STRONG>W</STRONG></DT>
-<DD>current weekday (<I>Wdy</I>)
+<DD>current weekday (<SPAN  CLASS="textit">Wdy</SPAN>)
 </DD>
 <DT><STRONG>D</STRONG></DT>
-<DD>current date (<I>yyyymmdd</I>)
+<DD>current date (<SPAN  CLASS="textit">yyyymmdd</SPAN>)
 </DD>
 <DT><STRONG>DT</STRONG></DT>
-<DD>current date and time (<I>yyyymmddhhmmss</I>)
+<DD>current date and time (<SPAN  CLASS="textit">yyyymmddhhmmss</SPAN>)
 </DD>
 <DT><STRONG>T</STRONG></DT>
-<DD>current time (<I>hhmmss</I>)
+<DD>current time (<SPAN  CLASS="textit">hhmmss</SPAN>)
 </DD>
 </DL>
 e.g., the command `<TT>SQLTeX -e _{P1}_{W} my_file code</TT>'
@@ -767,31 +891,36 @@ By default (without <TT>-e</TT> or <TT>-E</TT>) the outputfile
 The options <TT>-E</TT> and <TT>-e</TT> cannot be used together or with <TT>-o</TT>.
 </DD>
 <DT><STRONG>-f</STRONG></DT>
-<DD>force overwrite of existing files. By default, SQLT<SMALL>E</SMALL>X exists with a
+<DD>force overwrite of existing files. By default, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> exists with a
 warning message it the outputfile already exists.
 </DD>
 <DT><STRONG>-h</STRONG></DT>
 <DD>print this help message and exit.
 </DD>
-<DT><STRONG>-o <I>file</I></STRONG></DT>
+<DT><STRONG>-m</STRONG></DT>
+<DD>Multidocument mode; create one document for each parameter that is retrieved
+from the database in the input document (see section&nbsp;<A HREF="#multidoc">3.5</A>). This option cannot be used with <TT>-o</TT>.
+
+<P>
+</DD>
+<DT><STRONG>-o <SPAN  CLASS="textit">file</SPAN></STRONG></DT>
 <DD>specify an output file. Cannot be used with <TT>-e</TT> or <TT>-E</TT>.
 </DD>
-<DT><STRONG>-p <I>prefix</I></STRONG></DT>
-<DD>prefix used in the SQLT<SMALL>E</SMALL>X file. Default is <TT>sql</TT> (see also section&nbsp;<A HREF="SQLTeX.html#config">2.1</A>).
-This overwrites the configurarion setting <TT>$main::cms_prefix</TT>.
+<DT><STRONG>-p <SPAN  CLASS="textit">prefix</SPAN></STRONG></DT>
+<DD>prefix used in the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> file. Default is <TT>sql</TT> (see also section&nbsp;<A HREF="#config">2.1</A>). This overwrites the configurarion setting <TT>$main::cms_prefix</TT>.
 </DD>
 <DT><STRONG>-q</STRONG></DT>
 <DD>run in quiet mode.
 </DD>
-<DT><STRONG>-r <I>replace</I></STRONG></DT>
-<DD>Specify a file that contains the replace characters (see section&nbsp;<A HREF="SQLTeX.html#replfiles">2.2</A>). This is
+<DT><STRONG>-r <SPAN  CLASS="textit">replace</SPAN></STRONG></DT>
+<DD>Specify a file that contains the replace characters (see section&nbsp;<A HREF="#replfiles">2.2</A>). This is
 a list with two <TT>TAB</TT>- seperated fields per lione. The first field holds a string that will be replaced in the SQL output 
 </DD>
 <DT><STRONG>-rn</STRONG></DT>
-<DD>Do not use a replace file. <TT>-rn</TT> and <TT>-r <I>file</I></TT> are handled on the same order in which they appear
+<DD>Do not use a replace file. <TT>-rn</TT> and <TT>-r <SPAN  CLASS="textit">file</SPAN></TT> are handled on the same order in which they appear
 on the commandline and overwrite each other.
 </DD>
-<DT><STRONG>-s <I>server</I></STRONG></DT>
+<DT><STRONG>-s <SPAN  CLASS="textit">server</SPAN></STRONG></DT>
 <DD>SQL server to connect to. Default is <TT>localhost</TT>.
 </DD>
 </DL>
@@ -799,18 +928,18 @@ on the commandline and overwrite each other.
 <P>
 
 <H1><A NAME="SECTION00060000000000000000">
-SQLT<SMALL>E</SMALL>X errors and warnings</A>
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> errors and warnings</A>
 </H1>
 
 <P>
-<B><TT>no input file specified</TT></B>
+<SPAN  CLASS="textbf"><TT>no input file specified</TT></SPAN>
 
 <P>
 <BR>
 
 <P>
-SQLT<SMALL>E</SMALL>X was called without any parameters.
-<BR><I>Action:</I> Specify at least one parameter at the commandline. This parameter should be
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> was called without any parameters.
+<BR><SPAN  CLASS="textit">Action:</SPAN> Specify at least one parameter at the commandline. This parameter should be
 the name of your input file.
 
 <P>
@@ -818,150 +947,180 @@ the name of your input file.
 <BR>
 
 <P>
-<B><TT>File <I>input filename</I> does not exist</TT></B>
+<SPAN  CLASS="textbf"><TT>File <SPAN  CLASS="textit">input filename</SPAN> does not exist</TT></SPAN>
 
 <P>
 <BR>
 
 <P>
 The input file does not exist.
-<BR><I>Action:</I> Make sure the first parameter points to the input file.
+<BR><SPAN  CLASS="textit">Action:</SPAN> Make sure the first parameter points to the input file.
 
 <P>
 <BR>
 <BR>
 
 <P>
-<B><TT>outputfile <I>output filename</I> already exists</TT></B>
+<SPAN  CLASS="textbf"><TT>outputfile <SPAN  CLASS="textit">output filename</SPAN> already exists</TT></SPAN>
 
 <P>
 <BR>
 
 <P>
 The outputfile cannot be created because it already exists.
-<BR><I>Action:</I> Specify another output filename with command line option <TT>-e</TT>,
-<TT>-E</TT> or <TT>-o</TT>, or force an overwrite with option <TT>-f</TT> (see also section<A HREF="SQLTeX.html#cmdline">4.2</A>).
+<BR><SPAN  CLASS="textit">Action:</SPAN> Specify another output filename with command line option <TT>-e</TT>,
+<TT>-E</TT> or <TT>-o</TT>, or force an overwrite with option <TT>-f</TT> (see also section<A HREF="#cmdline">4.2</A>).
 
 <P>
 <BR>
 <BR>
 
 <P>
-<B><TT>no database opened at line <I>line nr</I></TT></B>
+<SPAN  CLASS="textbf"><TT>no database opened at line <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
 
 <P>
 <BR>
 
 <P>
-A query starts at line <I>line nr</I>, but at that point no database was opened yet. 
-<BR><I>Action:</I> Add an <TT>\sqldb</TT> command prior to the first query statement.
-
-<P>
-<BR>
-<BR>
-
-<P>
-<B><TT>insufficient parameters to substitute variable on line <I>line nr</I></TT></B>
-
-<P>
-<BR>
-
-<P>
-The query starting at line <I>line nr</I> uses a parameter in a <SMALL>WHERE</SMALL>- clause with
-<TT>$PAR<I>n</I></TT>, where <I>n</I> is a number bigger than the number of parameters
-passed to SQLT<SMALL>E</SMALL>X.
-<BR><I>Action:</I> Specify all required parameters at the command line.
+A query starts at line <SPAN  CLASS="textit">line nr</SPAN>, but at that point no database was opened yet. 
+<BR><SPAN  CLASS="textit">Action:</SPAN> Add an <TT>\sqldb</TT> command prior to the first query statement.
 
 <P>
 <BR>
 <BR>
 
 <P>
-<B><TT>trying to substitute with non existing on line <I>line nr</I></TT></B>
+<SPAN  CLASS="textbf"><TT>insufficient parameters to substitute variable on line <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
 
 <P>
 <BR>
 
 <P>
-The query starting at line <I>line nr</I> requires a variable <TT>$VAR<I>n</I></TT> in its
-<SMALL>WHERE</SMALL>- clause, where <I>n</I> points to a variable that has not (yet) been set. 
-<BR><I>Action:</I> Change the number or set the variable prior to this statement.
+The query starting at line <SPAN  CLASS="textit">line nr</SPAN> uses a parameter in a <SMALL>WHERE</SMALL>- clause with
+<TT>$PAR<SPAN  CLASS="textit">n</SPAN></TT>, where <SPAN  CLASS="textit">n</SPAN> is a number bigger than the number of parameters
+passed to SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN>.
+<BR><SPAN  CLASS="textit">Action:</SPAN> Specify all required parameters at the command line.
 
 <P>
 <BR>
 <BR>
 
 <P>
-<B><TT>trying to overwrite an existing variable on line <I>line nr</I></TT></B>
+<SPAN  CLASS="textbf"><TT>trying to substitute with non existing on line <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
 
 <P>
 <BR>
 
 <P>
-At line <I>line nr</I>, a <TT>\sqlfield</TT> query tries to set a variable <I>n</I>
-using the option <TT>[setvar=<I>n</I>]</TT>, but <TT>$VAR<I>n</I></TT> already
+The query starting at line <SPAN  CLASS="textit">line nr</SPAN> requires a variable <TT>$VAR<SPAN  CLASS="textit">n</SPAN></TT> in its
+<SMALL>WHERE</SMALL>- clause, where <SPAN  CLASS="textit">n</SPAN> points to a variable that has not (yet) been set. 
+<BR><SPAN  CLASS="textit">Action:</SPAN> Change the number or set the variable prior to this statement.
+
+<P>
+<BR>
+<BR>
+
+<P>
+<SPAN  CLASS="textbf"><TT>trying to overwrite an existing variable on line <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
+
+<P>
+<BR>
+
+<P>
+At line <SPAN  CLASS="textit">line nr</SPAN>, a <TT>\sqlfield</TT> query tries to set a variable <SPAN  CLASS="textit">n</SPAN>
+using the option <TT>[setvar=<SPAN  CLASS="textit">n</SPAN>]</TT>, but <TT>$VAR<SPAN  CLASS="textit">n</SPAN></TT> already
 exists at that point. 
-<BR><I>Action:</I> Change the number.
+<BR><SPAN  CLASS="textit">Action:</SPAN> Change the number.
 
 <P>
 <BR>
 <BR>
 
 <P>
-<B><TT>no result set found on line <I>line nr</I></TT></B>
+<SPAN  CLASS="textbf"><TT>no result set found on line <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
 
 <P>
 <BR>
 
 <P>
-The query starting at line <I>line nr</I> returned a <TT>NULL</TT> value. If the
+The query starting at line <SPAN  CLASS="textit">line nr</SPAN> returned a <TT>NULL</TT> value. If the
 option <TT>-N</TT> was specified at the commandline, this is just a warning message.
-Otherwise, SQLT<SMALL>E</SMALL>X exits. 
-<BR><I>Action:</I> None.
+Otherwise, SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> exits. 
+<BR><SPAN  CLASS="textit">Action:</SPAN> None.
 
 <P>
 <BR>
 <BR>
 
 <P>
-<B><TT>result set too big on line <I>line nr</I></TT></B>
+<SPAN  CLASS="textbf"><TT>result set too big on line <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
 
 <P>
 <BR>
 
 <P>
-The query starting at line <I>line nr</I>, called with <TT>\sqlfield</TT> returned more than one field. 
-<BR><I>Action:</I> Change your query or use <TT>\sqlrow</TT> instead.
-
-<P>
-<BR>
-<BR>
-
-<P>
-<B><TT>unrecognized command on line <I>line nr</I></TT></B>
-
-<P>
-<BR>
-
-<P>
-At line <I>line nr</I>, a command was found that starts with ``<TT>\sql</TT>'',
-but this command was not recognized by SQLT<SMALL>E</SMALL>X.
-<BR><I>Action:</I> Check for typos. If the command is a user- defined command, it will
-conflict with default SQLT<SMALL>E</SMALL>X commands. Change the SQLT<SMALL>E</SMALL>X command prefix (see section&nbsp;<A HREF="SQLTeX.html#config">2.1</A>).
+The query starting at line <SPAN  CLASS="textit">line nr</SPAN>, called with <TT>\sqlfield</TT> returned more than one field. 
+<BR><SPAN  CLASS="textit">Action:</SPAN> Change your query or use <TT>\sqlrow</TT> instead.
 
 <P>
 <BR>
 <BR>
 
 <P>
-<B><TT>no sql statements found in <I>input filename</I></TT></B>
+<SPAN  CLASS="textbf"><TT>no parameters for multidocument found on line <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
 
 <P>
 <BR>
 
 <P>
-SQLT<SMALL>E</SMALL>X did not find any valid SQLT<SMALL>E</SMALL>X commands. 
-<BR><I>Action:</I> Check your input file.
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> is executed in multidocument mode, but the statement on line
+<SPAN  CLASS="textit">line nr</SPAN> did not provide any parameters for the documents. 
+<BR><SPAN  CLASS="textit">Action:</SPAN> Check your query.
+
+<P>
+<BR>
+<BR>
+
+<P>
+<SPAN  CLASS="textbf"><TT>too many fields returned in multidocument mode on <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
+
+<P>
+<BR>
+
+<P>
+In multidocument mode, the lis of parameters retrieved on line
+<SPAN  CLASS="textit">line nr</SPAN> returned more than one fiels per row. 
+<BR><SPAN  CLASS="textit">Action:</SPAN> Check your query.
+
+<P>
+<BR>
+<BR>
+
+<P>
+<SPAN  CLASS="textbf"><TT>unrecognized command on line <SPAN  CLASS="textit">line nr</SPAN></TT></SPAN>
+
+<P>
+<BR>
+
+<P>
+At line <SPAN  CLASS="textit">line nr</SPAN>, a command was found that starts with ``<TT>\sql</TT>'',
+but this command was not recognized by SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN>.
+<BR><SPAN  CLASS="textit">Action:</SPAN> Check for typos. If the command is a user- defined command, it will
+conflict with default SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> commands. Change the SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> command prefix (see section&nbsp;<A HREF="#config">2.1</A>).
+
+<P>
+<BR>
+<BR>
+
+<P>
+<SPAN  CLASS="textbf"><TT>no sql statements found in <SPAN  CLASS="textit">input filename</SPAN></TT></SPAN>
+
+<P>
+<BR>
+
+<P>
+SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> did not find any valid SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN> commands. 
+<BR><SPAN  CLASS="textit">Action:</SPAN> Check your input file.
 
 <P>
 
@@ -972,36 +1131,38 @@ Copyright and disclaimer</A>
 <P>
 
 <BR>
-The latest release is always available at <a href="http://freeware.oveas.com/sqltex" target="_top">http://freeware.oveas.com/sqltex</a>
-For bugs, questions and comments, please use the forum available at <a href="http://freeware.oveas.com/sqltex/forum.html" target="_top">http://freeware.oveas.com/sqltex/forum.html</a>
+The latest release is always available at http://freeware.oveas.com/sqltex
+For bugs, questions and comments, please use the forum available at
+<BR>
+http://freeware.oveas.com/sqltex/forum.html.
 
 <P>
 <BR>
 <BR>
 
 <P>
-Copyright&#169; 2001-2002 - Oscar van Eijk, Oveas Functionality Provider
+Copyright&#169; 2001-2007 - Oscar van Eijk, Oveas Functionality Provider
 
 <P>
 
 <BR>
 <P>
 This software is subject to the terms of the LaTeX Project Public License; 
-see <a href="http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html" target="_new">http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html</a>.
+see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 
 <P>
 
 <H1><A NAME="SECTION00080000000000000000">
 About this document ...</A>
 </H1>
- <STRONG>SQLT<SMALL>E</SMALL>X
+ <STRONG>SQL<SPAN CLASS="logo-TeX">T<SMALL>E</SMALL>X</SPAN>
 <BR>
-v1.4</STRONG><P>
+v1.5</STRONG><P>
 This document was generated using the
-<A HREF="http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/"><STRONG>LaTeX</STRONG>2<tt>HTML</tt></A> translator Version 99.2beta8 (1.43)
+<A HREF="http://www.latex2html.org/"><STRONG>LaTeX</STRONG>2<tt>HTML</tt></A> translator Version 2002-2-1 (1.71)
 <P>
 Copyright &#169; 1993, 1994, 1995, 1996,
-<A HREF="http://cbl.leeds.ac.uk/nikos/personal.html">Nikos Drakos</A>, 
+Nikos Drakos, 
 Computer Based Learning Unit, University of Leeds.
 <BR>
 Copyright &#169; 1997, 1998, 1999,
@@ -1009,36 +1170,39 @@ Copyright &#169; 1997, 1998, 1999,
 Mathematics Department, Macquarie University, Sydney.
 <P>
 The command line arguments were: <BR>
- <STRONG>latex2html</STRONG> <TT>-split 0 -no_footnode SQLTeX.tex</TT>
+ <STRONG>latex2html</STRONG> <TT>-split=0 SQLTeX.tex</TT>
 <P>
-The translation was initiated by Oscar van Eijk on 2002-05-02
+The translation was initiated by Oscar van Eijk on 2007-11-23
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A NAME="foot21">... platforms</A><A NAME="foot21"
- HREF="SQLTeX.html#tex2html1"><SUP>1</SUP></A>
+<DT><A NAME="foot21">... platforms</A><A
+ HREF="SQLTeX.html#tex2html1"><SUP><SPAN CLASS="arabic">1</SPAN></SUP></A></DT>
 <DD>on Unix, this file will be generated by the install script
 
-<DT><A NAME="foot288">... SQLTEX.</A><A NAME="foot288"
- HREF="SQLTeX.html#tex2html2"><SUP>2</SUP></A>
+</DD>
+<DT><A NAME="foot328">... SQLTEX.</A><A
+ HREF="SQLTeX.html#tex2html2"><SUP><SPAN CLASS="arabic">2</SPAN></SUP></A></DT>
 <DD>Note the dot (`.') at the end of the file; on
 O<SMALL>PEN</SMALL>VMS systems, all files must to have a file extension, which can
 be empty, in which case the filename ends with a dot.
 
-<DT><A NAME="foot292">... format</A><A NAME="foot292"
- HREF="SQLTeX.html#tex2html3"><SUP>3</SUP></A>
+</DD>
+<DT><A NAME="foot332">... format</A><A
+ HREF="SQLTeX.html#tex2html3"><SUP><SPAN CLASS="arabic">3</SPAN></SUP></A></DT>
 <DD>in this document, in all examples will be asumed the default values in the
-configuration section as described in section&nbsp;<A HREF="SQLTeX.html#config">2.1</A>, have not been changed
+configuration section as described in section&nbsp;<A HREF="#config">2.1</A>, have not been changed
 
-<DT><A NAME="foot306">...$PAR<I>n</I></A><A NAME="foot306"
- HREF="SQLTeX.html#tex2html4"><SUP>4</SUP></A>
-<DD>where <I>n</I> is a number between 1 and 9. Note 
+</DD>
+<DT><A NAME="foot348">... CLASS="textit">n</SPAN></A><A
+ HREF="SQLTeX.html#tex2html4"><SUP><SPAN CLASS="arabic">4</SPAN></SUP></A></DT>
+<DD>where <SPAN  CLASS="textit">n</SPAN> is a number between 1 and 9. Note 
 parameter `0' cannot be used, since that contains the filename!
 
-</DL><HR>
-
+</DD>
+</DL>
 <ADDRESS>
 Oscar van Eijk
-2002-05-02
+2007-11-23
 </ADDRESS>
 </BODY>
 </HTML>

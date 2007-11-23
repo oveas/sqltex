@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SRCF="SQLTeX"
+SRCF="SQLTeX.pl"
 TMPF="SQLTeX.tmp"
 SQLT="SQLTeX"
 RFIL="SQLTeX_r.dat"
@@ -58,6 +58,7 @@ Write_r_File () {
 	echo -E "$2" >> $IDIR/$RFIL
 }
 
+## Create the replacement file if it does not yet exist
 if ! test -e $IDIR/$RFIL
 then
 	touch $IDIR/$RFIL
@@ -85,7 +86,9 @@ then
 	Write_r_File "#" "\#"
 	Write_r_File '~' "\~{}"
 	Write_r_File '\' "\ensuremath{\backslash}"
+else
+	echo "Replace file already exists---not overwritten"
 fi
 
 echo "Installation complete---type $SQLT -h for help"
-exit
+

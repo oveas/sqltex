@@ -47,14 +47,47 @@ group-- or system wide login procedure, with the command:
   
 For more information, please refer to the LaTeX documentation.
 
+
+Requirements:
+-------------
+* Perl        (http://perl.org/)
+* Perl-DBI    (http://dbi.perl.org/)
+* The DBI driver for your database (see: http://search.cpan.org/search?query=DBD%3A%3A&mode=module)
+  
+
+Note for MAC users:
+-------------------
+If DBI and the database driver are not yet installed, Xtools needs to be
+installed in advance, since gcc is not available in a standard install
+of Mac OS X.
+
+
+Thanks to:
+==========
+Ingo Reich       for the comment on Mac OS
+Johan W. Klüwer  for verifying the SyBase support
+Paolo Cavallini  for adding PostgreSQL support
+
+
+Changes:
+========
+v1.5 (2007-11-23):
+- Support for multiple database drivers
+- Added NEWLINE directive as row seperator
+- Multidocument support
+- Implemented updates
+
+v1.4 (2002-05-02):
+- Implemented replace files
+
 ==========================================================================
-The latest release is always available at http://software.oveas.net/sqltex
+The latest release is always available at http://freeware.oveas.com/sqltex
 For bugs, questions and comments, please contact me at
-oscar.van.eijk@oveas.net
+oscar.van.eijk@oveas.com
 
 This software is subject to the terms of the LaTeX Project Public License; 
 see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html
   
-Copyright (c) 2001 - Oscar van Eijk, Oveas Functionality Provider
+Copyright (c) 2001-2007 - Oscar van Eijk, Oveas Functionality Provider
 ==========================================================================
 

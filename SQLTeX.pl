@@ -10,13 +10,12 @@
 #
 # The latest version can always be found at http://freeware.oveas.com/sqltex
 #
-# $Revision$
-# $Date$
+# $Id$
 #
 # This software is subject to the terms of the LaTeX Project Public License; 
 # see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 #
-# Copyright:  (c) 2001-2005, Oscar van Eijk, Oveas Functionality Provider
+# Copyright:  (c) 2001-2007, Oscar van Eijk, Oveas Functionality Provider
 # ==========                 support@oveas.com
 #
 ################################################################################
@@ -28,22 +27,31 @@ use Getopt::Std;
 ################################################################################
 # Configurable part
 #
-$main::texex       = 'tex';
-$main::stx         = '_stx';
+$main::dbdriver		= 'mysql'; # Pg, Sybase, Oracle, Ingres, mSQL, ...
 #
-$main::cmd_prefix  = 'sql';
-$main::sql_open    = 'db';
-$main::sql_field   = 'field';
-$main::sql_row     = 'row';
+$main::texex		= 'tex';
+$main::stx			= '_stx';
 #
-$main::less_av     = 1;
-$main::more_av     = 1;
+$main::cmd_prefix	= 'sql';
+$main::sql_open		= 'db';
+$main::sql_field	= 'field';
+$main::sql_row		= 'row';
+$main::sql_params   = 'setparams';
+$main::sql_update   = 'update';
 #
-$main::repl_step   = 'OSTX';
+$main::less_av		= 1;
+$main::more_av		= 1;
+#
+$main::repl_step	= 'OSTX';
 #
 ################################################################################
 # Do not make any modifications below this line                                #
 ################################################################################
+
+# Following is Used only by Oracle (SQL*Net)
+# *** Not Tested;
+#     ORACLE_SID environment var is sufficient??
+$main::oracle_sid	= 'ORCL';
 
 #####
 # Find out if any command-line options have been given
@@ -53,7 +61,7 @@ sub parse_options {
 
 	$main::NULLallowed = 0;
 
-	if (!getopts ('E:NPU:Ve:fho:p:r:qs:', \%main::options)) {
+	if (!getopts ('E:NPU:Ve:fhmo:p:r:qs:u', \%main::options)) {
 		print (&short_help (1));
 		exit(1);
 	}
@@ -73,8 +81,22 @@ sub parse_options {
 	$optcheck++ if (defined $main::options{'o'});
 	die ("options \"-E\", \"-e\" and \"-o\" cannot be combined\n") if ($optcheck > 1);
 
+	$optcheck = 0;
+	$optcheck++ if (defined $main::options{'m'});
+	$optcheck++ if (defined $main::options{'o'});
+	die ("options \"-m\" and \"-o\" cannot be combined\n") if ($optcheck > 1);
+
 	$main::NULLallowed = 1 if (defined $main::options{'N'});
 	$main::cmd_prefix = $main::options{'p'} if (defined $main::options{'p'});
+
+	$main::multidoc_cnt = 0;
+	$main::multidoc = (defined $main::options{'m'});
+	$main::multidoc_id = '';
+
+	if ($main::multidoc) {
+		$main::multidoc_id = '_#M#';
+	}
+
 }
 
 #####
@@ -82,7 +104,7 @@ sub parse_options {
 #
 sub short_help ($) {
 	my $onerror = shift;
-	my $helptext = "usage: $main::myself [-ENPUVefhopqs] <file[.$main::texex]> [parameter...]\n";
+	my $helptext = "usage: $main::myself [-ENPUVefhmopqs] <file[.$main::texex]> [parameter...]\n";
 	$helptext .= "       type \"$main::myself -h\" for help\n" if ($onerror);
 	return ($helptext);
 }
@@ -121,7 +143,11 @@ sub print_help {
 	$helptext .= "                     The options \'-E\' and \'-e\' cannot be used together or with \'-o\'.\n";
 	$helptext .= "       -f            force overwrite of existing files\n";
 	$helptext .= "       -h            print this help message and exit\n";
+	$helptext .= "       -m            Multidocument mode; create one document for each parameter that is\n";
+	$helptext .= "                     retrieved from the database in the input document (see documentation)\n";
+	$helptext .= "                     This option cannot be used with \'-o\'.\n";
 	$helptext .= "       -o file       specify an output file. Cannot be used with \'-E\' or \'-e\'\n";
+	$helptext .= "                     This option cannot be used with \'-m\'.\n";
 	$helptext .= "       -p prefix     prefix used in the SQLTeX file. Default is \'sql\'\n";
 	$helptext .= "                     (e.g. \\sqldb[user]{database}), but this can be overwritten\n";
 	$helptext .= "                     if it conflicts with other user-defined commands.\n";
@@ -133,6 +159,7 @@ sub print_help {
 	$helptext .= "         -rn         do not use a replace file. -r file and -rn are handled in the same\n";
 	$helptext .= "                     as they where specified on the command line.\n";
 	$helptext .= "       -s server     SQL server to connect to. Default is \'localhost\'\n";
+	$helptext .= "       -u            If the input file contains updates, execute them.\n";
 
 	$helptext .= "\n       file          is the input file that should be read. By default,\n";
 	$helptext .= "                     $main::myself looks for a file with extension \'.$main::texex\'.\n";
@@ -237,7 +264,13 @@ sub get_filenames {
 		$main::path .= "$`/";
 		$main::inputfile =~ s/$`\///;
 	}
-	$main::inputfile .= ".$main::texex" unless ($main::inputfile =~/\./);
+	if ($main::inputfile =~/\./) {
+		if ((!-e "$main::path$main::inputfile") && (-e "$main::path$main::inputfile.$main::texex")) {
+			$main::inputfile .= ".$main::texex";
+		}
+	} else {
+		$main::inputfile .= ".$main::texex"
+	} 
 	die "File $main::path$main::inputfile does not exist\n" if (!-e "$main::path$main::inputfile");
 
 	if (!defined $main::options{'o'}) {
@@ -252,9 +285,9 @@ sub get_filenames {
 			$main::stx = &file_extension ($main::options{'E'} || $main::options{'e'});
 		}
 		if (defined $main::options{'E'}) {
-			$main::outputfile .= ".$main::stx";
+			$main::outputfile .= "$main::multidoc_id.$main::stx";
 		} else {
-			$main::outputfile .= "$main::stx\.$lastext";
+			$main::outputfile .= "$main::stx$main::multidoc_id\.$lastext";
 		}
 	} else {
 		$main::outputfile = $main::options{'o'};
@@ -276,6 +309,7 @@ sub get_filenames {
 #
 sub db_connect($$) {
 	my ($up, $db) = @_;
+	my $data_source;
 
 	$main::line =~ s/\[?$up\]?\{$db\}//;
 
@@ -291,8 +325,24 @@ sub db_connect($$) {
 	$un = $main::options{'U'} if (defined $main::options{'U'});
 	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if (defined $main::options{'P'});
 
-	my $data_source = "DBI:mysql:$db";
-	$data_source .= ":$main::options{'s'}" unless (!defined $main::options{'s'});
+	if ($main::dbdriver eq "Pg") {
+		$data_source = "DBI:$main::dbdriver:dbname=$db";
+		$data_source .= ";host=$main::options{'s'}" unless (!defined $main::options{'s'});
+	} elsif ($main::dbdriver eq "Oracle") {
+		$data_source = "DBI:$main::dbdriver:$db";
+		$data_source .= ";host=$main::options{'s'};sid=$main::oracle_sid" unless (!defined $main::options{'s'});
+#		$data_source .= ";host=$main::options{'s'}" unless (!defined $main::options{'s'});
+	} elsif ($main::dbdriver eq "Ingres") {
+		$data_source = "DBI:$main::dbdriver";
+		$data_source .= ":$main::options{'s'}" unless (!defined $main::options{'s'});
+		$data_source .= ":$db";
+	} elsif ($main::dbdriver eq "Sybase") {
+		$data_source = "DBI:$main::dbdriver:$db";
+		$data_source .= ";server=$main::options{'s'}" unless (!defined $main::options{'s'});
+	} else { # MySQL, mSQL, ...
+		$data_source = "DBI:$main::dbdriver:database=$db";
+		$data_source .= ";host=$main::options{'s'}" unless (!defined $main::options{'s'});
+	}
 
 	if (!defined $main::options{'q'}) {
 		my $msg = "Connect to database $db on ";
@@ -337,9 +387,15 @@ sub check_options ($) {
 		}
 		if ($opt =~ /^fldsep=/i) {
 			$main::fldsep = qq{$'};
+			if ($main::fldsep eq 'NEWLINE') {
+				$main::fldsep = "\n";
+			}
 		}
 		if ($opt =~ /^rowsep=/i) {
 			$main::rowsep = qq{$'};
+			if ($main::rowsep eq 'NEWLINE') {
+				$main::rowsep = "\n";
+			}
 		}
 	}
 }
@@ -387,10 +443,10 @@ sub sql_row ($$) {
 		$fc = $#values + 1;
 		if (defined $main::replacefile) {
 			my $list_cnt = 0;
-	foreach (@values) {
-		$values[$list_cnt] = replace_values ($values[$list_cnt]);
-		$list_cnt++;
-	}
+			foreach (@values) {
+				$values[$list_cnt] = replace_values ($values[$list_cnt]);
+				$list_cnt++;
+			}
 		}
 		push @return_values, (join "$main::fldsep", @values);
 	}
@@ -446,6 +502,59 @@ sub sql_field ($$) {
 	}
 }
 
+#####
+# Select a (list of) single field(s) from the database. This list is used in
+# multidocument mode as the first parameter in all queries.
+# Currently, only 1 parameter per run is supported.
+#
+sub sql_setparams ($$) {
+	my ($options, $query) = @_;
+	my (@values, @return_values, $rc);
+
+	&check_options ($options);
+
+	&print_message ("Retrieving parameter list with \"$query\"");
+	$main::sql_statements++;
+	my $stat_handle = $main::db_handle->prepare ($query);
+	$stat_handle->execute ();
+
+	while (@values = $stat_handle->fetchrow_array ()) {
+		&just_died (9) if ($#values > 0); # Only one allowed
+		push @return_values, @values;
+	}
+	$stat_handle->finish ();
+
+	if ($#return_values < 0) {
+		&just_died (8);
+	}
+
+	$rc = $#return_values + 1;
+	&print_message ("Multidocument parameters found; $rc documents will be created");
+
+	return (@return_values);
+}
+
+
+#####
+# Select a (list of) single field(s) from the database. This list is used in
+# multidocument mode as the first parameter in all queries.
+# Currently, only 1 parameter per run is supported.
+#
+sub sql_update ($$) {
+	my ($options, $query) = @_;
+	local $main::setvar = 0;
+
+	if (!defined $main::options{'u'}) {
+		&print_message ("Updates will be ignored");
+		return;
+	}
+	&check_options ($options);
+
+	&print_message ("Updating values with \"$query\"");
+	my $rc = $main::db_handle->do($query);
+	&print_message ("$rc rows updated");
+}
+
 ##### 
 # Some error handling (mainly cleanup stuff)
 # Files will be closed if opened, and if no sql output was written yet,
@@ -484,6 +593,10 @@ sub just_died ($) {
 	} elsif ($step == 7) {
 		warn ("trying to overwrite an existing variable on line $main::lcount\n");
 	} elsif ($step == 8) {
+		warn ("no parameters for multidocument found on line $main::lcount\n");
+	} elsif ($step == 9) {
+		warn ("too many fields returned in multidocument mode on $main::lcount\n");
+	} elsif ($step == 10) {
 		warn ("unrecognized command on line $main::lcount\n");
 	}
 	return if ($Resurect);
@@ -495,8 +608,9 @@ sub just_died ($) {
 # used for this query, they will be read until the '}' is found, after which
 # the query will be executed.
 #
-sub parse_command ($) {
+sub parse_command ($$) {
 	my $cmdfound = shift;
+	my $multidoc_par = shift;
 	my $options = '';
 	my $varallowed = 1;
 
@@ -527,8 +641,12 @@ sub parse_command ($) {
 	}
 
 	if ($varallowed) {
-		for (my $i = 1; $i <= $#ARGV; $i++) {
-			$statement =~ s/\$PAR$i/$ARGV[$i]/g;
+		if (($main::multidoc_cnt > 0) && $main::multidoc) {
+			$statement =~ s/\$PAR1/$multidoc_par/g;
+		} else {
+			for (my $i = 1; $i <= $#ARGV; $i++) {
+				$statement =~ s/\$PAR$i/$ARGV[$i]/g;
+			}
 		}
 		while ($statement =~ /\$VAR[0-9]/) {
 			my $varno = $&;
@@ -543,7 +661,7 @@ sub parse_command ($) {
 	if ($cmdfound =~ /$main::sql_open/) {
 		&db_connect($options, $statement);
 		$main::db_opened = 1;
-		return;
+		return 0;
 	}
 
 	&just_died (2) if (!$main::db_opened);
@@ -552,12 +670,71 @@ sub parse_command ($) {
 		$main::line = $lin1 . &sql_field($options, $statement) . $lin2;
 	} elsif ($cmdfound =~ /$main::sql_row/) {
 		$main::line = $lin1 . &sql_row($options, $statement) . $lin2;
+	} elsif ($cmdfound =~ /$main::sql_params/) {
+		if ($main::multidoc) { # Ignore otherwise
+			@main::parameters = &sql_setparams($options, $statement);
+			$main::line = $lin1 . $lin2;
+			return 1; # Finish this run
+		} else {
+			$main::line = $lin1 . $lin2;
+		}
+	} elsif ($cmdfound =~ /$main::sql_update/) {
+		&sql_update($options, $statement);
+		$main::line = $lin1 . $lin2;
 	} else {
-		&just_died (8);
+		&just_died (10);
 	}
 
-	return;
+	return 0;
 }
+
+#####
+# Process the input file
+# When multiple documents should be written, this routine is
+# multiple times.
+# The first time, it only builds a list with parameters that will be
+# used for the next executions
+#
+sub process_file {
+	my $multidoc_par = '';
+
+	if ($main::multidoc && ($main::multidoc_cnt > 0)) {
+		$main::saved_outfile_template = $main::outputfile if ($main::multidoc_cnt == 1); # New global name; should be a static
+		$main::outputfile = $main::saved_outfile_template if ($main::multidoc_cnt > 1);
+		$main::outputfile =~ s/\#M\#/$main::multidoc_cnt/;
+		$multidoc_par = @main::parameters[$main::multidoc_cnt - 1];
+	}
+
+	open (FI, "<$main::path$main::inputfile");
+	open (FO, ">$main::path$main::outputfile") unless ($main::multidoc && ($main::multidoc_cnt == 0));
+
+	$main::sql_statements = 0;
+	$main::db_opened = 0;
+	$main::lcount = 0;
+
+	while ($main::line = <FI>) {
+		$main::lcount++;
+
+		while (($main::line =~ /\\$main::cmd_prefix[a-z]+(\[|\{)/) &&
+		 !($main::line =~ /\\\\$main::cmd_prefix[a-z]+(\[|\{)/)) {
+			if (&parse_command($&, $multidoc_par) && $main::multidoc && ($main::multidoc_cnt == 0)) {
+				$main::multidoc_cnt++; # Got the input data, next run writes the first document
+				close FI;
+				return;
+			}
+		}
+		print FO "$main::line" unless ($main::multidoc && ($main::multidoc_cnt == 0));
+	}
+
+	if ($main::multidoc) {
+		$main::multidoc = 0 if (($main::multidoc_cnt++) > $#main::parameters);
+	}
+
+	close FI;
+	close FO;
+}
+
+## Main:
 
 #####
 # Some globals
@@ -570,7 +747,7 @@ sub parse_command ($) {
 
 $main::myself = $ENV{'_'};
 while ($main::myself =~ /\//) { $main::myself = $'; }
-$main::version = '1.4.1';
+$main::version = '1.5';
 
 my $rdate   = '$Date$';
 my ($dum1, $act, $rest_of_line ) = split / /, $rdate;
@@ -579,7 +756,7 @@ $main::rdate = $act;
 &parse_options;
 &get_filenames;
 
-if (-e "$main::path$main::outputfile") {
+if (!$main::multidoc && -e "$main::path$main::outputfile") {
 	die ("outputfile $main::path$main::outputfile already exists\n")
 		unless (defined $main::options{'f'});
 }
@@ -601,34 +778,21 @@ if (defined $main::replacefile) {
 	close RF;
 }
 
-open (FI, "<$main::path$main::inputfile");
-open (FO, ">$main::path$main::outputfile");
+# Start processing
+do {
+	&process_file;
 
-$main::sql_statements = 0;
-$main::db_opened = 0;
-$main::lcount = 0;
-
-while ($main::line = <FI>) {
-	$main::lcount++;
-
-	while (($main::line =~ /\\$main::cmd_prefix[a-z]+(\[|\{)/) &&
-	 !($main::line =~ /\\\\$main::cmd_prefix[a-z]+(\[|\{)/)) {
-		&parse_command($&);
+	if ($main::sql_statements == 0) {
+		unlink ("$main::path$main::outputfile");
+		print "no sql statements found in $main::path$main::inputfile\n";
+		$main::multidoc = 0; # Problem in the input, useless to continue
+	} else {
+		print "$main::sql_statements queries executed - TeX file $main::path$main::outputfile written\n"
+			unless ($main::multidoc && ($main::multidoc_cnt == 1)); # Counter was just increased.
 	}
-	print FO "$main::line";
-}
-
-close FI;
-close FO;
+} while ($main::multidoc); # Set to false when done
 
 $main::db_handle->disconnect() if ($main::db_opened);
-
-if ($main::sql_statements == 0) {
-	unlink ("$main::path$main::outputfile");
-	print "no sql statements found in $main::path$main::inputfile\n";
-} else {
-	print "$main::sql_statements queries executed - TeX file $main::path$main::outputfile written\n";
-}
 exit (0);
 
 #
