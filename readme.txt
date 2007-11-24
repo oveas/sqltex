@@ -1,4 +1,4 @@
-SQLTeX v1.4
+SQLTeX v1.5
 ===========
 
 SQLTeX is a preprocessor to enable the use of SQL statements in LaTeX.
@@ -37,8 +37,8 @@ For other operating systems, there is no install script, you will have to instal
 it manually.
 
 On OpenVMS it would be something like:
-  $ SET FILE/PROTECTION=(W:RE) SQLTEX.
-  $ COPY SQLTEX. SYS$SYSTEM:
+  $ COPY SQLTEX.PL SYS$SYSTEM:SQLTEX.
+  $ SET FILE/PROTECTION=(W:RE) SYS$SYSTEM:SQLTEX.
   $ COPY SQLTEX_R.DAT. SYS$SYSTEM:
 However, on OpenVMS you also need to define the command SQLTEX by setting a symbol,
 either in the LOGIN.COM for all users who need to execute this script, or in some
