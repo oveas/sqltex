@@ -28,6 +28,7 @@ use Getopt::Std;
 # Configurable part
 #
 $main::dbdriver		= 'mysql'; # Pg, Sybase, Oracle, Ingres, mSQL, ...
+$main::oracle_sid	= 'ORASID'; # SID for Oracle users, ignored for other databases
 #
 $main::texex		= 'tex';
 $main::stx			= '_stx';
@@ -47,11 +48,6 @@ $main::repl_step	= 'OSTX';
 ################################################################################
 # Do not make any modifications below this line                                #
 ################################################################################
-
-# Following is Used only by Oracle (SQL*Net)
-# *** Not Tested;
-#     ORACLE_SID environment var is sufficient??
-$main::oracle_sid	= 'ORCL';
 
 #####
 # Find out if any command-line options have been given
@@ -331,7 +327,7 @@ sub db_connect($$) {
 	} elsif ($main::dbdriver eq "Oracle") {
 		$data_source = "DBI:$main::dbdriver:$db";
 		$data_source .= ";host=$main::options{'s'};sid=$main::oracle_sid" unless (!defined $main::options{'s'});
-#		$data_source .= ";host=$main::options{'s'}" unless (!defined $main::options{'s'});
+		$data_source .= ";sid=$main::oracle_sid";
 	} elsif ($main::dbdriver eq "Ingres") {
 		$data_source = "DBI:$main::dbdriver";
 		$data_source .= ":$main::options{'s'}" unless (!defined $main::options{'s'});
@@ -434,7 +430,7 @@ sub sql_row ($$) {
 
 	&check_options ($options);
 
-	&print_message ("Retrieving rows with \"$query\"");
+	&print_message ("Retrieving row(s) with \"$query\"");
 	$main::sql_statements++;
 	my $stat_handle = $main::db_handle->prepare ($query);
 	$stat_handle->execute ();
@@ -457,7 +453,11 @@ sub sql_row ($$) {
 	}
 
 	$rc = $#return_values + 1;
-	&print_message ("Found $rc rows with $fc fields each");
+	if ($rc == 1) {
+		&print_message ("Found $rc row with $fc field(s)");
+	} else {
+		&print_message ("Found $rc rows with $fc fields each");
+	}
 
 	return (join "$main::rowsep", @return_values);
 
@@ -747,10 +747,10 @@ sub process_file {
 
 $main::myself = $ENV{'_'};
 while ($main::myself =~ /\//) { $main::myself = $'; }
-$main::version = '1.5';
+$main::version = '1.x';
 
 my $rdate   = '$Date$';
-my ($dum1, $act, $rest_of_line ) = split / /, $rdate;
+my ($dum1, $act, $rest_of_line ) = split (/ /, $rdate);
 $main::rdate = $act;
 
 &parse_options;

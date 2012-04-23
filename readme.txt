@@ -1,4 +1,4 @@
-SQLTeX v1.5
+SQLTeX v1.x
 ===========
 
 SQLTeX is a preprocessor to enable the use of SQL statements in LaTeX.
@@ -71,6 +71,9 @@ Paolo Cavallini  for adding PostgreSQL support
 
 Changes:
 ========
+v1.x (2012-??-??):
+- Fixed support for Oracle databases
+
 v1.5 (2007-11-23):
 - Support for multiple database drivers
 - Added NEWLINE directive as row seperator

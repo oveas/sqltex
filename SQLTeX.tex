@@ -4,7 +4,7 @@
 \usepackage{makeidx}
 \begin{document}
 
-\title{SQL\TeX\\v1.5}
+\title{SQL\TeX\\v1.x}
 \date{November 21, 2007}
 \author{Oscar van Eijk}
 
@@ -88,6 +88,7 @@ here:
 # Configurable part
 #
 $main::dbdriver    = 'mysql';     # Pg, Sybase, Oracle, Ingres, mSQL, ...
+$main::oracle_sid  = 'ORASID';    # SID for Oracle users, ignored for other databases
 #
 $main::texex       = 'tex';       # default tex- file extension
 $main::stx         = '_stx';      # file name extension to insert before the last '.'
