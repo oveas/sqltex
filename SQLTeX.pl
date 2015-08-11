@@ -8,15 +8,11 @@
 # Purpose:	This script is a preprocessor for LaTeX. It reads a LaTeX file
 # ========	containing SQL commands, and replaces them their values.
 #
-# The latest version can always be found at http://freeware.oveas.com/sqltex
-#
-# $Id$
-#
 # This software is subject to the terms of the LaTeX Project Public License; 
 # see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 #
-# Copyright:  (c) 2001-2007, Oscar van Eijk, Oveas Functionality Provider
-# ==========                 support@oveas.com
+# Copyright:  (c) 2001-2015, Oscar van Eijk, Oveas Functionality Provider
+# ==========                 oscar@oveas.com
 #
 ################################################################################
 #
@@ -39,6 +35,9 @@ $main::sql_field	= 'field';
 $main::sql_row		= 'row';
 $main::sql_params   = 'setparams';
 $main::sql_update   = 'update';
+$main::sql_start    = 'start';
+$main::sql_end      = 'end';
+$main::sql_use      = 'use';
 #
 $main::less_av		= 1;
 $main::more_av		= 1;
@@ -49,6 +48,10 @@ $main::repl_step	= 'OSTX';
 # Do not make any modifications below this line                                #
 ################################################################################
 
+# Used for loops, should not start with $main::cmd_prefix !!
+$main::alt_cmd_prefix = 'processedsqlcommand';
+
+
 #####
 # Find out if any command-line options have been given
 # Parse them using 'Getopt'
@@ -57,7 +60,7 @@ sub parse_options {
 
 	$main::NULLallowed = 0;
 
-	if (!getopts ('E:NPU:Ve:fhmo:p:r:qs:u', \%main::options)) {
+	if (!getopts ('E:NPU:H:Ve:fhmo:p:r:qs:u', \%main::options)) {
 		print (&short_help (1));
 		exit(1);
 	}
@@ -311,38 +314,55 @@ sub db_connect($$) {
 
 	my $un = '';
 	my $pw = '';
-	if ($up =~ /,/) {
-		$un = $`;
-		$pw = $'
-	} elsif ($up ne '') {
-	   $un = $up;
+	my $hn = '';
+	my @opts = split(',', $up);
+	for(my $idx = 0; $idx <= $#opts; $idx++) {
+		my $opt = $opts[$idx];
+		if ($opt =~ /=/) {
+			if ($` eq 'user') {
+				$un = $';
+			} elsif ($` eq 'passwd') {
+				$pw = $';
+			} elsif ($` eq 'host') {
+				$hn = $';
+			}
+		} else {
+			if ($idx == 0) {
+				$un = $opt;
+			} elsif ($idx == 1) {
+				$pw = $opt;
+			} elsif ($idx == 2) {
+				$hn = $opt;
+			}
+		}
 	}
 
 	$un = $main::options{'U'} if (defined $main::options{'U'});
 	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if (defined $main::options{'P'});
+	$hn = $main::options{'s'} if (defined $main::options{'s'});
 
 	if ($main::dbdriver eq "Pg") {
 		$data_source = "DBI:$main::dbdriver:dbname=$db";
-		$data_source .= ";host=$main::options{'s'}" unless (!defined $main::options{'s'});
+		$data_source .= ";host=$hn" unless ($hn eq "");
 	} elsif ($main::dbdriver eq "Oracle") {
 		$data_source = "DBI:$main::dbdriver:$db";
-		$data_source .= ";host=$main::options{'s'};sid=$main::oracle_sid" unless (!defined $main::options{'s'});
+		$data_source .= ";host=$hn;sid=$main::oracle_sid" unless ($hn eq "");
 		$data_source .= ";sid=$main::oracle_sid";
 	} elsif ($main::dbdriver eq "Ingres") {
 		$data_source = "DBI:$main::dbdriver";
-		$data_source .= ":$main::options{'s'}" unless (!defined $main::options{'s'});
+		$data_source .= ":$hn" unless ($hn eq "");
 		$data_source .= ":$db";
 	} elsif ($main::dbdriver eq "Sybase") {
 		$data_source = "DBI:$main::dbdriver:$db";
-		$data_source .= ";server=$main::options{'s'}" unless (!defined $main::options{'s'});
+		$data_source .= ";server=$hn" unless ($hn eq "");
 	} else { # MySQL, mSQL, ...
 		$data_source = "DBI:$main::dbdriver:database=$db";
-		$data_source .= ";host=$main::options{'s'}" unless (!defined $main::options{'s'});
+		$data_source .= ";host=$hn" unless ($hn eq "");
 	}
 
 	if (!defined $main::options{'q'}) {
 		my $msg = "Connect to database $db on ";
-		$msg .= $main::options{'s'} || 'localhost';
+		$msg .= $hn|| 'localhost';
 		$msg .= " as user $un" unless ($un eq '');
 		$msg .= " using a password" unless ($pw eq '');
 		&print_message ($msg);
@@ -365,8 +385,7 @@ sub execute_query ($) {
 # Check if the SQL statement contains options
 # Supported options are:
 #   setvar=<i>, where <i> is the list location to store the variable.
-#
-# (currently, this is the only option supported)
+#   setarr=<i>
 #
 sub check_options ($) {
 	my $options = shift;
@@ -380,6 +399,10 @@ sub check_options ($) {
 		if ($opt =~ /^setvar=/i) {
 			$main::var_no = $';
 			$main::setvar = 1;
+		}
+		if ($opt =~ /^setarr=/i) {
+			$main::arr_no = $';
+			$main::setarr = 1;
 		}
 		if ($opt =~ /^fldsep=/i) {
 			$main::fldsep = qq{$'};
@@ -426,6 +449,7 @@ sub sql_row ($$) {
 	my ($options, $query) = @_;
 	local $main::fldsep = ', ';
 	local $main::rowsep = "\\\\";
+	local $main::setarr = 0;	
 	my (@values, @return_values, $rc, $fc);
 
 	&check_options ($options);
@@ -435,6 +459,19 @@ sub sql_row ($$) {
 	my $stat_handle = $main::db_handle->prepare ($query);
 	$stat_handle->execute ();
 
+	if ($main::setarr) {
+		&just_died (7) if (defined $main::arr[$main::arr_no]);
+		@main::arr[$main::arr_no] = ();
+		while (my $ref = $stat_handle->fetchrow_hashref()) {
+			foreach my $k (keys %$ref) {
+				$ref->{$k}  = replace_values ($ref->{$k});
+			}
+			push @{$main::arr[$main::arr_no]},$ref;
+		}
+		$stat_handle->finish ();
+		return ();
+	}
+	
 	while (@values = $stat_handle->fetchrow_array ()) {
 		$fc = $#values + 1;
 		if (defined $main::replacefile) {
@@ -501,6 +538,61 @@ sub sql_field ($$) {
 		}
 	}
 }
+
+#####
+# Start a section that will be repeated for evey row that is on stack
+#
+sub sql_start ($) {
+	my $arr_no = shift;
+	&just_died (11) if (!defined $main::arr[$arr_no]);
+	if (@main::current_array) {
+		@main::current_array = ();
+	}
+	@main::loop_data = ();
+	push @main::current_array,$arr_no;
+}
+
+#####
+# Stop processing the current array
+#
+sub sql_use ($$) {
+	my ($field, $loop) = @_;
+	return $main::arr[$#main::current_array][$loop]->{$field};
+}
+
+
+#####
+# Stop processing the current array
+#
+sub sql_end () {
+	my $result = '';
+
+	for (my $cnt = 0; $cnt < $#{$main::arr[$#main::current_array]}; $cnt++) {
+		for (my $lines = 0; $lines < $#{$main::loop_data[$#main::current_array]}; $lines++) {
+			my $buffered_line = ${$main::loop_data[$#main::current_array]}[$lines];
+			while (($buffered_line  =~ /\\$main::alt_cmd_prefix[a-z]+(\[|\{)/) && !($buffered_line  =~ /\\\\$main::alt_cmd_prefix[a-z]+(\[|\{)/)) {
+				my $cmdfound = $&;
+				$cmdfound =~ s/\\//;
+
+				$buffered_line  =~ /\\$cmdfound/;
+				my $lin1 = $`;
+				$buffered_line = $';
+				$buffered_line =~ /\}/;
+				my $statement = $`;
+				my $lin2 = $';
+			 	if ($cmdfound =~ /$main::sql_use/) {
+					$buffered_line = $lin1 . &sql_use($statement, $cnt) . $lin2;
+				}
+		 	}
+		 	$result .= $buffered_line;
+		}
+	}
+	
+	pop @main::current_array;
+	return $result;
+}
+
+
 
 #####
 # Select a (list of) single field(s) from the database. This list is used in
@@ -598,6 +690,10 @@ sub just_died ($) {
 		warn ("too many fields returned in multidocument mode on $main::lcount\n");
 	} elsif ($step == 10) {
 		warn ("unrecognized command on line $main::lcount\n");
+	} elsif ($step == 11) {
+		warn ("start using a non-existing array on line $main::lcount\n");
+	} elsif ($step == 12) {
+		warn ("\\sqluse command encountered outside looop context on line $main::lcount\n");
 	}
 	return if ($Resurect);
 	exit (1);
@@ -681,6 +777,14 @@ sub parse_command ($$) {
 	} elsif ($cmdfound =~ /$main::sql_update/) {
 		&sql_update($options, $statement);
 		$main::line = $lin1 . $lin2;
+	} elsif ($cmdfound =~ /$main::sql_start/) {
+		&sql_start($statement);
+		$main::line = $lin1 . $lin2;
+	} elsif ($cmdfound =~ /$main::sql_use/) {
+		&just_died (12) if (!@main::current_array);
+		$main::line = $lin1 . "\\" . $main::alt_cmd_prefix . $main::sql_use . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
+	} elsif ($cmdfound =~ /$main::sql_end/) {
+		$main::line = $lin1 . &sql_end() . $lin2;
 	} else {
 		&just_died (10);
 	}
@@ -723,7 +827,11 @@ sub process_file {
 				return;
 			}
 		}
-		print FO "$main::line" unless ($main::multidoc && ($main::multidoc_cnt == 0));
+		if (@main::current_array && $#main::current_array >= 0) {
+			push @{$main::loop_data[$#main::current_array]}, $main::line;
+		} else {	
+			print FO "$main::line" unless ($main::multidoc && ($main::multidoc_cnt == 0));
+		}
 	}
 
 	if ($main::multidoc) {
@@ -743,6 +851,13 @@ sub process_file {
 	my @dir_list = split /\//, $0;
 	pop @dir_list;
 	$main::my_location = join '/', @dir_list;
+}
+
+# Check config
+# Used for loops, should not start with $main::cmd_prefix !!
+$main::alt_cmd_prefix = 'processedsqlcommand';
+if ($main::alt_cmd_prefix =~ /^$main::cmd_prefix/) {
+	die "\$main::alt_cmd_prefix cannot start with $main::cmd_prefix";
 }
 
 $main::myself = $ENV{'_'};
