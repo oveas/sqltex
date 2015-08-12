@@ -51,7 +51,6 @@ $main::repl_step	= 'OSTX';
 # Used for loops, should not start with $main::cmd_prefix !!
 $main::alt_cmd_prefix = 'processedsqlcommand';
 
-
 #####
 # Find out if any command-line options have been given
 # Parse them using 'Getopt'
@@ -60,7 +59,7 @@ sub parse_options {
 
 	$main::NULLallowed = 0;
 
-	if (!getopts ('E:NPU:H:Ve:fhmo:p:r:qs:u', \%main::options)) {
+	if (!getopts ('E:NPU:Ve:fhmo:p:r:qs:u', \%main::options)) {
 		print (&short_help (1));
 		exit(1);
 	}
@@ -428,7 +427,7 @@ sub replace_values ($) {
 	my $sqlresult = shift;
 	my $rk;
 
-	foreach $rk (keys %main::repl_key) {
+	foreach $rk (@main::repl_order) {
 		$sqlresult =~ s/\Q$rk\E/$main::repl_key{$rk}/g;
 	}
 
@@ -855,7 +854,6 @@ sub process_file {
 
 # Check config
 # Used for loops, should not start with $main::cmd_prefix !!
-$main::alt_cmd_prefix = 'processedsqlcommand';
 if ($main::alt_cmd_prefix =~ /^$main::cmd_prefix/) {
 	die "\$main::alt_cmd_prefix cannot start with $main::cmd_prefix";
 }
@@ -878,6 +876,7 @@ if (!$main::multidoc && -e "$main::path$main::outputfile") {
 
 if (defined $main::replacefile) {
 	my $repl_cnt = '000';
+	@main::repl_order = ();
 	open (RF, "<$main::replacefile");
 	while ($main::line = <RF>) {
 		next if ($main::line =~ /^\s*;/);
@@ -885,6 +884,7 @@ if (defined $main::replacefile) {
 		$main::line =~ s/\t+/\t/;
 		my ($rk, $rv) = split /\t/, $main::line;
 		if ($rk ne '') {
+			push @main::repl_order, $rk;
 			$main::repl_key{$rk} = "$main::repl_step$repl_cnt";
 			$main::repl_val{"$main::repl_step$repl_cnt"} = $rv;
 			$repl_cnt++;
