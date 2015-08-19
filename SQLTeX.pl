@@ -19,37 +19,6 @@
 use strict;
 use DBI;
 use Getopt::Std;
-#
-################################################################################
-# Configurable part
-#
-$main::dbdriver		= 'mysql'; # Pg, Sybase, Oracle, Ingres, mSQL, ...
-$main::oracle_sid	= 'ORASID'; # SID for Oracle users, ignored for other databases
-#
-$main::texex		= 'tex';
-$main::stx			= '_stx';
-#
-$main::cmd_prefix	= 'sql';
-$main::sql_open		= 'db';
-$main::sql_field	= 'field';
-$main::sql_row		= 'row';
-$main::sql_params   = 'setparams';
-$main::sql_update   = 'update';
-$main::sql_start    = 'start';
-$main::sql_end      = 'end';
-$main::sql_use      = 'use';
-#
-$main::less_av		= 1;
-$main::more_av		= 1;
-#
-$main::repl_step	= 'OSTX';
-#
-################################################################################
-# Do not make any modifications below this line                                #
-################################################################################
-
-# Used for loops, should not start with $main::cmd_prefix !!
-$main::alt_cmd_prefix = 'processedsqlcommand';
 
 #####
 # Find out if any command-line options have been given
@@ -59,7 +28,7 @@ sub parse_options {
 
 	$main::NULLallowed = 0;
 
-	if (!getopts ('E:NPU:Ve:fhmo:p:r:qs:u', \%main::options)) {
+	if (!getopts ('c:E:NPU:Ve:fhmo:p:r:qs:u', \%main::options)) {
 		print (&short_help (1));
 		exit(1);
 	}
@@ -85,7 +54,7 @@ sub parse_options {
 	die ("options \"-m\" and \"-o\" cannot be combined\n") if ($optcheck > 1);
 
 	$main::NULLallowed = 1 if (defined $main::options{'N'});
-	$main::cmd_prefix = $main::options{'p'} if (defined $main::options{'p'});
+	$main::configuration{'cmd_prefix'} = $main::options{'p'} if (defined $main::options{'p'});
 
 	$main::multidoc_cnt = 0;
 	$main::multidoc = (defined $main::options{'m'});
@@ -102,7 +71,7 @@ sub parse_options {
 #
 sub short_help ($) {
 	my $onerror = shift;
-	my $helptext = "usage: $main::myself [-ENPUVefhmopqs] <file[.$main::texex]> [parameter...]\n";
+	my $helptext = "usage: $main::myself [-cENPUVefhmopqs] <file[.$main::configuration{'texex'}]> [parameter...]\n";
 	$helptext .= "       type \"$main::myself -h\" for help\n" if ($onerror);
 	return ($helptext);
 }
@@ -114,6 +83,8 @@ sub short_help ($) {
 sub print_help {
 	my $helptext = &short_help (0);
 	$helptext .= "       Options:\n";
+	$helptext .= "       -c file       SQLTeX configuration file.\n";
+	$helptext .= "                     Default is \'$main::my_location/SQLTeX.cfg\'.\n";
 	$helptext .= "       -E string     replace input file extension in outputfile:\n";
 	$helptext .= "                     \'input.tex\' will be \'input.string\'\n";
 	$helptext .= "                     For further notes, see option \'-e\' below\n";
@@ -153,21 +124,21 @@ sub print_help {
 	$helptext .= "       -r file       specify a file that contains replace characters. This is a list with\n";
 	$helptext .= "                     two tab- seperated fields per line. The first field holds a string\n";
 	$helptext .= "                     that will be replaced in the SQL output by the second string.\n";
-	$helptext .= "                     By default the file \'$main::my_location\'/SQLTeX_r.dat\' is used.\n";
+	$helptext .= "                     By default the file \'$main::my_location/SQLTeX_r.dat\' is used.\n";
 	$helptext .= "         -rn         do not use a replace file. -r file and -rn are handled in the same\n";
 	$helptext .= "                     as they where specified on the command line.\n";
 	$helptext .= "       -s server     SQL server to connect to. Default is \'localhost\'\n";
 	$helptext .= "       -u            If the input file contains updates, execute them.\n";
 
 	$helptext .= "\n       file          is the input file that should be read. By default,\n";
-	$helptext .= "                     $main::myself looks for a file with extension \'.$main::texex\'.\n";
+	$helptext .= "                     $main::myself looks for a file with extension \'.$main::configuration{'texex'}\'.\n";
 	$helptext .= "\n       parameter(s)  are substituted in the SQL statements if they contain\n";
 	$helptext .= "                     the string \$PAR[x] somewhere in the statement, where\n";
 	$helptext .= "                     \'x\' is the number of the parameter.\n";
 
-	if ($main::less_av) {
+	if ($main::configuration{'less_av'}) {
 		system ("echo \"$helptext\" | less");
-	} elsif ($main::more_av) {
+	} elsif ($main::configuration{'more_av'}) {
 		system ("echo \"$helptext\" | more");
 	} else {
 		print $helptext;
@@ -263,11 +234,11 @@ sub get_filenames {
 		$main::inputfile =~ s/$`\///;
 	}
 	if ($main::inputfile =~/\./) {
-		if ((!-e "$main::path$main::inputfile") && (-e "$main::path$main::inputfile.$main::texex")) {
-			$main::inputfile .= ".$main::texex";
+		if ((!-e "$main::path$main::inputfile") && (-e "$main::path$main::inputfile.$main::configuration{'texex'}")) {
+			$main::inputfile .= ".$main::configuration{'texex'}";
 		}
 	} else {
-		$main::inputfile .= ".$main::texex"
+		$main::inputfile .= ".$main::configuration{'texex'}"
 	} 
 	die "File $main::path$main::inputfile does not exist\n" if (!-e "$main::path$main::inputfile");
 
@@ -280,16 +251,26 @@ sub get_filenames {
 			$lastext = "$'";
 		}
 		if (defined $main::options{'E'} || defined $main::options{'e'}) {
-			$main::stx = &file_extension ($main::options{'E'} || $main::options{'e'});
+			$main::configuration{'stx'} = &file_extension ($main::options{'E'} || $main::options{'e'});
 		}
 		if (defined $main::options{'E'}) {
-			$main::outputfile .= "$main::multidoc_id.$main::stx";
+			$main::outputfile .= "$main::multidoc_id.$main::configuration{'stx'}";
 		} else {
-			$main::outputfile .= "$main::stx$main::multidoc_id\.$lastext";
+			$main::outputfile .= "$main::configuration{'stx'}$main::multidoc_id\.$lastext";
 		}
 	} else {
 		$main::outputfile = $main::options{'o'};
 	}
+
+	if (defined $main::options{'c'}) {
+		$main::configurationfile = $main::options{'c'};
+	} else {
+		$main::configurationfile = "$main::my_location/SQLTeX.cfg";
+	}
+	if (!-e $main::configurationfile) {
+		die ("Configfile $main::configurationfile does not exist\n");
+	}
+	
 	if (defined $main::options{'r'}) {
 		$main::replacefile = $main::options{'r'};
 	} else {
@@ -299,6 +280,8 @@ sub get_filenames {
 		warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
 		undef $main::replacefile;
 	}
+	
+
 	return;
 }
 
@@ -340,22 +323,22 @@ sub db_connect($$) {
 	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if (defined $main::options{'P'});
 	$hn = $main::options{'s'} if (defined $main::options{'s'});
 
-	if ($main::dbdriver eq "Pg") {
-		$data_source = "DBI:$main::dbdriver:dbname=$db";
+	if ($main::configuration{'dbdriver'} eq "Pg") {
+		$data_source = "DBI:$main::configuration{'dbdriver'}:dbname=$db";
 		$data_source .= ";host=$hn" unless ($hn eq "");
-	} elsif ($main::dbdriver eq "Oracle") {
-		$data_source = "DBI:$main::dbdriver:$db";
-		$data_source .= ";host=$hn;sid=$main::oracle_sid" unless ($hn eq "");
-		$data_source .= ";sid=$main::oracle_sid";
-	} elsif ($main::dbdriver eq "Ingres") {
-		$data_source = "DBI:$main::dbdriver";
+	} elsif ($main::configuration{'dbdriver'} eq "Oracle") {
+		$data_source = "DBI:$main::configuration{'dbdriver'}:$db";
+		$data_source .= ";host=$hn;sid=$main::configuration{'oracle_sid'}" unless ($hn eq "");
+		$data_source .= ";sid=$main::configuration{'oracle_sid'}";
+	} elsif ($main::configuration{'dbdriver'} eq "Ingres") {
+		$data_source = "DBI:$main::configuration{'dbdriver'}";
 		$data_source .= ":$hn" unless ($hn eq "");
 		$data_source .= ":$db";
-	} elsif ($main::dbdriver eq "Sybase") {
-		$data_source = "DBI:$main::dbdriver:$db";
+	} elsif ($main::configuration{'dbdriver'} eq "Sybase") {
+		$data_source = "DBI:$main::configuration{'dbdriver'}:$db";
 		$data_source .= ";server=$hn" unless ($hn eq "");
 	} else { # MySQL, mSQL, ...
-		$data_source = "DBI:$main::dbdriver:database=$db";
+		$data_source = "DBI:$main::configuration{'dbdriver'}:database=$db";
 		$data_source .= ";host=$hn" unless ($hn eq "");
 	}
 
@@ -569,7 +552,8 @@ sub sql_end () {
 	for (my $cnt = 0; $cnt < $#{$main::arr[$#main::current_array]}; $cnt++) {
 		for (my $lines = 0; $lines < $#{$main::loop_data[$#main::current_array]}; $lines++) {
 			my $buffered_line = ${$main::loop_data[$#main::current_array]}[$lines];
-			while (($buffered_line  =~ /\\$main::alt_cmd_prefix[a-z]+(\[|\{)/) && !($buffered_line  =~ /\\\\$main::alt_cmd_prefix[a-z]+(\[|\{)/)) {
+			my $cmdPrefix = $main::configuration{'alt_cmd_prefix'};
+			while (($buffered_line  =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($buffered_line  =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
 				my $cmdfound = $&;
 				$cmdfound =~ s/\\//;
 
@@ -579,7 +563,7 @@ sub sql_end () {
 				$buffered_line =~ /\}/;
 				my $statement = $`;
 				my $lin2 = $';
-			 	if ($cmdfound =~ /$main::sql_use/) {
+			 	if ($cmdfound =~ /$main::configuration{'sql_use'}/) {
 					$buffered_line = $lin1 . &sql_use($statement, $cnt) . $lin2;
 				}
 		 	}
@@ -709,7 +693,7 @@ sub parse_command ($$) {
 	my $options = '';
 	my $varallowed = 1;
 
-	$varallowed = 0 if ($cmdfound =~ /$main::sql_open/);
+	$varallowed = 0 if ($cmdfound =~ /$main::configuration{'sql_open'}/);
 
 	chop $cmdfound;
 	$cmdfound =~ s/\\//;
@@ -753,7 +737,7 @@ sub parse_command ($$) {
 		$statement =~ s/\{//;
 	}
 
-	if ($cmdfound =~ /$main::sql_open/) {
+	if ($cmdfound =~ /$main::configuration{'sql_open'}/) {
 		&db_connect($options, $statement);
 		$main::db_opened = 1;
 		return 0;
@@ -761,11 +745,11 @@ sub parse_command ($$) {
 
 	&just_died (2) if (!$main::db_opened);
 
-	if ($cmdfound =~ /$main::sql_field/) {
+	if ($cmdfound =~ /$main::configuration{'sql_field'}/) {
 		$main::line = $lin1 . &sql_field($options, $statement) . $lin2;
-	} elsif ($cmdfound =~ /$main::sql_row/) {
+	} elsif ($cmdfound =~ /$main::configuration{'sql_row'}/) {
 		$main::line = $lin1 . &sql_row($options, $statement) . $lin2;
-	} elsif ($cmdfound =~ /$main::sql_params/) {
+	} elsif ($cmdfound =~ /$main::configuration{'sql_params'}/) {
 		if ($main::multidoc) { # Ignore otherwise
 			@main::parameters = &sql_setparams($options, $statement);
 			$main::line = $lin1 . $lin2;
@@ -773,16 +757,16 @@ sub parse_command ($$) {
 		} else {
 			$main::line = $lin1 . $lin2;
 		}
-	} elsif ($cmdfound =~ /$main::sql_update/) {
+	} elsif ($cmdfound =~ /$main::configuration{'sql_update'}/) {
 		&sql_update($options, $statement);
 		$main::line = $lin1 . $lin2;
-	} elsif ($cmdfound =~ /$main::sql_start/) {
+	} elsif ($cmdfound =~ /$main::configuration{'sql_start'}/) {
 		&sql_start($statement);
 		$main::line = $lin1 . $lin2;
-	} elsif ($cmdfound =~ /$main::sql_use/) {
+	} elsif ($cmdfound =~ /$main::configuration{'sql_use'}/) {
 		&just_died (12) if (!@main::current_array);
-		$main::line = $lin1 . "\\" . $main::alt_cmd_prefix . $main::sql_use . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
-	} elsif ($cmdfound =~ /$main::sql_end/) {
+		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_use'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
+	} elsif ($cmdfound =~ /$main::configuration{'sql_end'}/) {
 		$main::line = $lin1 . &sql_end() . $lin2;
 	} else {
 		&just_died (10);
@@ -818,8 +802,9 @@ sub process_file {
 	while ($main::line = <FI>) {
 		$main::lcount++;
 
-		while (($main::line =~ /\\$main::cmd_prefix[a-z]+(\[|\{)/) &&
-		 !($main::line =~ /\\\\$main::cmd_prefix[a-z]+(\[|\{)/)) {
+		my $cmdPrefix = $main::configuration{'cmd_prefix'};
+		while (($main::line =~ /\\$cmdPrefix[a-z]+(\[|\{)/) &&
+		 !($main::line =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
 			if (&parse_command($&, $multidoc_par) && $main::multidoc && ($main::multidoc_cnt == 0)) {
 				$main::multidoc_cnt++; # Got the input data, next run writes the first document
 				close FI;
@@ -844,6 +829,30 @@ sub process_file {
 ## Main:
 
 #####
+# Default config values, will be overwritten with SQLTeX.cfg
+#
+%main::configuration = (
+	 'dbdriver'			=> 'mysql'
+	,'oracle_sid'		=> 'ORASID'
+	,'texex'			=> 'tex'
+	,'stx'				=> '_stx'
+	,'rfile_comment'	=> ';'
+	,'cmd_prefix'		=> 'sql'
+	,'sql_open'			=> 'db'
+	,'sql_field'		=> 'field'
+	,'sql_row'			=> 'row'
+	,'sql_params'   	=> 'setparams'
+	,'sql_update'   	=> 'update'
+	,'sql_start'    	=> 'start'
+	,'sql_end'      	=> 'end'
+	,'sql_use'      	=> 'use'
+	,'less_av'			=> 1
+	,'more_av'			=> 1
+	,'repl_step'		=> 'OSTX'
+	,'alt_cmd_prefix' 	=> 'processedsqlcommand'
+);
+
+#####
 # Some globals
 #
 {
@@ -853,9 +862,9 @@ sub process_file {
 }
 
 # Check config
-# Used for loops, should not start with $main::cmd_prefix !!
-if ($main::alt_cmd_prefix =~ /^$main::cmd_prefix/) {
-	die "\$main::alt_cmd_prefix cannot start with $main::cmd_prefix";
+# Used for loops, should not start with $main::configuration{'cmd_prefix'} !!
+if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/) {
+	die "\$main::configuration{'alt_cmd_prefix'} cannot start with $main::configuration{'cmd_prefix'}";
 }
 
 $main::myself = $ENV{'_'};
@@ -874,19 +883,34 @@ if (!$main::multidoc && -e "$main::path$main::outputfile") {
 		unless (defined $main::options{'f'});
 }
 
+if (defined $main::configurationfile) {
+	open (CF, "<$main::configurationfile");
+	while ($main::line = <CF>) {
+		next if ($main::line =~ /^\s*#/);
+		chomp $main::line;
+		my ($ck, $cv) = split /=/, $main::line;
+		$ck =~ s/\s//g;
+		$cv =~ s/\s//g;
+		if ($cv ne '') {
+			$main::configuration{$ck} = $cv;
+		}
+	}
+	close CF;
+}
+
 if (defined $main::replacefile) {
 	my $repl_cnt = '000';
 	@main::repl_order = ();
 	open (RF, "<$main::replacefile");
 	while ($main::line = <RF>) {
-		next if ($main::line =~ /^\s*;/);
+		next if ($main::line =~ /^\s*$main::configuration{'rfile_comment'}/);
 		chomp $main::line;
 		$main::line =~ s/\t+/\t/;
 		my ($rk, $rv) = split /\t/, $main::line;
 		if ($rk ne '') {
 			push @main::repl_order, $rk;
-			$main::repl_key{$rk} = "$main::repl_step$repl_cnt";
-			$main::repl_val{"$main::repl_step$repl_cnt"} = $rv;
+			$main::repl_key{$rk} = "$main::configuration{'repl_step'}$repl_cnt";
+			$main::repl_val{"$main::configuration{'repl_step'}$repl_cnt"} = $rv;
 			$repl_cnt++;
 		}
 	}
