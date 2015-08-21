@@ -411,7 +411,12 @@ sub replace_values ($) {
 	my $rk;
 
 	foreach $rk (@main::repl_order) {
-		$sqlresult =~ s/\Q$rk\E/$main::repl_key{$rk}/g;
+		my ($begin, $end) = split /\.\.\./,$main::configuration{'rfile_regexp'};
+		if ($rk =~ /^\Q$begin\E(.*)\Q$end\E$/) {
+			$sqlresult =~ s/$1/$main::repl_key{$rk}/g;
+		} else {
+			$sqlresult =~ s/\Q$rk\E/$main::repl_key{$rk}/g;
+		}
 	}
 
 	foreach $rk (keys %main::repl_key) {
@@ -837,6 +842,7 @@ sub process_file {
 	,'texex'			=> 'tex'
 	,'stx'				=> '_stx'
 	,'rfile_comment'	=> ';'
+	,'rfile_regexp'		=> 're()'
 	,'cmd_prefix'		=> 'sql'
 	,'sql_open'			=> 'db'
 	,'sql_field'		=> 'field'
@@ -869,11 +875,9 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 
 $main::myself = $ENV{'_'};
 while ($main::myself =~ /\//) { $main::myself = $'; }
-$main::version = '1.x';
 
-my $rdate   = '$Date$';
-my ($dum1, $act, $rest_of_line ) = split (/ /, $rdate);
-$main::rdate = $act;
+$main::version = '1.x'; # TODO
+$main::rdate = 'Mon dd, yyyy';
 
 &parse_options;
 &get_filenames;
@@ -887,6 +891,7 @@ if (defined $main::configurationfile) {
 	open (CF, "<$main::configurationfile");
 	while ($main::line = <CF>) {
 		next if ($main::line =~ /^\s*#/);
+		next if ($main::line =~ /^\s*$/);
 		chomp $main::line;
 		my ($ck, $cv) = split /=/, $main::line;
 		$ck =~ s/\s//g;
