@@ -411,7 +411,7 @@ sub replace_values ($) {
 	my $rk;
 
 	foreach $rk (@main::repl_order) {
-		my ($begin, $end) = split /\.\.\./,$main::configuration{'rfile_regexp'};
+		my ($begin, $end) = split /\Q$main::configuration{'rfile_regexploc'}\E/,$main::configuration{'rfile_regexp'};
 		if ($rk =~ /^\Q$begin\E(.*)\Q$end\E$/) {
 			$sqlresult =~ s/$1/$main::repl_key{$rk}/g;
 		} else {
@@ -842,7 +842,8 @@ sub process_file {
 	,'texex'			=> 'tex'
 	,'stx'				=> '_stx'
 	,'rfile_comment'	=> ';'
-	,'rfile_regexp'		=> 're()'
+	,'rfile_regexploc'	=> '...'
+	,'rfile_regexp'		=> 're(...)'
 	,'cmd_prefix'		=> 'sql'
 	,'sql_open'			=> 'db'
 	,'sql_field'		=> 'field'
