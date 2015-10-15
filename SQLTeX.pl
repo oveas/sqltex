@@ -554,7 +554,7 @@ sub sql_use ($$) {
 sub sql_end () {
 	my $result = '';
 
-	for (my $cnt = 0; $cnt < $#{$main::arr[$#main::current_array]}; $cnt++) {
+	for (my $cnt = 0; $cnt <= $#{$main::arr[$#main::current_array]}; $cnt++) {
 		for (my $lines = 0; $lines < $#{$main::loop_data[$#main::current_array]}; $lines++) {
 			my $buffered_line = ${$main::loop_data[$#main::current_array]}[$lines];
 			my $cmdPrefix = $main::configuration{'alt_cmd_prefix'};
