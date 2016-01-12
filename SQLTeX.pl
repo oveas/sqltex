@@ -14,6 +14,19 @@
 # Copyright:  (c) 2001-2016, Oscar van Eijk, Oveas Functionality Provider
 # ==========                 oscar@oveas.com
 #
+# History:
+# ========
+#   v1.3     Mar 16, 2001 (Initial release)
+#   v1.4     May  2, 2002
+#   v1.4.1   Feb 15, 2005
+#   v1.5     Nov 23, 2007
+#   v2.0     Jan 12, 2016
+# Refer to the documentation for changes per release
+#
+# TODO:
+# =====
+# Code is getting messy - too many globals: rewrite required
+#
 ################################################################################
 #
 use strict;
@@ -664,29 +677,36 @@ sub just_died ($) {
 	#####
 	# Step specific exit
 	#
+	my $msg;
 	if ($step == 2) {
-		warn ("no database opened at line $main::lcount\n");
+		$msg = "no database opened at line $main::lcount[$main::fcount]";
 	} elsif ($step == 3) {
-		warn ("insufficient parameters to substitute variable on line $main::lcount\n");
+		$msg = "insufficient parameters to substitute variable on line $main::lcount[$main::fcount]";
 	} elsif ($step == 4) {
-		warn ("no result set found on line $main::lcount\n");
+		$msg = "no result set found on line $main::lcount[$main::fcount]";
 	} elsif ($step == 5) {
-		warn ("result set too big on line $main::lcount\n");
+		$msg = "result set too big on line $main::lcount[$main::fcount]";
 	} elsif ($step == 6) {
-		warn ("trying to substitute with non existing on line $main::lcount\n");
+		$msg = "trying to substitute with non existing on line $main::lcount[$main::fcount]";
 	} elsif ($step == 7) {
-		warn ("trying to overwrite an existing variable on line $main::lcount\n");
+		$msg = "trying to overwrite an existing variable on line $main::lcount[$main::fcount]";
 	} elsif ($step == 8) {
-		warn ("no parameters for multidocument found on line $main::lcount\n");
+		$msg = "no parameters for multidocument found on line $main::lcount[$main::fcount]";
 	} elsif ($step == 9) {
-		warn ("too many fields returned in multidocument mode on $main::lcount\n");
+		$msg = "too many fields returned in multidocument mode on $main::lcount[$main::fcount]";
 	} elsif ($step == 10) {
-		warn ("unrecognized command on line $main::lcount\n");
+		$msg = "unrecognized command on line $main::lcount[$main::fcount]";
 	} elsif ($step == 11) {
-		warn ("start using a non-existing array on line $main::lcount\n");
+		$msg = "start using a non-existing array on line $main::lcount[$main::fcount]";
 	} elsif ($step == 12) {
-		warn ("\\sqluse command encountered outside loop context on line $main::lcount\n");
+		$msg = "\\sqluse command encountered outside loop context on line $main::lcount[$main::fcount]";
 	}
+	if ($main::fcount > 0) {
+		for (my $fcnt = 0; $fcnt < $main::fcount; $fcnt++) {
+			$msg .= ', file included from line '.$main::lcount[$fcnt];
+		}
+	}
+	warn "$msg\n";
 	return if ($Resurect);
 	exit (1);
 }
@@ -716,7 +736,7 @@ sub parse_command ($$$) {
 		chomp $main::line;
 		$main::line .= ' ';
 		$main::line .= <$file_handle>;
-		$main::lcount++;
+		$main::lcount[$main::fcount]++;
 	}
 
 	$main::line =~ /\}/;
@@ -743,7 +763,7 @@ sub parse_command ($$$) {
 			&just_died (6) if (!defined ($main::var[$varno]));
 			$statement =~ s/\$VAR$varno/$main::var[$varno]/g;
 		}
-		&just_died (3) if ($statement =~ /\$PAR/);
+		&just_died (3) if ($statement =~ /\$PAR/ && ($main::multidoc_cnt > 0) && $main::multidoc);
 		$statement =~ s/\{//;
 	}
 
@@ -785,17 +805,33 @@ sub parse_command ($$$) {
 	return 0;
 }
 
-sub read_input($$$) {
+sub read_input($$$$) {
 	my ($input_file, $output_handle, $multidoc_par) = @_;
 
-	open (my $fileIn,  "<$main::path$main::inputfile");
+	$main::fcount++;
+	$main::lcount[$main::fcount] = 0;
+
+	if (!-e $main::path . $input_file) {
+		die "input file $main::path$input_file not found";
+	}
+	print_message("Processing file $main::path$input_file...");
+	open (my $fileIn,  "<$main::path$input_file");
 
 	while ($main::line = <$fileIn>) {
-		$main::lcount++;
+		$main::lcount[$main::fcount]++;
+		next if ($main::line =~ /^\s*%/);
+		if ($main::line =~ /(.*?)(\\in(put|clude))(\s*?)\{(.*?)\}(.*)/) {
+			print $output_handle "$1" unless ($output_handle == -1);
+			&read_input($5, $output_handle, $multidoc_par);
+			return if ($main::restart);
+			print $output_handle "$6\n" unless ($output_handle == -1);
+		}
 		my $cmdPrefix = $main::configuration{'cmd_prefix'};
 		while (($main::line =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($main::line =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
 			if (&parse_command($&, $multidoc_par, $fileIn) && $main::multidoc && ($main::multidoc_cnt == 0)) {
 				close $fileIn;
+				$main::fcount--;
+				$main::restart = 1;
 				return;
 			}
 		}
@@ -805,6 +841,7 @@ sub read_input($$$) {
 			print $output_handle "$main::line" unless ($main::multidoc && ($main::multidoc_cnt == 0));
 		}
 	}
+	$main::fcount--;
 	close $fileIn;
 }
 
@@ -828,11 +865,17 @@ sub process_file {
 		$main::outputfile =~ s/\#P\#/$main::parameters[($main::multidoc_cnt-1)]/;
 		$multidoc_par = @main::parameters[$main::multidoc_cnt - 1];
 	}
-	open (my $fileOut, ">$main::path$main::outputfile") unless ($main::multidoc && ($main::multidoc_cnt == 0));
+	my $fileOut;
+	if ($main::multidoc && ($main::multidoc_cnt == 0)) {
+		$fileOut = -1;
+	} else {
+		open ($fileOut, ">$main::path$main::outputfile");
+	}
 
 	$main::sql_statements = 0;
 	$main::db_opened = 0;
-	$main::lcount = 0;
+	$main::fcount = -1;
+	$main::restart = 0;
 
 	&read_input($main::path . $main::inputfile, $fileOut, $multidoc_par);
 	
@@ -890,8 +933,8 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 $main::myself = $ENV{'_'};
 while ($main::myself =~ /\//) { $main::myself = $'; }
 
-$main::version = '2.0'; # TODO
-$main::rdate = 'Mon dd, yyyy';
+$main::version = '2.0';
+$main::rdate = 'Jan 12, 2016';
 
 &parse_options;
 &get_filenames;
@@ -939,14 +982,14 @@ if (defined $main::replacefile) {
 # Start processing
 do {
 	&process_file;
-
+	$main::restart = 0;
 	if ($main::sql_statements == 0) {
 		unlink ("$main::path$main::outputfile");
 		print "no sql statements found in $main::path$main::inputfile\n";
 		$main::multidoc = 0; # Problem in the input, useless to continue
 	} else {
 		print "$main::sql_statements queries executed - TeX file $main::path$main::outputfile written\n"
-			unless ($main::multidoc && ($main::multidoc_cnt == 0));
+			unless ($main::multidoc && ($main::multidoc_cnt == 1));
 	}
 } while ($main::multidoc); # Set to false when done
 

@@ -8,17 +8,12 @@
 	,linkcolor=blue
 	,unicode]{hyperref}
 \begin{document}
-
 \title{SQL\TeX\\v2.0}
-\date{November 21, 2007}
+\date{Januari 12, 2016}
 \author{Oscar van Eijk}
-
 \maketitle
-
 \hrulefill
-
 \tableofcontents
-
 \hrulefill
 
 \section{Introduction}
@@ -36,9 +31,8 @@ in the document.
 \subsection{Known limitations}
 
 \begin{itemize}
-\item SQL\TeX\ reads only one input file; the \LaTeX\ \texttt{\bs include} directive is ignored.
-\item Currently, only 9 command- line parameters (1-9), and 10 variables (0-9) can be used in SQL
-statements.
+\item The \LaTeX\ \texttt{\bs includeonly} directive is ignored; all documents included with \texttt{\bs include} will be parsed and written to the output file.
+\item Currently, only 9 command- line parameters (1-9), and 10 variables (0-9) can be used in SQL statements.
 \item Replace files can hold only 1,000 items.
 \item In multidocument mode, only one parameter can be retrieved.
 \end{itemize}
@@ -780,7 +774,7 @@ conflict with default SQL\TeX\ commands. Change the SQL\TeX\ command prefix (see
 
 \noindent\hrulefill \\
 The SQL\TeX\ project is available from GitHub: https://github.com/oveas/sqltex\\
-The latest stable release is always available at http://freeware.oveas.com/sqltex\\
+The latest stable release is always available at http://oveas.com/freeware/overige/sqltex\\
 For bugs, questions and comments, please use the issue tracker available at https://github.com/oveas/sqltex/issues
 
 \vspace{3mm}
@@ -789,9 +783,17 @@ For bugs, questions and comments, please use the issue tracker available at http
 
 \noindent\hrulefill \\
 
-
 \noindent This software is subject to the terms of the LaTeX Project Public License; 
 see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 
+\section{History}
+
+\begin{description}
+\item[v1.3] \textit{released: Mar 16, 2001}\\First public release
+\item[v1.4] \textit{released: May 2, 2002}\\Implemented replace files
+\item[v1.4.1] \textit{released: Feb 15, 2005}\\Fix: removed leading whitespaces added to database results befure replace
+\item[v1.5] \textit{released: Nov 23, 2007}\\Support for multiple databases\\Implemented database updates (\texttt{sqlupdate})\\Implemented multiple output documents (option \texttt{-m})
+\item[v2.0] \textit{released: Jan 12, 2016}\\Fix: Oracle support using ORASID\\Fix: Ensure replacements are handled in the same order as they appear in the replacements file\\Separate configuration file(s)\\Added the options \texttt{-c} and \texttt{-M}\\Support for regular expressions in replace files\\Implemented support for the \LaTeX\ \texttt{\bs input} and \texttt{\bs include} directives\\Implemented loop context\\Skip commentlines\\Project moved from local CVS to GitHub
+\end{description}
 
 \end{document}
