@@ -11,7 +11,7 @@
 # This software is subject to the terms of the LaTeX Project Public License; 
 # see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 #
-# Copyright:  (c) 2001-2015, Oscar van Eijk, Oveas Functionality Provider
+# Copyright:  (c) 2001-2016, Oscar van Eijk, Oveas Functionality Provider
 # ==========                 oscar@oveas.com
 #
 ################################################################################
@@ -28,7 +28,7 @@ sub parse_options {
 
 	$main::NULLallowed = 0;
 
-	if (!getopts ('c:E:NPU:Ve:fhmo:p:r:qs:u', \%main::options)) {
+	if (!getopts ('c:E:NPU:Ve:fhmMo:p:r:qs:u', \%main::options)) {
 		print (&short_help (1));
 		exit(1);
 	}
@@ -50,18 +50,22 @@ sub parse_options {
 
 	$optcheck = 0;
 	$optcheck++ if (defined $main::options{'m'});
+	$optcheck++ if (defined $main::options{'M'});
 	$optcheck++ if (defined $main::options{'o'});
-	die ("options \"-m\" and \"-o\" cannot be combined\n") if ($optcheck > 1);
+	die ("options \"-m\", \"-M\" and \"-o\" cannot be combined\n") if ($optcheck > 1);
 
 	$main::NULLallowed = 1 if (defined $main::options{'N'});
 	$main::configuration{'cmd_prefix'} = $main::options{'p'} if (defined $main::options{'p'});
 
 	$main::multidoc_cnt = 0;
-	$main::multidoc = (defined $main::options{'m'});
+	$main::multidoc = (defined $main::options{'m'} || defined $main::options{'M'});
 	$main::multidoc_id = '';
 
 	if ($main::multidoc) {
 		$main::multidoc_id = '_#M#';
+		if (defined $main::options{'M'}) {
+			$main::multidoc_id = '_#P#'
+		}
 	}
 
 }
@@ -115,6 +119,7 @@ sub print_help {
 	$helptext .= "       -m            Multidocument mode; create one document for each parameter that is\n";
 	$helptext .= "                     retrieved from the database in the input document (see documentation)\n";
 	$helptext .= "                     This option cannot be used with \'-o\'.\n";
+	$helptext .= "       -M            Same as -m, but with the parameter in the filename i.s.o. a serial number\n";
 	$helptext .= "       -o file       specify an output file. Cannot be used with \'-E\' or \'-e\'\n";
 	$helptext .= "                     This option cannot be used with \'-m\'.\n";
 	$helptext .= "       -p prefix     prefix used in the SQLTeX file. Default is \'sql\'\n";
@@ -199,7 +204,7 @@ sub file_extension ($) {
 		$sub =~ s/[\{\}]//g;
 		if ($sub =~ /P[0-9]/) {
 			$sub =~ s/P//;
-			die ("insuficient parameters to substitute \{P$sub\}\n") if ($sub > $#ARGV);
+			die ("insufficient parameters to substitute \{P$sub\}\n") if ($sub > $#ARGV);
 			$sub = $ARGV[$sub];
 		} elsif ($sub eq 'M') {
 			$sub = $mname;
@@ -349,7 +354,6 @@ sub db_connect($$) {
 		$msg .= " using a password" unless ($pw eq '');
 		&print_message ($msg);
 	}
-
 	$main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &just_died (1);
 	return;
 }
@@ -609,7 +613,7 @@ sub sql_setparams ($$) {
 	}
 
 	$rc = $#return_values + 1;
-	&print_message ("Multidocument parameters found; $rc documents will be created");
+	&print_message ("Multidocument parameters found; $rc documents will be created: handle document $main::multidoc_cnt");
 
 	return (@return_values);
 }
@@ -647,11 +651,11 @@ sub just_died ($) {
 	$Resurect = 1 if ($step == 4 && $main::NULLallowed);
 
 	if ($step >= 1 && !$Resurect) {
-		close FI;
-		close FO;
+#		close FI;
+#		close FO;
 	}
 	if ($step > 2 && !$Resurect) {
-		$main::db_handle->disconnect();
+#		$main::db_handle->disconnect();
 	}
 	if ($step >= 1 && $step <= 2 && !$Resurect) {
 		unlink ("$main::path$main::outputfile");
@@ -681,7 +685,7 @@ sub just_died ($) {
 	} elsif ($step == 11) {
 		warn ("start using a non-existing array on line $main::lcount\n");
 	} elsif ($step == 12) {
-		warn ("\\sqluse command encountered outside looop context on line $main::lcount\n");
+		warn ("\\sqluse command encountered outside loop context on line $main::lcount\n");
 	}
 	return if ($Resurect);
 	exit (1);
@@ -692,9 +696,10 @@ sub just_died ($) {
 # used for this query, they will be read until the '}' is found, after which
 # the query will be executed.
 #
-sub parse_command ($$) {
+sub parse_command ($$$) {
 	my $cmdfound = shift;
 	my $multidoc_par = shift;
+	my $file_handle = shift;
 	my $options = '';
 	my $varallowed = 1;
 
@@ -710,7 +715,7 @@ sub parse_command ($$) {
 	while (!($main::line =~ /\}/)) {
 		chomp $main::line;
 		$main::line .= ' ';
-		$main::line .= <FI>;
+		$main::line .= <$file_handle>;
 		$main::lcount++;
 	}
 
@@ -780,6 +785,29 @@ sub parse_command ($$) {
 	return 0;
 }
 
+sub read_input($$$) {
+	my ($input_file, $output_handle, $multidoc_par) = @_;
+
+	open (my $fileIn,  "<$main::path$main::inputfile");
+
+	while ($main::line = <$fileIn>) {
+		$main::lcount++;
+		my $cmdPrefix = $main::configuration{'cmd_prefix'};
+		while (($main::line =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($main::line =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
+			if (&parse_command($&, $multidoc_par, $fileIn) && $main::multidoc && ($main::multidoc_cnt == 0)) {
+				close $fileIn;
+				return;
+			}
+		}
+		if (@main::current_array && $#main::current_array >= 0) {
+			push @{$main::loop_data[$#main::current_array]}, $main::line;
+		} else {	
+			print $output_handle "$main::line" unless ($main::multidoc && ($main::multidoc_cnt == 0));
+		}
+	}
+	close $fileIn;
+}
+
 #####
 # Process the input file
 # When multiple documents should be written, this routine is
@@ -791,44 +819,29 @@ sub process_file {
 	my $multidoc_par = '';
 
 	if ($main::multidoc && ($main::multidoc_cnt > 0)) {
+		if (!defined($main::saved_outfile_template)) {
+			$main::saved_outfile_template = $main::outputfile;
+		}
 		$main::saved_outfile_template = $main::outputfile if ($main::multidoc_cnt == 1); # New global name; should be a static
 		$main::outputfile = $main::saved_outfile_template if ($main::multidoc_cnt > 1);
 		$main::outputfile =~ s/\#M\#/$main::multidoc_cnt/;
+		$main::outputfile =~ s/\#P\#/$main::parameters[($main::multidoc_cnt-1)]/;
 		$multidoc_par = @main::parameters[$main::multidoc_cnt - 1];
 	}
-
-	open (FI, "<$main::path$main::inputfile");
-	open (FO, ">$main::path$main::outputfile") unless ($main::multidoc && ($main::multidoc_cnt == 0));
+	open (my $fileOut, ">$main::path$main::outputfile") unless ($main::multidoc && ($main::multidoc_cnt == 0));
 
 	$main::sql_statements = 0;
 	$main::db_opened = 0;
 	$main::lcount = 0;
 
-	while ($main::line = <FI>) {
-		$main::lcount++;
-
-		my $cmdPrefix = $main::configuration{'cmd_prefix'};
-		while (($main::line =~ /\\$cmdPrefix[a-z]+(\[|\{)/) &&
-		 !($main::line =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
-			if (&parse_command($&, $multidoc_par) && $main::multidoc && ($main::multidoc_cnt == 0)) {
-				$main::multidoc_cnt++; # Got the input data, next run writes the first document
-				close FI;
-				return;
-			}
-		}
-		if (@main::current_array && $#main::current_array >= 0) {
-			push @{$main::loop_data[$#main::current_array]}, $main::line;
-		} else {	
-			print FO "$main::line" unless ($main::multidoc && ($main::multidoc_cnt == 0));
-		}
-	}
-
+	&read_input($main::path . $main::inputfile, $fileOut, $multidoc_par);
+	
 	if ($main::multidoc) {
 		$main::multidoc = 0 if (($main::multidoc_cnt++) > $#main::parameters);
+		return if ($main::multidoc);
 	}
 
-	close FI;
-	close FO;
+	close $fileOut;
 }
 
 ## Main:
@@ -877,7 +890,7 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 $main::myself = $ENV{'_'};
 while ($main::myself =~ /\//) { $main::myself = $'; }
 
-$main::version = '1.x'; # TODO
+$main::version = '2.0'; # TODO
 $main::rdate = 'Mon dd, yyyy';
 
 &parse_options;
@@ -933,7 +946,7 @@ do {
 		$main::multidoc = 0; # Problem in the input, useless to continue
 	} else {
 		print "$main::sql_statements queries executed - TeX file $main::path$main::outputfile written\n"
-			unless ($main::multidoc && ($main::multidoc_cnt == 1)); # Counter was just increased.
+			unless ($main::multidoc && ($main::multidoc_cnt == 0));
 	}
 } while ($main::multidoc); # Set to false when done
 
