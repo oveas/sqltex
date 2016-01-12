@@ -1,4 +1,4 @@
-SQLTeX v1.x
+SQLTeX v2.0
 ===========
 
 SQLTeX is a preprocessor to enable the use of SQL statements in LaTeX.
@@ -14,12 +14,11 @@ be used for substitution in the document.
 
 Installing SQLTeX
 -----------------
-
 Before installing SQLTeX, you need to have it. The latest version can always
 be found at http://software.oveas.net/sqltex.
 The download consists of this readme, documentation in LaTeX and HTML format,
-an installation script for Unix (install), the Perl script SQLTeX and the
-default replace file.
+an installation script for Unix (install), the Perl script SQLTeX, the
+default replace- and configuration files, and the Windows executable.
 
 On a Unix system, make sure the file install is executable by issueing
 the command:
@@ -32,18 +31,18 @@ logged in as `root', the default will be /usr/local/bin, otherwise the
 current directory.
 Make sure the directory where SQLTeX is installed is in your path.
 
-
 For other operating systems, there is no install script, you will have to install
 it manually.
 
 On OpenVMS it would be something like:
-  $ COPY SQLTEX.PL SYS$SYSTEM:SQLTEX.
-  $ SET FILE/PROTECTION=(W:RE) SYS$SYSTEM:SQLTEX.
-  $ COPY SQLTEX_R.DAT. SYS$SYSTEM:
+  $ COPY SQLTEX.PL SYS$SYSTEM:
+  $ COPY SQLTEX.CFG SYS$SYSTEM:
+  $ COPY SQLTEX_R.DAT SYS$SYSTEM:
+  $ SET FILE/PROTECTION=(W:R) SYS$SYSTEM:SQLTEX*.*
 However, on OpenVMS you also need to define the command SQLTEX by setting a symbol,
 either in the LOGIN.COM for all users who need to execute this script, or in some
 group-- or system wide login procedure, with the command:
-  $ SQLTEX :== "PERL SYS$SYSTEM:SQLTEX."
+  $ SQLTEX :== "PERL SYS$SYSTEM:SQLTEX.PL"
   
 For more information, please refer to the LaTeX documentation.
 
@@ -62,35 +61,31 @@ installed in advance, since gcc is not available in a standard install
 of Mac OS X.
 
 
+Note for Windows users:
+-----------------------
+This distribution contains an .EXE file that was generated using PAR::Packer with
+Strawberry Perl.
+The files SQLTeX.EXE, SQLTeX.cfg and SQLTeX-r.dat must be placed manually in the
+directory of your choice, all in the same direcrtory.
+
+
 Thanks to:
 ==========
 Ingo Reich       for the comment on Mac OS
 Johan W. Klüwer  for verifying the SyBase support
 Paolo Cavallini  for adding PostgreSQL support
 
-
-Changes:
-========
-v1.x (2012-??-??):
-- Fixed support for Oracle databases
-
-v1.5 (2007-11-23):
-- Support for multiple database drivers
-- Added NEWLINE directive as row seperator
-- Multidocument support
-- Implemented updates
-
-v1.4 (2002-05-02):
-- Implemented replace files
-
 ==========================================================================
-The latest release is always available at http://freeware.oveas.com/sqltex
-For bugs, questions and comments, please contact me at
-oscar.van.eijk@oveas.com
+The SQL\TeX\ project is available from GitHub:
+    https://github.com/oveas/sqltex
+The latest stable release is always available at
+    http://oveas.com/freeware/overige/sqltex
+For bugs, questions and comments, please use the issue tracker available at
+    https://github.com/oveas/sqltex/issues
 
 This software is subject to the terms of the LaTeX Project Public License; 
 see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html
   
-Copyright (c) 2001-2007 - Oscar van Eijk, Oveas Functionality Provider
+Copyright (c) 2001-2016 - Oscar van Eijk, Oveas Functionality Provider
 ==========================================================================
 
