@@ -544,7 +544,7 @@ sub sql_start ($) {
 }
 
 #####
-# Stop processing the current array
+# Use a named variable from the stack
 #
 sub sql_use ($$) {
 	my ($field, $loop) = @_;
@@ -884,7 +884,7 @@ sub process_file {
 # Check config
 # Used for loops, should not start with $main::configuration{'cmd_prefix'} !!
 if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/) {
-	die "\$main::configuration{'alt_cmd_prefix'} cannot start with $main::configuration{'cmd_prefix'}";
+	die "Configuration item 'alt_cmd_prefix' cannot start with $main::configuration{'cmd_prefix'}";
 }
 
 $main::myself = $ENV{'_'};

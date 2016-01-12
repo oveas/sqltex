@@ -2,9 +2,14 @@
 \newcommand{\bs}{\ensuremath{\backslash}}
 \newcommand{\vs}{\vspace{3mm}}
 \usepackage{makeidx}
+\usepackage[pdftex
+	,pagebackref=true
+	,colorlinks=true
+	,linkcolor=blue
+	,unicode]{hyperref}
 \begin{document}
 
-\title{SQL\TeX\\v1.x}
+\title{SQL\TeX\\v2.0}
 \date{November 21, 2007}
 \author{Oscar van Eijk}
 
@@ -77,108 +82,91 @@ system wide login procedure, with the command:  \\
 
 \subsection{Configuration}\label{config}
 
-The program starts with a configuration section. The default values are displayed
-here:
+The location where SQL\TeX\ is installed also holds the configuration file \texttt{SQLTeX.cfg}.
+Multiple configuration files can be created, the command line option \texttt{-c} can be used to
+select the requested configuration.
 
 \vs
 
-{\scriptsize\begin{verbatim}
-#
-################################################################################
-# Configurable part
-#
-$main::dbdriver    = 'mysql';     # Pg, Sybase, Oracle, Ingres, mSQL, ...
-$main::oracle_sid  = 'ORASID';    # SID for Oracle users, ignored for other databases
-#
-$main::texex       = 'tex';       # default tex- file extension
-$main::stx         = '_stx';      # file name extension to insert before the last '.'
-#
-$main::cmd_prefix  = 'sql';       # prefix for sql-commands (\sql<command>[]{})
-$main::sql_open    = 'db';        # database declaration, e.g. \sqldb[user,passw]{database}
-$main::sql_field   = 'field';     # select a single field from db, e.g. \sqlfield{select field from....}
-$main::sql_row     = 'row';       # select rows from db, e.g. \sqlfield{select * from....}
-$main::sql_params  = 'setparams'; # set the input paramaterlist in multidocument mode.
-$main::sql_update  = 'update';    # update rows in db, e.g. \sqlupdate{update table set....}
-#
-$main::less_av     = 1;           # Is the command 'less' available on this system ?
-$main::more_av     = 1;           # Is the command 'more' available on this system ?
-#
-$main::repl_step   = "OSTX";      # Temporary value for replace
-#
-################################################################################
-# Do not make any modifications below this line                                #
-################################################################################
-\end{verbatim}}
+\noindent\hspace{-3mm}\textit{\underline{Note:}} If a 1.x version of SQL\TeX\ is installed on your system,
+make sure you saved the configuration section, which was inline in older versions.
 
 \vs
 
-These values are default values; most values can be overwritten using command line
-options (see section~\ref{cmdline}). When the command line options are
-omitted, the default values from the configuration section will be used.
+Some values can be overwritten using command line options (see section~\ref{cmdline}). When the command line options are omitted, the values from the requested configuration file will be used.
 
 \begin{description}
 
-\item[\$main::dbdriver] Database driver. The default is \texttt{mysql}.
+\item[dbdriver] Database driver. The default is \texttt{mysql}.
 Other supported databases are \texttt{Pg}, \texttt{Sybase}, \texttt{Oracle},
 \texttt{Ingres}, \texttt{mSQL} and \texttt{PostgreSQL}, but also others might
 work without modification. \\
 If your database driver is not support, look for the function
 \texttt{db\_connect} to add support (and please notify me :) 
 
-\item[\$main::texex] The default file extension for \LaTeX\ file. When SQL\TeX\ is called, the first
+\item[texex] The default file extension for \LaTeX\ file. When SQL\TeX\ is called, the first
 parameter should be the name of the input file. If this filename has no extension,
 SQL\TeX\ looks for one with the default extension.
 
-\item[\$main::stx] An output file can be given explicitly using the `\texttt{-o}' option. When omitted,
+\item[stx] An output file can be given explicitly using the `\texttt{-o}' option. When omitted,
 SQL\TeX\ composes an output file name using this string.\\
 E.g, if your input file is called \texttt{db-doc.tex}, SQL\TeX\ will produce an
 outputfile with the name \texttt{db-doc\_stx.tex}.
 
-\item[\$main::cmd\_prefix]\label{prefix} SQL\TeX\ looks for SQL commands in the input file. Commands are specified in the
+\item[rfile\_comment] The comment-sign used in replace files. If this is empty, comments are not allowed in
+the replace files.
+
+\item[rfile\_regexploc] This must be part of the value \texttt{rfile\_regexp} below. 
+
+\item[rfile\_regexp] Explains how a regular expression is identified in the replace files (see section~\ref{regexp}). 
+
+\item[cmd\_prefix]\label{prefix} SQL\TeX\ looks for SQL commands in the input file. Commands are specified in the
 same way all \LaTeX\ commands are specified: a backslash (\bs) followed by the
 name of the command.\\
 All SQL\TeX\ commands start with the same string. By default, this is the string
 \texttt{\textbf{sql}}. When user commands are defined that start with the same
 string, this can be changed here to prevent conflicts.
 
-\item[\$main::sql\_open] This string is appended to the \$main::cmd\_prefix to
+\item[sql\_open] This string is appended to the \texttt{cmd\_prefix}x to
 get the complete SQL\TeX\ command for opening a database.\\
 With the default configuration this command is ``\texttt{\bs sqldb}''.
 
-\item[\$main::sql\_field] This string is appended to the \$main::cmd\_prefix to
+\item[sql\_field] This string is appended to the \texttt{cmd\_prefix} to
 get the complete SQL\TeX\ command to read a single field from the database.\\
 With the default configuration this command is ``\texttt{\bs sqlfield}''.
 
-\item[\$main::sql\_row] This string is appended to the \$main::cmd\_prefix to
+\item[sql\_row] This string is appended to the \texttt{cmd\_prefix} to
 get the complete SQL\TeX\ command to read one or more rows from the database.\\
 With the default configuration this command is ``\texttt{\bs sqlrow}''.
 
-\item[\$main::sql\_params] This string is appended to the \$main::cmd\_prefix
-to get the complete SQL\TeX\ command to retrieve a list if fields that will be
-used as parameters (\texttt{\$PAR1}, see section~\ref{params}) in the
-multidocument environment (see section~\ref{multidoc}).\\
+\item[sql\_params] This string is appended to the \texttt{cmd\_prefix} to get the complete SQL\TeX\ command to retrieve a list if fields that will be used as parameters (\texttt{\$PAR1}, see section~\ref{params}) in the multidocument environment (see section~\ref{multidoc}).\\
 With the default configuration this command is ``\texttt{\bs sqlparams}''.
 
-\item[\$main::sql\_update] This string is appended to the \$main::cmd\_prefix
+\item[sql\_update] This string is appended to the \texttt{cmd\_prefix}
 to get the complete SQL\TeX\ command to update one or more rows in the database.\\
 With the default configuration this command is ``\texttt{\bs sqlupdate}''.
 
-\item[\$main::less\_av \& \$main::more\_av] These settings are used to determin how the \textsl{help} output should be displayed. If the
-command `\texttt{less}' is available on the current system, the output will be
-parsed through this program. Otherwise the output will be parsed through the
-program `\texttt{more}' if availeble. Both programs are usually available on Unix
-system (\texttt{more} is standard on most Unix systems), but ports for other
-operating systems are available as well.\\
-Set the values to ``0'' for the program(s) that is (are) not available, or if
-you don't want to use it.\\
-If none of these programs is available, the \textsl{help} output is plain echoed
-to the display.
+\item[sql\_start] This string is appended to the \texttt{cmd\_prefix} to get the complete SQL\TeX\ command start a section that will be repeated for every row from an array (see section~\ref{loops}).\\
+With the default configuration this command is ``\texttt{\bs sqlstart}''.
 
-\item[\$main::repl\_step] Replacing strings (see section~\ref{replfiles} below) is done two steps, to prevent values from being replaced twice.
+\item[sql\_use] This string is appended to the \texttt{cmd\_prefix} to get the complete SQL\TeX\ command use a named variable from the array that is currently being processed in a loop context (see section~\ref{loops}).\\
+With the default configuration this command is ``\texttt{\bs sqluse}''.
+
+\item[sql\_end] This string is appended to the \texttt{cmd\_prefix} to get the complete SQL\TeX\ command to end a loop context (see section~\ref{loops}).\\
+With the default configuration this command is ``\texttt{\bs sqlend}''.
+
+\item[less\_av \& more\_av] These settings are used to determine how the \textsl{help} output should be displayed. If the command `\texttt{less}' is available on the current system, the output will be parsed through this program. Otherwise the output will be parsed through the program `\texttt{more}' if availeble. Both programs are usually available on Unix system (\texttt{more} is standard on most Unix systems), but ports for other
+operating systems are available as well.\\
+Set the values to ``0'' for the program(s) that is (are) not available, or if you don't want to use it.\\
+If none of these programs is available, the \textsl{help} output is plain echoed to the display.
+
+\item[repl\_step] Replacing strings (see section~\ref{replfiles} below) is done two steps, to prevent values from being replaced twice.
 This setting---followed by a three-digit integer - ``000'' to ``999''---is used in the first step and replaces values from the first column.
 In the second step, values from the second column replace the temporary value. \\
-If the first column in the replace file contains a character sequence that occurs in this temporary value, or if query results might contain
-the full string followed by three digits, this value might need to be changed in something unique.
+If the first column in the replace file contains a character sequence that occurs in this temporary value, or if query results might contain the full string followed by three digits, this value might need to be changed in something unique.
+
+\item[alt\_cmd\_prefix] In loop context, this setting is used internally to differentiate between sql statements to process immediately and sql statements on stack.\\
+Normally, this setting should never change, but if the value for \texttt{cmd\_prefix} has been changed and a conflict is found, the message ``\texttt{Configuration item 'alt\_cmd\_prefix' cannot start with \textit{<conflicting value>}}'' indicates this setting should change as well.
 
 \end{description}
 
@@ -208,11 +196,10 @@ _       \_
 
 \vspace{3mm}
 
-These are all single character replacements, but you can add your own replacements that consist of a single character or a character sequence. To do so,
-enter a new line with the character(string) that should be replaced, followed by a \texttt{TAB}- charater (\textit{not} blanks!) and the character(string)
-it should be replaced with.
+These are all single character replacements, but you can add your own replacements that consist of a single character or a character sequence (or even regular expressions, see section~\ref{regexp}).\\
+To do so, enter a new line with the character(string) that should be replaced, followed by one or more \texttt{TAB}-character(s) (\textit{not} blanks!) and the character(string) it should be replaced with.
 
-If the first non-blank character is a semicolon (`;'), the line is considered a comment line. Blank lines are ignored.
+If the first non-blank character is a semicolon (`;'), the line is considered a comment line\footnote{ in the default configuration. See the description for \texttt{rfile\_comment} in section~\ref{config} to change of disable comment lines.}. Blank lines are ignored.
 
 \vspace{3mm}
 
@@ -225,6 +212,43 @@ the word ``LaTeX'' will be changed, but ``latex'' is untouched.
 Different replace files can be created. To select a different replace file for a certain SQL\TeX\ source, use the commandline option
 `\texttt{-r \textit{filename}}'. To disable the use of replace files, use `\texttt{-rn}'.
 
+\subsubsection{Regular expressions}\label{regexp}
+
+The replace file can include regular expressions, which are recognized by a pattern given in the configuration setting \texttt{rfile\_regexp}. A part of the pattern, configurable as \texttt{rfile\_regexploc}, will be the actual regular expression.
+
+\vs
+
+By default, \texttt{rfile\_regexploc} is ``\texttt{...}'' and \texttt{rfile\_regexp} is ``\texttt{re(...)}''. If the sequence of three dots can appear anywhere else in the replace file, \texttt{rfile\_regexploc} can be changed to any other sequence of characters, e.g. ``\texttt{regexpHere}''.\\
+This also requires \texttt{rfile\_regexp} to be changed. Its new value has to be ``\texttt{re(regexpHere)}''
+ 
+\vs
+
+Both in the default configuration and with the modification example given above, the key for regular expressions is \texttt{re(<\textit{regular expression}>)}, e.g.:\\
+\hspace{3mm}\verb+re(<p\.*?>)		\paragraph*{}+ \\
+will replace all HTML \texttt{<}p\texttt{>} variants (\texttt{<}p style='font-size: normal'\texttt{>}, \texttt{<}p align='center'\texttt{>} etc)
+
+\vs
+
+An example replacement file using regular expressions to handle HTML codes could look like this:
+
+\noindent\begin{verbatim}
+&amp;           \&
+<strong>        \textbf{
+</strong>       }
+<em>            \textit{
+</em>           }
+re(<br.*?/?>)   \\
+re(<p.*?>)      \paragraph*{}
+</p>            \\[0pt]
+<sup>           $^{
+</sup>          }$
+re(<span.*?>)   \textsl{
+</span>         }
+re(<h1.*?>)     \section{
+re(<h2.*?>)     \subsection{
+re(<h3.*?>)     \subsubsection{
+re(</h\d>)      }
+\end{verbatim}
 
 \section{Write your SQL\TeX\ file}
 
@@ -413,9 +437,65 @@ Some \LaTeX\ packages require input on a seperate line. If this output is to be
 read from a database, this can be set with the \texttt{rowsep} option using the
 fixed text ``\texttt{NEWLINE}''.
 
+\subsubsection{Store data in an array}
+
+
+The \texttt{\bs sqlrow} command can also be used to store the data in an array. The value returned by the SQL query is not displayed in this case. Instead, an array is created which can be used later the document in a loop context (see section~\ref{loops}).
+
+Therefore, the option \texttt{\textbf{[setarr=\textit{n}]}} is used, where \textit{n} is an integer between
+0 and 9.
+
+\subsection{Loop context}\label{loops}
+
+In a loop context, an array if filled with data from the database using \texttt{\bs sqlrow}.\\
+Later in the document, the data can be used in a textblock that will be written to the outputfile once for every record retrieved.
+
+\vs
+
+The textblock is between the \texttt{\bs sqlstart\{\textit{n}\}} and \texttt{\bs sqlend\{\textit{n}\}} commands, where \textit{n} is the sequence number of the array to use\footnote{ in \texttt{\bs sqlend}, the sequence number is ignored, but required by syntax.}.
+
+Multiple textblocks can occur in the document, but they can \textit{not} be nested!
+
+\vs
+
+In the example below, data for unpaid invoices is stored in an array identified with sequence number 0:
+ 
+\texttt{\bs sqlrow[setarr=0]\{SELECT I.INVOICE\_NR AS nr\\
+\hspace*{15mm},  I.DUE\_DATE AS date\\
+\hspace*{15mm},  I.TOTAL AS amount\\
+\hspace*{15mm},  C.NAME AS customer\\
+\hspace*{15mm}FROM INVOICES I\\
+\hspace*{15mm}LEFT OUTER JOIN CUSTOMERS C\\
+\hspace*{20mm}ON C.CUST\_NR = I.CUST\_NR\\
+\hspace*{15mm}WHERE I.PAY\_DATE = NULL\}}
+
+\vs
+
+To use this data, a textblock must start with: \texttt{\bs sqlstart\{0\}}\\
+Between this command and the first occurrence of \texttt{\bs sqlend\{\}}, an unlimited amount\footnote{ limited by your computer's memory only} of \LaTeX\ text can be. Within this text, every occurence of \texttt{\bs sqluse\{<\textit{field name}>\}} will be replaced with the matching field from the current row, e.g.:
+
+\noindent\begin{verbatim}
+\sqlstart{0}
+\begin{flushright}
+Regarding: invoicenumber \sqluse{nr}
+\end{flushright}
+
+Dear \sqluse{customer},
+
+On \today, the invoice with number \sqluse{nr}, payable before
+\sqluse{date}, was not yet received by us.
+
+We kindly request you to pay the amount of \texteuro\sqluse{amount}
+as soon as possible.
+
+\newpage
+\sqlend{}
+\end{verbatim}
+
+
 \subsection{Output multiple documents}\label{multidoc}
 
-A single input file can be created to generate more output files. This options
+A single input file can be created to generate more output files. This option
 retrieves the first parameter (see section~\ref{params}) from the database
 (ignoring any parameters that where given on the command line!).
 
@@ -436,14 +516,16 @@ using the value as a parameter:\\
 
 \vs
 
-To enable the multidocument mode, the command line switch \texttt{-m} must be
-given and no parameters are allowed.\\
-Without the \texttt{-m} switch, a parameter can be given and a single output
+To enable the multidocument mode, the command line switch \texttt{-m} or \texttt{-M} must be
+given and no parameters are allowed. The switches \texttt{-m} and \texttt{-M} cannot be used together.\\
+Without the \texttt{-m} or \texttt{-M} switch, a parameter can be given and a single output
 document will be created, ignoring the \texttt{\bs sqlsetparams} command.
 
 \vs
 
-Output filenames will be numbered \texttt{\emph{filename}\_1.tex} to \texttt{\emph{filename}\_\emph{n}.tex}.
+With the \texttt{-m} switch, output filenames will be numbered \texttt{\emph{filename}\_1.tex} to \texttt{\emph{filename}\_\emph{n}.tex}.\\
+With the \texttt{-M} switch, output filenames will be numbered \texttt{\emph{filename}\_\emph{parameter}.tex}, where \emph{parameter} is the value taken from the
+database (\texttt{invoice\_nr} in the example above). Note the parameter will not be formatted to be filename-friendly!\\
 
 \subsection{Update database records}
 
@@ -480,19 +562,12 @@ parameter `0' cannot be used, since that contains the filename!}, it is replaced
 SQL\TeX\ accepts the followint command- line options:
 
 \begin{description}
-\item[-E \textit{string}] replace input file extension in outputfile:
-\texttt{input.tex} will be \texttt{input.\textit{string}} \\
-For further notes, see option \texttt{-e} below
-\item[-N] \texttt{NULL} return values allowed. By default SQL\TeX\ exits if a
-query returns an empty set.
-\item[-P] prompt for database password. This overwrites the password in the
-input file.
-\item[-U \textit{user}] database username. This overwrites the username in the
-input file.
-\item[-V] print version number and exit.
+\item[-c \textit{file}] SQL\TeX\ configuration file. Default is \texttt{SQLTeX.cfg}
+in the same location where SQL\TeX\ is installed.
+
 \item[-e \textit{string}] add \textit{string} to the output filename:
 \texttt{input.tex} will be \texttt{input\textit{string}.tex}. This overwrites
-the configuration setting \texttt{\$main::stx} \\
+the configuration setting \texttt{stx} \\
 In \textit{string}, the values between curly braces \{\} will be substituted:
 \begin{description}
 \item[P\textit{n}] parameter \textit{n}
@@ -509,22 +584,46 @@ outputfile \texttt{myfile.\_code\_Tuesday}
 By default (without \texttt{-e} or \texttt{-E}) the outputfile
 \texttt{myfile\_stx.tex} would have been written.
 The options \texttt{-E} and \texttt{-e} cannot be used together or with \texttt{-o}.
+
+\item[-E \textit{string}] replace input file extension in outputfile:
+\texttt{input.tex} will be \texttt{input.\textit{string}} \\
+For further notes, see option \texttt{-e} above.
+
 \item[-f] force overwrite of existing files. By default, SQL\TeX\ exists with a
 warning message it the outputfile already exists.
+
 \item[-h] print this help message and exit.
+
 \item[-m] Multidocument mode; create one document for each parameter that is retrieved
 from the database in the input document (see section~\ref{multidoc}). This option cannot be used with \texttt{-o}.
 
+\item[-M] Same as -m, but with the parameter in the filename instead of a serial number (see section~\ref{multidoc}).
+
+\item[-N] \texttt{NULL} return values allowed. By default SQL\TeX\ exits if a
+query returns an empty set.
 
 \item[-o \textit{file}] specify an output file. Cannot be used with \texttt{-e} or \texttt{-E}.
+
 \item[-p \textit{prefix}] prefix used in the SQL\TeX\ file. Default is \texttt{sql} (see also section~\ref{config}
-on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{\$main::cms\_prefix}.
+on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{cmd\_prefix}.
+
+\item[-P] prompt for database password. This overwrites the password in the
+input file.
+
 \item[-q] run in quiet mode.
+
 \item[-r \textit{replace}] Specify a file that contains the replace characters (see section~\ref{replfiles}). This is
 a list with two \texttt{TAB}- seperated fields per lione. The first field holds a string that will be replaced in the SQL output 
+
 \item[-rn] Do not use a replace file. \texttt{-rn} and \texttt{-r \textit{file}} are handled on the same order in which they appear
 on the commandline and overwrite each other.
+
 \item[-s \textit{server}] SQL server to connect to. Default is \texttt{localhost}.
+
+\item[-U \textit{user}] database username. This overwrites the username in the
+input file.
+
+\item[-V] print version number and exit.
 \end{description}
 
 
@@ -640,6 +739,24 @@ Otherwise, SQL\TeX\ exits. \\
 
 \vs
 
+\noindent\textbf{\texttt{start using a non-existing array on line \textit{line nr}}}
+
+\vspace{1mm}
+
+\noindent An \texttt{\bs sqlstart} command occurs, but refers to a non-existing array. \\
+\textit{Action:} Check the sequence number of the array filled with \texttt{\bs sqlrow[setarr=\textit{n}]} and retrieved with \texttt{\bs sqlstart\{\textit{n}\}} in your input file.
+
+\vs
+
+\noindent\textbf{\texttt{\bs sqluse command encountered outside loop context on line \textit{line nr}}}
+
+\vspace{1mm}
+
+\noindent Data from array is used, but the current input file position is not in the context where this data is available.\\
+\textit{Action:} Check the presence and positions of the \texttt{\bs sqlstart} and \texttt{\bs sqlend} commands in your input file.
+
+\vs
+
 \noindent\textbf{\texttt{unrecognized command on line \textit{line nr}}}
 
 \vspace{1mm}
@@ -658,16 +775,17 @@ conflict with default SQL\TeX\ commands. Change the SQL\TeX\ command prefix (see
 \noindent SQL\TeX\ did not find any valid SQL\TeX\ commands. \\
 \textit{Action:} Check your input file.
 
+
 \section{Copyright and disclaimer}
 
 \noindent\hrulefill \\
-The latest release is always available at http://freeware.oveas.com/sqltex
-For bugs, questions and comments, please use the forum available at\\
-http://freeware.oveas.com/sqltex/forum.html.
+The SQL\TeX\ project is available from GitHub: https://github.com/oveas/sqltex\\
+The latest stable release is always available at http://freeware.oveas.com/sqltex\\
+For bugs, questions and comments, please use the issue tracker available at https://github.com/oveas/sqltex/issues
 
 \vspace{3mm}
 
-\noindent Copyright\copyright\ 2001-2007 - Oscar van Eijk, Oveas Functionality Provider
+\noindent Copyright\copyright\ 2001-2016 - Oscar van Eijk, Oveas Functionality Provider
 
 \noindent\hrulefill \\
 

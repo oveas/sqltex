@@ -13,7 +13,7 @@
 ;
 ; To replace using regular expressions, use 're(<regular expression>)' as key (or any other
 ; regexp indicator if that has been changed in the config file), e.g.
-;   re(<p\.*>)		\paragraph*{}
+;   re(<p\.*?>)		\paragraph*{}
 ; will replace all HTML <p> variants (<p style='font-size: normal'>, <p align='center'> etc)
 ;
 $	\$
