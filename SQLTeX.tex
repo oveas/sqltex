@@ -336,18 +336,28 @@ Note you have to know what datatype is expected by your database. In the example
 \texttt{\$PAR}amater or \texttt{\$VAR}iable should be enclosed by quotes: \\
 \texttt{\bs sqlrow\{SELECT $\ast$ FROM INVOICE WHERE INVOICE\_NR = '\$PAR1'\}}
 
-\subsection{Opening the database}
+\subsection{Opening the database}\label{opendb}
 
 Before any information can be read from a database, this database should be opened.
 This is done with the \texttt{\textbf{\bs sqldb}} command.
-\texttt{\bs sqldb} requires the name of the dabatase. Optionally, a username and password can be given. When
-omitted, SQL\TeX\ assumes no username and password is required to connect to the database (the user that
-executes SQL\TeX\ should have access to the specified database). \\
+\texttt{\bs sqldb} requires the name of the dabatase. Optionally, a username, password and remote database host can be given. \\
 The format of the command is:\\
-\texttt{\bs sqldb[username,password]\{database\}}
+\texttt{\bs sqldb[user=\textit{username},passwd=\textit{password},host=\textit{host}]\{database\}}
 
 The command can be used anywhere in your input file, but should occur before the first command that tries to
 read data from the database.
+
+\vs
+
+If the keywords \texttt{user}, \texttt{passwd} and \texttt{host} are omitted, SQL\TeX\ assumes the options are given in
+this order.
+
+Default host is localhost, the default user is the current user.\\
+If a password is omitted, SQL\TeX\ will try connect to the database without a password, unless the \texttt{-P} switch is given at the commandline
+(see section \ref{cmdline}).
+
+Forcing a user to enter a database password when SQL\TeX\ runs can be achieved by specifying \texttt{?} as password:\\
+\texttt{\bs sqldb[user=dbUser,passwd=?]\{database\}}
 
 \subsection{Reading a single field}\label{sqlfield}
 
@@ -357,7 +367,7 @@ The SQL command is enclosed by curly braces. Square brackets can optionally be u
 Currently, the only supported option is \texttt{setvar} (see section~\ref{vars}).
 
 The full syntax or the \texttt{\bs sqlfield} command is:\\
-\texttt{\bs sqlrow[\textit{options}]\{SELECT \textit{fieldname} FROM \textit{tablename} WHERE \textit{your where-clause}\}} \\
+\texttt{\bs sqlfield[\textit{options}]\{SELECT \textit{fieldname} FROM \textit{tablename} WHERE \textit{your where-clause}\}} \\
 By default, the SQL\TeX\ command is replaced with the value returned by the SQL query. This behaviour
 can be changed with options.
 
@@ -525,7 +535,7 @@ database (\texttt{invoice\_nr} in the example above). Note the parameter will no
 
 Since version 1.5, SQL\TeX\ supports database updates as well: \\
 \texttt{\bs sqlupdate\{UPDATE INVOICES SET REMINDERS = REMINDERS + 1,
-LAST\_REMINDER = NOW() INVOICE\_NR = \$VAR1\}}
+LAST\_REMINDER = NOW() WHERE INVOICE\_NR = \$VAR1\}}
 
 \vs
 
@@ -602,7 +612,9 @@ query returns an empty set.
 on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{cmd\_prefix}.
 
 \item[-P] prompt for database password. This overwrites the password in the
-input file.
+input file.\\
+If the SQL\TeX\ file specifies \texttt{?} as database password (see section \ref{opendb}), the user will always be prompted
+for a password.
 
 \item[-q] run in quiet mode.
 
@@ -794,6 +806,7 @@ see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 \item[v1.4.1] \textit{released: Feb 15, 2005}\\Fix: removed leading whitespaces added to database results befure replace
 \item[v1.5] \textit{released: Nov 23, 2007}\\Support for multiple databases\\Implemented database updates (\texttt{sqlupdate})\\Implemented multiple output documents (option \texttt{-m})
 \item[v2.0] \textit{released: Jan 12, 2016}\\Fix: Oracle support using ORASID\\Fix: Ensure replacements are handled in the same order as they appear in the replacements file\\Separate configuration file(s)\\Added the options \texttt{-c} and \texttt{-M}\\Support for regular expressions in replace files\\Implemented support for the \LaTeX\ \texttt{\bs input} and \texttt{\bs include} directives\\Implemented loop context\\Skip commentlines\\Project moved from local CVS to GitHub
+\item[vx.x] \textit{released: xxx xx, 20xx}\\Implemented '?' as password in \texttt{dbopen}\\Some code cleanup
 \end{description}
 
 \end{document}

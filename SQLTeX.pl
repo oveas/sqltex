@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 ################################################################################
 #
 # SQLTeX - SQL preprocessor for Latex
@@ -11,7 +13,7 @@
 # This software is subject to the terms of the LaTeX Project Public License; 
 # see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 #
-# Copyright:  (c) 2001-2016, Oscar van Eijk, Oveas Functionality Provider
+# Copyright:  (c) 2001-2019, Oscar van Eijk, Oveas Functionality Provider
 # ==========                 oscar@oveas.com
 #
 # History:
@@ -31,7 +33,10 @@
 #
 use strict;
 use DBI;
-use Getopt::Std;
+use Getopt::Long;
+use Term::ReadKey;
+#use Getopt::Long qw( :config posix_default bundling no_ignore_case );
+Getopt::Long::Configure ("bundling_values");
 
 #####
 # Find out if any command-line options have been given
@@ -41,6 +46,42 @@ sub parse_options {
 
 	$main::NULLallowed = 0;
 
+#	$helptext .= "       -c file       SQLTeX configuration file.\n";
+	$helptext .= "       -E string     replace input file extension in outputfile:\n";
+#	$helptext .= "       -N            NULL return values allowed. By default SQLTeX\n";
+	$helptext .= "       -P            prompt for database password\n";
+	$helptext .= "       -U user       database username\n";
+#	$helptext .= "       -V            print version number and exit\n";
+	$helptext .= "       -e string     add string to the output filename:\n";
+#	$helptext .= "       -f            force overwrite of existing files\n";
+#	$helptext .= "       -h            print this help message and exit\n";
+#	$helptext .= "       -m            Multidocument mode; create one document for each parameter that is\n";
+	$helptext .= "       -M            Same as -m, but with the parameter in the filename i.s.o. a serial number\n";
+#	$helptext .= "       -o file       specify an output file. Cannot be used with \'-E\' or \'-e\'\n";
+	$helptext .= "       -p prefix     prefix used in the SQLTeX file. Default is \'sql\'\n";
+#	$helptext .= "       -q            run in quiet mode\n";
+#	$helptext .= "       -r file       specify a file that contains replace characters. This is a list with\n";
+	$helptext .= "         -rn         do not use a replace file. -r file and -rn are handled in the same\n";
+#	$helptext .= "       -s server     SQL server to connect to. Default is \'localhost\'\n";
+#	$helptext .= "       -u            If the input file contains updates, execute them.\n";
+
+#	    GetOptions('help|?' => \$help, man => \$man) or pod2usage(2);
+	if (!GetOptions('help|h' => \$main::options{'h'}
+		, 'configfile|c' => \$main::options{'c'}
+		, 'replacementfile|r' => \$main::options{'r'}
+		, 'outputfile|o' => \$main::options{'o'}
+		, 'sqlserver|s' => \$main::options{'s'}
+		, 'username|u' => \$main::options{'u'}
+		, 'null_allowed|N' => \$main::options{'N'}
+		, 'version|V' => \$main::options{'V'}
+		, 'force|f' => \$main::options{'f'}
+		, 'quiet|q' => \$main::options{'q'}
+		, 'multi_doc|m' => \$main::options{'m'}
+	)) {
+		print "usage: $main::myself [options] <file[.$main::configuration{'texex'}]> [parameter...]\n"
+			. "       type \"$main::myself --help\" for help\n";
+		exit(1);
+	}
 	if (!getopts ('c:E:NPU:Ve:fhmMo:p:r:qs:u', \%main::options)) {
 		print (&short_help (1));
 		exit(1);
@@ -189,14 +230,22 @@ sub get_password ($$) {
 
 	print "Password for $usr\@$srv : ";
 
-	system('stty -echo');
-	my $pwd = <STDIN>;
-	chomp $pwd;
-	system('stty echo');
-	print "\n";
+	my $pwd = "";
+	ReadMode(4);
+	while(ord(my $keyStroke = ReadKey(0)) != 10) {
+		if(ord($keyStroke) == 127 || ord($keyStroke) == 8) { # DEL/Backspace
+			chop($pwd);
+			print "\b \b";
+		} elsif(ord($keyStroke) >= 32) { # Skip control characters
+			$pwd = $pwd . $keyStroke;
+			print '*';
+		}
+	}
+	ReadMode(0);
 
 	return $pwd;
 }
+
 
 #######
 # Find the file extension for the outputfile
@@ -338,7 +387,7 @@ sub db_connect($$) {
 	}
 
 	$un = $main::options{'U'} if (defined $main::options{'U'});
-	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if (defined $main::options{'P'});
+	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if (defined $main::options{'P'} || $pw eq '?');
 	$hn = $main::options{'s'} if (defined $main::options{'s'});
 
 	if ($main::configuration{'dbdriver'} eq "Pg") {
@@ -367,18 +416,18 @@ sub db_connect($$) {
 		$msg .= " using a password" unless ($pw eq '');
 		&print_message ($msg);
 	}
-	$main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &just_died (1);
+	$main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &just_died (1); # TODO Proper errorhandling
 	return;
 }
 
-#####
-# Execute the SQL query and return the result in an array
-#
-sub execute_query ($) {
-	my $query = shift;
-	my (@result, @res);
-	return @result;
-}
+######
+## Execute the SQL query and return the result in an array
+## FIXME This one is never called it seems.. why is this here?
+#sub execute_query ($) {
+#	my $query = shift;
+#	my (@result, @res);
+#	return @result;
+#}
 
 #####
 # Check if the SQL statement contains options
@@ -405,15 +454,17 @@ sub check_options ($) {
 		}
 		if ($opt =~ /^fldsep=/i) {
 			$main::fldsep = qq{$'};
-			if ($main::fldsep eq 'NEWLINE') {
-				$main::fldsep = "\n";
-			}
+			$main::fldsep =~ s/NEWLINE/\n/;
+#			if ($main::fldsep eq 'NEWLINE') {
+#				$main::fldsep = "\n";
+#			}
 		}
 		if ($opt =~ /^rowsep=/i) {
 			$main::rowsep = qq{$'};
-			if ($main::rowsep eq 'NEWLINE') {
-				$main::rowsep = "\n";
-			}
+			$main::rowsep =~ s/NEWLINE/\n/;
+#			if ($main::rowsep eq 'NEWLINE') {
+#				$main::rowsep = "\n";
+#			}
 		}
 	}
 }
@@ -464,7 +515,7 @@ sub sql_row ($$) {
 	$stat_handle->execute ();
 
 	if ($main::setarr) {
-		&just_died (7) if (defined $main::arr[$main::arr_no]);
+		&just_died (7) if (defined $main::arr[$main::arr_no]); # TODO Proper errorhandling
 		@main::arr[$main::arr_no] = ();
 		while (my $ref = $stat_handle->fetchrow_hashref()) {
 			foreach my $k (keys %$ref) {
@@ -490,7 +541,7 @@ sub sql_row ($$) {
 	$stat_handle->finish ();
 
 	if ($#return_values < 0) {
-		&just_died (4);
+		&just_died (4); # TODO Proper errorhandling
 	}
 
 	$rc = $#return_values + 1;
@@ -524,13 +575,13 @@ sub sql_field ($$) {
 	$stat_handle->finish ();
 
 	if ($#result < 0) {
-		&just_died (4);
+		&just_died (4); # TODO Proper errorhandling
 	} elsif ($#result > 0) {
-		&just_died (5);
+		&just_died (5); # TODO Proper errorhandling
 	} else {
 		&print_message ("Found 1 value: \"$result[0]\"");
 		if ($main::setvar) {
-			&just_died (7) if (defined $main::var[$main::var_no]);
+			&just_died (7) if (defined $main::var[$main::var_no]); # TODO Proper errorhandling
 			$main::var[$main::var_no] = $result[0];
 			return '';
 		} else {
@@ -548,7 +599,7 @@ sub sql_field ($$) {
 #
 sub sql_start ($) {
 	my $arr_no = shift;
-	&just_died (11) if (!defined $main::arr[$arr_no]);
+	&just_died (11) if (!defined $main::arr[$arr_no]); # TODO Proper errorhandling
 	if (@main::current_array) {
 		@main::current_array = ();
 	}
@@ -616,13 +667,13 @@ sub sql_setparams ($$) {
 	$stat_handle->execute ();
 
 	while (@values = $stat_handle->fetchrow_array ()) {
-		&just_died (9) if ($#values > 0); # Only one allowed
+		&just_died (9) if ($#values > 0); # Only one allowed TODO Proper errorhandling
 		push @return_values, @values;
 	}
 	$stat_handle->finish ();
 
 	if ($#return_values < 0) {
-		&just_died (8);
+		&just_died (8); # TODO Proper errorhandling
 	}
 
 	$rc = $#return_values + 1;
@@ -656,6 +707,7 @@ sub sql_update ($$) {
 # Some error handling (mainly cleanup stuff)
 # Files will be closed if opened, and if no sql output was written yet,
 # the outputfile will be removed.
+# FIXME We need some decent errorhandling
 #
 sub just_died ($) {
 	my $step = shift;
@@ -760,10 +812,10 @@ sub parse_command ($$$) {
 		while ($statement =~ /\$VAR[0-9]/) {
 			my $varno = $&;
 			$varno =~ s/\$VAR//;
-			&just_died (6) if (!defined ($main::var[$varno]));
+			&just_died (6) if (!defined ($main::var[$varno])); # TODO Proper errorhandling
 			$statement =~ s/\$VAR$varno/$main::var[$varno]/g;
 		}
-		&just_died (3) if ($statement =~ /\$PAR/ && ($main::multidoc_cnt > 0) && $main::multidoc);
+		&just_died (3) if ($statement =~ /\$PAR/ && ($main::multidoc_cnt > 0) && $main::multidoc); # TODO Proper errorhandling
 		$statement =~ s/\{//;
 	}
 
@@ -773,7 +825,7 @@ sub parse_command ($$$) {
 		return 0;
 	}
 
-	&just_died (2) if (!$main::db_opened);
+	&just_died (2) if (!$main::db_opened); # TODO Proper errorhandling
 
 	if ($cmdfound =~ /$main::configuration{'sql_field'}/) {
 		$main::line = $lin1 . &sql_field($options, $statement) . $lin2;
@@ -794,12 +846,12 @@ sub parse_command ($$$) {
 		&sql_start($statement);
 		$main::line = $lin1 . $lin2;
 	} elsif ($cmdfound =~ /$main::configuration{'sql_use'}/) {
-		&just_died (12) if (!@main::current_array);
+		&just_died (12) if (!@main::current_array); # TODO Proper errorhandling
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_use'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound =~ /$main::configuration{'sql_end'}/) {
 		$main::line = $lin1 . &sql_end() . $lin2;
 	} else {
-		&just_died (10);
+		&just_died (10); # TODO Proper errorhandling
 	}
 
 	return 0;
