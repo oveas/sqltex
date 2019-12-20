@@ -36,7 +36,7 @@ use DBI;
 use Getopt::Long;
 use Term::ReadKey;
 #use Getopt::Long qw( :config posix_default bundling no_ignore_case );
-Getopt::Long::Configure ("bundling_values");
+Getopt::Long::Configure ("bundling");
 
 #####
 # Find out if any command-line options have been given
@@ -46,44 +46,28 @@ sub parse_options {
 
 	$main::NULLallowed = 0;
 
-#	$helptext .= "       -c file       SQLTeX configuration file.\n";
-	$helptext .= "       -E string     replace input file extension in outputfile:\n";
-#	$helptext .= "       -N            NULL return values allowed. By default SQLTeX\n";
-	$helptext .= "       -P            prompt for database password\n";
-	$helptext .= "       -U user       database username\n";
-#	$helptext .= "       -V            print version number and exit\n";
-	$helptext .= "       -e string     add string to the output filename:\n";
-#	$helptext .= "       -f            force overwrite of existing files\n";
-#	$helptext .= "       -h            print this help message and exit\n";
-#	$helptext .= "       -m            Multidocument mode; create one document for each parameter that is\n";
-	$helptext .= "       -M            Same as -m, but with the parameter in the filename i.s.o. a serial number\n";
-#	$helptext .= "       -o file       specify an output file. Cannot be used with \'-E\' or \'-e\'\n";
-	$helptext .= "       -p prefix     prefix used in the SQLTeX file. Default is \'sql\'\n";
-#	$helptext .= "       -q            run in quiet mode\n";
-#	$helptext .= "       -r file       specify a file that contains replace characters. This is a list with\n";
-	$helptext .= "         -rn         do not use a replace file. -r file and -rn are handled in the same\n";
-#	$helptext .= "       -s server     SQL server to connect to. Default is \'localhost\'\n";
-#	$helptext .= "       -u            If the input file contains updates, execute them.\n";
-
 #	    GetOptions('help|?' => \$help, man => \$man) or pod2usage(2);
-	if (!GetOptions('help|h' => \$main::options{'h'}
-		, 'configfile|c' => \$main::options{'c'}
-		, 'replacementfile|r' => \$main::options{'r'}
-		, 'outputfile|o' => \$main::options{'o'}
-		, 'sqlserver|s' => \$main::options{'s'}
-		, 'username|u' => \$main::options{'u'}
+	if (!GetOptions('help|h|?' => \$main::options{'h'}
+		, 'configfile|c=s' => \$main::options{'c'}
+		, 'replacementfile|r=s' => \$main::options{'r'}
+		, 'no-replacementfile|R' => \$main::options{'R'}
+		, 'outputfile|o=s' => \$main::options{'o'}
+		, 'filename-extend|e=s' => \$main::options{'e'}
+		, 'fileextension|E=s' => \$main::options{'E'}
+		, 'sqlserver|s=s' => \$main::options{'s'}
+		, 'username|U=s' => \$main::options{'U'}
+		, 'password|P' => \$main::options{'P'}
 		, 'null_allowed|N' => \$main::options{'N'}
 		, 'version|V' => \$main::options{'V'}
 		, 'force|f' => \$main::options{'f'}
 		, 'quiet|q' => \$main::options{'q'}
-		, 'multi_doc|m' => \$main::options{'m'}
+		, 'multidoc-numbered|m' => \$main::options{'m'}
+		, 'multidoc-named|M' => \$main::options{'M'}
+		, 'prefix|p=s' => \$main::options{'p'}
+		, 'updates|u' => \$main::options{'u'}
 	)) {
 		print "usage: $main::myself [options] <file[.$main::configuration{'texex'}]> [parameter...]\n"
 			. "       type \"$main::myself --help\" for help\n";
-		exit(1);
-	}
-	if (!getopts ('c:E:NPU:Ve:fhmMo:p:r:qs:u', \%main::options)) {
-		print (&short_help (1));
 		exit(1);
 	}
 
@@ -107,6 +91,11 @@ sub parse_options {
 	$optcheck++ if (defined $main::options{'M'});
 	$optcheck++ if (defined $main::options{'o'});
 	die ("options \"-m\", \"-M\" and \"-o\" cannot be combined\n") if ($optcheck > 1);
+
+	$optcheck = 0;
+	$optcheck++ if (defined $main::options{'r'});
+	$optcheck++ if (defined $main::options{'R'});
+	die ("options \"-r\" and \"-R\" cannot be combined\n") if ($optcheck > 1);
 
 	$main::NULLallowed = 1 if (defined $main::options{'N'});
 	$main::configuration{'cmd_prefix'} = $main::options{'p'} if (defined $main::options{'p'});
@@ -184,7 +173,7 @@ sub print_help {
 	$helptext .= "                     two tab- seperated fields per line. The first field holds a string\n";
 	$helptext .= "                     that will be replaced in the SQL output by the second string.\n";
 	$helptext .= "                     By default the file \'$main::my_location/SQLTeX_r.dat\' is used.\n";
-	$helptext .= "         -rn         do not use a replace file. -r file and -rn are handled in the same\n";
+	$helptext .= "         -rn, -R     do not use a replace file. -r file and -rn/-R are handled in the same\n";
 	$helptext .= "                     as they where specified on the command line.\n";
 	$helptext .= "       -s server     SQL server to connect to. Default is \'localhost\'\n";
 	$helptext .= "       -u            If the input file contains updates, execute them.\n";
@@ -341,9 +330,9 @@ sub get_filenames {
 	if (defined $main::options{'r'}) {
 		$main::replacefile = $main::options{'r'};
 	} else {
-		$main::replacefile = "$main::my_location/SQLTeX_r.dat";
+		$main::replacefile = "$main::my_location/SQLTeX_r.dat" unless (defined $main::options{'R'});
 	}
-	if (!-e $main::replacefile) {
+	if (defined $main::replacefile && !-e $main::replacefile) {
 		warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
 		undef $main::replacefile;
 	}
