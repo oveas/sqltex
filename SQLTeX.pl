@@ -36,6 +36,7 @@ use DBI;
 use Getopt::Long;
 use Term::ReadKey;
 Getopt::Long::Configure ("bundling");
+use feature 'state';
 
 #####
 # Find out if any command-line options have been given
@@ -254,9 +255,10 @@ sub print_message ($) {
 sub get_password ($$) {
 	my ($usr, $srv) = @_;
 
+	my $pwd = "";
+
 	print "Password for $usr\@$srv : ";
 
-	my $pwd = "";
 	ReadMode(4);
 	while(ord(my $keyStroke = ReadKey(0)) != 10) {
 		if(ord($keyStroke) == 127 || ord($keyStroke) == 8) { # DEL/Backspace
@@ -396,70 +398,75 @@ sub get_filenames {
 #
 sub db_connect($$) {
 	my ($up, $db) = @_;
-	my $data_source;
+	state $data_source;
+	state $gotInput = 0;
 
 	$main::line =~ s/(\[.*?\])?\{$db\}//;
 
-	my $un = '';
-	my $pw = '';
-	my $hn = '';
-	my @opts = split(',', $up);
-	for(my $idx = 0; $idx <= $#opts; $idx++) {
-		my $opt = $opts[$idx];
-		if ($opt =~ /=/) {
-			if ($` eq 'user') {
-				$un = $';
-			} elsif ($` eq 'passwd') {
-				$pw = $';
-			} elsif ($` eq 'host') {
-				$hn = $';
-			}
-		} else {
-			if ($idx == 0) {
-				$un = $opt;
-			} elsif ($idx == 1) {
-				$pw = $opt;
-			} elsif ($idx == 2) {
-				$hn = $opt;
+	state $un = '';
+	state $pw = '';
+	state $hn = '';
+
+	if (!$gotInput) {
+		my @opts = split(',', $up);
+		for(my $idx = 0; $idx <= $#opts; $idx++) {
+			my $opt = $opts[$idx];
+			if ($opt =~ /=/) {
+				if ($` eq 'user') {
+					$un = $';
+				} elsif ($` eq 'passwd') {
+					$pw = $';
+				} elsif ($` eq 'host') {
+					$hn = $';
+				}
+			} else {
+				if ($idx == 0) {
+					$un = $opt;
+				} elsif ($idx == 1) {
+					$pw = $opt;
+				} elsif ($idx == 2) {
+					$hn = $opt;
+				}
 			}
 		}
-	}
 
-	$un = $main::options{'U'} if (defined $main::options{'U'});
-	$un = &get_username($main::options{'s'} || 'localhost') if ($un eq '?');
-	
-	my $promptForPwd = 0;
-	if (defined $main::options{'P'}) {
-		if ($main::options{'P'} eq '') {
+		$un = $main::options{'U'} if (defined $main::options{'U'});
+		$un = &get_username($main::options{'s'} || 'localhost') if ($un eq '?');
+
+		my $promptForPwd = 0;
+		if (defined $main::options{'P'}) {
+			if ($main::options{'P'} eq '') {
+				$promptForPwd = 1;
+			} else {
+				$pw = $main::options{'P'}
+			}
+		}
+		if ($pw eq '?') {
 			$promptForPwd = 1;
-		} else {
-			$pw = $main::options{'P'}
 		}
-	}
-	if ($pw eq '?') {
-		$promptForPwd = 1;
-	}
-	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if ($promptForPwd);
+		$pw = &get_password ($un, $main::options{'s'} || 'localhost') if ($promptForPwd);
+		$gotInput = 1;
 
-	$hn = $main::options{'s'} if (defined $main::options{'s'});
+		$hn = $main::options{'s'} if (defined $main::options{'s'});
 
-	if ($main::configuration{'dbdriver'} eq "Pg") {
-		$data_source = "DBI:$main::configuration{'dbdriver'}:dbname=$db";
-		$data_source .= ";host=$hn" unless ($hn eq "");
-	} elsif ($main::configuration{'dbdriver'} eq "Oracle") {
-		$data_source = "DBI:$main::configuration{'dbdriver'}:$db";
-		$data_source .= ";host=$hn;sid=$main::configuration{'oracle_sid'}" unless ($hn eq "");
-		$data_source .= ";sid=$main::configuration{'oracle_sid'}";
-	} elsif ($main::configuration{'dbdriver'} eq "Ingres") {
-		$data_source = "DBI:$main::configuration{'dbdriver'}";
-		$data_source .= ":$hn" unless ($hn eq "");
-		$data_source .= ":$db";
-	} elsif ($main::configuration{'dbdriver'} eq "Sybase") {
-		$data_source = "DBI:$main::configuration{'dbdriver'}:$db";
-		$data_source .= ";server=$hn" unless ($hn eq "");
-	} else { # MySQL, mSQL, ...
-		$data_source = "DBI:$main::configuration{'dbdriver'}:database=$db";
-		$data_source .= ";host=$hn" unless ($hn eq "");
+		if ($main::configuration{'dbdriver'} eq "Pg") {
+			$data_source = "DBI:$main::configuration{'dbdriver'}:dbname=$db";
+			$data_source .= ";host=$hn" unless ($hn eq "");
+		} elsif ($main::configuration{'dbdriver'} eq "Oracle") {
+			$data_source = "DBI:$main::configuration{'dbdriver'}:$db";
+			$data_source .= ";host=$hn;sid=$main::configuration{'oracle_sid'}" unless ($hn eq "");
+			$data_source .= ";sid=$main::configuration{'oracle_sid'}";
+		} elsif ($main::configuration{'dbdriver'} eq "Ingres") {
+			$data_source = "DBI:$main::configuration{'dbdriver'}";
+			$data_source .= ":$hn" unless ($hn eq "");
+			$data_source .= ":$db";
+		} elsif ($main::configuration{'dbdriver'} eq "Sybase") {
+			$data_source = "DBI:$main::configuration{'dbdriver'}:$db";
+			$data_source .= ";server=$hn" unless ($hn eq "");
+		} else { # MySQL, mSQL, ...
+			$data_source = "DBI:$main::configuration{'dbdriver'}:database=$db";
+			$data_source .= ";host=$hn" unless ($hn eq "");
+		}
 	}
 
 	if (!defined $main::options{'q'}) {
@@ -568,7 +575,7 @@ sub sql_row ($$) {
 	$stat_handle->execute ();
 
 	if ($main::setarr) {
-		&just_died (7) if (defined $main::arr[$main::arr_no]); # TODO Proper errorhandling
+		&just_died (7) if (defined $main::arr[$main::arr_no] && !$main::multidoc); # TODO Proper errorhandling
 		@main::arr[$main::arr_no] = ();
 		while (my $ref = $stat_handle->fetchrow_hashref()) {
 			foreach my $k (keys %$ref) {
@@ -634,7 +641,7 @@ sub sql_field ($$) {
 	} else {
 		&print_message ("Found 1 value: \"$result[0]\"");
 		if ($main::setvar) {
-			&just_died (7) if (defined $main::var[$main::var_no]); # TODO Proper errorhandling
+			&just_died (7) if (defined $main::var[$main::var_no] && !$main::multidoc); # TODO Proper errorhandling
 			$main::var[$main::var_no] = $result[0];
 			return '';
 		} else {
@@ -738,9 +745,7 @@ sub sql_setparams ($$) {
 
 
 #####
-# Select a (list of) single field(s) from the database. This list is used in
-# multidocument mode as the first parameter in all queries.
-# Currently, only 1 parameter per run is supported.
+# Perform an update.
 #
 sub sql_update ($$) {
 	my ($options, $query) = @_;
