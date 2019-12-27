@@ -35,7 +35,6 @@ use strict;
 use DBI;
 use Getopt::Long;
 use Term::ReadKey;
-#use Getopt::Long qw( :config posix_default bundling no_ignore_case );
 Getopt::Long::Configure ("bundling");
 
 #####
@@ -46,18 +45,17 @@ sub parse_options {
 
 	$main::NULLallowed = 0;
 
-#	    GetOptions('help|?' => \$help, man => \$man) or pod2usage(2);
 	if (!GetOptions('help|h|?' => \$main::options{'h'}
 		, 'configfile|c=s' => \$main::options{'c'}
 		, 'replacementfile|r=s' => \$main::options{'r'}
 		, 'no-replacementfile|R' => \$main::options{'R'}
-		, 'outputfile|o=s' => \$main::options{'o'}
+		, 'output|o=s' => \$main::options{'o'}
 		, 'filename-extend|e=s' => \$main::options{'e'}
 		, 'fileextension|E=s' => \$main::options{'E'}
 		, 'sqlserver|s=s' => \$main::options{'s'}
 		, 'username|U=s' => \$main::options{'U'}
 		, 'password|P' => \$main::options{'P'}
-		, 'null_allowed|N' => \$main::options{'N'}
+		, 'null-allowed|N' => \$main::options{'N'}
 		, 'version|V' => \$main::options{'V'}
 		, 'force|f' => \$main::options{'f'}
 		, 'quiet|q' => \$main::options{'q'}
@@ -129,54 +127,92 @@ sub short_help ($) {
 #
 sub print_help {
 	my $helptext = &short_help (0);
+
 	$helptext .= "       Options:\n";
-	$helptext .= "       -c file       SQLTeX configuration file.\n";
-	$helptext .= "                     Default is \'$main::my_location/SQLTeX.cfg\'.\n";
-	$helptext .= "       -E string     replace input file extension in outputfile:\n";
-	$helptext .= "                     \'input.tex\' will be \'input.string\'\n";
-	$helptext .= "                     For further notes, see option \'-e\' below\n";
-	$helptext .= "       -N            NULL return values allowed. By default SQLTeX\n";
-	$helptext .= "                     exits if a query returns an empty set\n";
-	$helptext .= "       -P            prompt for database password\n";
-	$helptext .= "       -U user       database username\n";
-	$helptext .= "       -V            print version number and exit\n";
-	$helptext .= "       -e string     add string to the output filename:\n";
-	$helptext .= "                     \'input.tex\' will be \"inputstring.tex\"\n";
-	$helptext .= "                     In \'string\', the values between curly braces \{\}\n";
-	$helptext .= "                       will be substituted:\n";
-	$helptext .= "                       Pn      parameter n\n";
-	$helptext .= "                       M       current monthname (Mon)\n";
-	$helptext .= "                       W       current weekday (Wdy)\n";
-	$helptext .= "                       D       current date (yyyymmdd)\n";
-	$helptext .= "                       DT      current date and time (yyyymmddhhmmss)\n";
-	$helptext .= "                       T       current time (hhmmss)\n";
-	$helptext .= "                     e.g., the command \'$main::myself -e _{P1}_{W} my_file code\'\n";
-	$helptext .= "                     will read \'my_file.tex\' and write \'myfile_code_Tue.tex\'\n";
-	$helptext .= "                     The same command, but with option \'-E\' would create the\n";
-	$helptext .= "                     outputfile \'myfile._code_Tuesday\'\n";
-	$helptext .= "                     By default (without \'-e\' or \'-E\') the outputfile\n";
-	$helptext .= "                     \'myfile_stx.tex\' would have been written.\n";
-	$helptext .= "                     The options \'-E\' and \'-e\' cannot be used together or with \'-o\'.\n";
-	$helptext .= "       -f            force overwrite of existing files\n";
-	$helptext .= "       -h            print this help message and exit\n";
-	$helptext .= "       -m            Multidocument mode; create one document for each parameter that is\n";
-	$helptext .= "                     retrieved from the database in the input document (see documentation)\n";
-	$helptext .= "                     This option cannot be used with \'-o\'.\n";
-	$helptext .= "       -M            Same as -m, but with the parameter in the filename i.s.o. a serial number\n";
-	$helptext .= "       -o file       specify an output file. Cannot be used with \'-E\' or \'-e\'\n";
-	$helptext .= "                     This option cannot be used with \'-m\'.\n";
-	$helptext .= "       -p prefix     prefix used in the SQLTeX file. Default is \'sql\'\n";
-	$helptext .= "                     (e.g. \\sqldb[user]{database}), but this can be overwritten\n";
-	$helptext .= "                     if it conflicts with other user-defined commands.\n";
-	$helptext .= "       -q            run in quiet mode\n";
-	$helptext .= "       -r file       specify a file that contains replace characters. This is a list with\n";
-	$helptext .= "                     two tab- seperated fields per line. The first field holds a string\n";
-	$helptext .= "                     that will be replaced in the SQL output by the second string.\n";
-	$helptext .= "                     By default the file \'$main::my_location/SQLTeX_r.dat\' is used.\n";
-	$helptext .= "         -rn, -R     do not use a replace file. -r file and -rn/-R are handled in the same\n";
-	$helptext .= "                     as they where specified on the command line.\n";
-	$helptext .= "       -s server     SQL server to connect to. Default is \'localhost\'\n";
-	$helptext .= "       -u            If the input file contains updates, execute them.\n";
+	$helptext .= "       --configfile <file>\n";
+	$helptext .= "       -c <file>\n";
+	$helptext .= "            SQLTeX configuration file.\n";
+	$helptext .= "            Default is \'$main::my_location/SQLTeX.cfg\'.\n";
+	$helptext .= "       --fileextension <string>\n";
+	$helptext .= "       -E <string>\n";
+	$helptext .= "            replace input file extension in outputfile:\n";
+	$helptext .= "            \'input.tex\' will be \'input.string\'\n";
+	$helptext .= "            For further notes, see option \'--filename-extend\' below\n";
+	$helptext .= "       --null-allowed\n";
+	$helptext .= "       -N\n";
+	$helptext .= "            NULL return values allowed. By default SQLTeX exits if a\n";
+	$helptext .= "            query returns an empty set\n";
+	$helptext .= "       --password\n";
+	$helptext .= "       -P\n";
+	$helptext .= "            prompt for database password\n";
+	$helptext .= "       --username\n";
+	$helptext .= "       -U user\n";
+	$helptext .= "            database username\n";
+	$helptext .= "       --version\n";
+	$helptext .= "       -V\n";
+	$helptext .= "            print version number and exit\n";
+	$helptext .= "       --filename-extend <string>\n";
+	$helptext .= "       -e <string>\n";
+	$helptext .= "            add string to the output filename:\n";
+	$helptext .= "               \'input.tex\' will be \"inputstring.tex\"\n";
+	$helptext .= "               In \'string\', the values between curly braces \{\}\n";
+	$helptext .= "                 will be substituted:\n";
+	$helptext .= "                 Pn      parameter n\n";
+	$helptext .= "                 M       current monthname (Mon)\n";
+	$helptext .= "                 W       current weekday (Wdy)\n";
+	$helptext .= "                 D       current date (yyyymmdd)\n";
+	$helptext .= "                 DT      current date and time (yyyymmddhhmmss)\n";
+	$helptext .= "                 T       current time (hhmmss)\n";
+	$helptext .= "               e.g., the command \'$main::myself --filename-extend _{P1}_{W} my_file code\'\n";
+	$helptext .= "               will read \'my_file.tex\' and write \'myfile_code_Tue.tex\'\n";
+	$helptext .= "               The same command, but with option \--fileextension\' would create the\n";
+	$helptext .= "               outputfile \'myfile._code_Tue\'\n";
+	$helptext .= "               By default the outputfile \'myfile_stx.tex\' would have been written.\n";
+	$helptext .= "               The options \'--fileextension\' and \'--filename-extend\' cannot be used\n";
+	$helptext .= "               together or with \'--output\'.\n";
+	$helptext .= "       --force\n";
+	$helptext .= "       -f\n";
+	$helptext .= "               force overwrite of existing files\n";
+	$helptext .= "       --help\n";
+	$helptext .= "       -h\n";
+	$helptext .= "               print this help message and exit\n";
+	$helptext .= "       --multidoc-numbered\n";
+	$helptext .= "       -m\n";
+	$helptext .= "               Multidocument mode; create one document for each parameter that is retrieved\n";
+	$helptext .= "               from the database in the input document (see documentation)\n";
+	$helptext .= "               This option cannot be used with \'--output\'.\n";
+	$helptext .= "       --multidoc-named\n";
+	$helptext .= "       -M\n";
+	$helptext .= "               Same as -m, but with the parameter in the filename i.s.o. a serial number\n";
+	$helptext .= "       --output <file>\n";
+	$helptext .= "       -o <file>\n";
+	$helptext .= "               specify an output file. Cannot be used with \'--fileextension\',\n";
+	$helptext .= "               \'--filename-extend\' or the \'--multidoc\' options.\n";
+	$helptext .= "       --prefix <prefix>\n";
+	$helptext .= "       -p <prefix>\n";
+	$helptext .= "               prefix used in the SQLTeX file. Default is \'sql\'\n";
+	$helptext .= "               (e.g. \\sqldb[user]{database}), but this can be overwritten if it conflicts\n";
+	$helptext .= "               with other user-defined commands.\n";
+	$helptext .= "       --quiet\n";
+	$helptext .= "       -q\n";
+	$helptext .= "               run in quiet mode\n";
+	$helptext .= "       --replacementfile <file>\n";
+	$helptext .= "       -r <file>\n";
+	$helptext .= "               specify a file that contains replace characters. This is a list with two tab- seperated\n";
+	$helptext .= "               fields per line. The first field holds a string that will be replaced in the SQL output\n";
+	$helptext .= "               by the second string.\n";
+	$helptext .= "               By default the file \'$main::my_location/SQLTeX_r.dat\' is used.\n";
+	$helptext .= "       --no-replacementfile\n";
+	$helptext .= "       -R\n";
+	$helptext .= "               do not use a replace file. \'--replacementfile\' \'--no-replacementfile\' are handled\n";
+	$helptext .= "               in the same order as they appear on the command line.\n";
+	$helptext .= "               For backwards compatibility, -rn is also still supported.\n";
+	$helptext .= "       --sqlserver <server>\n";
+	$helptext .= "       -s <server>\n";
+	$helptext .= "               SQL server to connect to. Default is \'localhost\'\n";
+	$helptext .= "       --updates\n";
+	$helptext .= "       -u\n";
+	$helptext .= "               If the input file contains updates, execute them.\n";
 
 	$helptext .= "\n       file          is the input file that should be read. By default,\n";
 	$helptext .= "                     $main::myself looks for a file with extension \'.$main::configuration{'texex'}\'.\n";
@@ -233,6 +269,19 @@ sub get_password ($$) {
 	ReadMode(0);
 
 	return $pwd;
+}
+
+#####
+# If we have to prompt for a user. Get it and return it to the caller
+#
+sub get_username ($) {
+	my $srv = shift;
+
+	print "Username at $srv : ";
+
+	my $usr = <STDIN>;
+	chomp $usr;
+	return $usr;
 }
 
 
@@ -348,7 +397,7 @@ sub db_connect($$) {
 	my ($up, $db) = @_;
 	my $data_source;
 
-	$main::line =~ s/\[?$up\]?\{$db\}//;
+	$main::line =~ s/(\[.*?\])?\{$db\}//;
 
 	my $un = '';
 	my $pw = '';
@@ -376,6 +425,7 @@ sub db_connect($$) {
 	}
 
 	$un = $main::options{'U'} if (defined $main::options{'U'});
+	$un = &get_username($main::options{'s'} || 'localhost') if ($un eq '?');
 	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if (defined $main::options{'P'} || $pw eq '?');
 	$hn = $main::options{'s'} if (defined $main::options{'s'});
 
@@ -618,6 +668,7 @@ sub sql_end () {
 			while (($buffered_line  =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($buffered_line  =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
 				my $cmdfound = $&;
 				$cmdfound =~ s/\\//;
+				$cmdfound =~ s/\{/\\\{/;
 
 				$buffered_line  =~ /\\$cmdfound/;
 				my $lin1 = $`;

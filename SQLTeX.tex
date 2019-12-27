@@ -356,8 +356,14 @@ Default host is localhost, the default user is the current user.\\
 If a password is omitted, SQL\TeX\ will try connect to the database without a password, unless the \texttt{-P} switch is given at the commandline
 (see section \ref{cmdline}).
 
+\vs
+
 Forcing a user to enter a database password when SQL\TeX\ runs can be achieved by specifying \texttt{?} as password:\\
 \texttt{\bs sqldb[user=dbUser,passwd=?]\{database\}}
+
+When different database users should be able to use the same SQL\TeX\ file, the username can also be a questionmark, forcing SQL\TeX
+to prompt for a username:\\
+\texttt{\bs sqldb[user=?,passwd=?]\{database\}}
 
 \subsection{Reading a single field}\label{sqlfield}
 
@@ -397,7 +403,7 @@ This creates a variable that can be used as \texttt{\$VAR0},
 \item retrieve the invoice number using the customer number (a command line parameter,
 see also section~\ref{params}) and the variable containing the invoice date.
 Store this invoice number in \texttt{\$VAR1}: \\
-\texttt{\bs sqlfield[setvar=1]\{SELECT INVOICE\_NR FROM INVOICES \\
+\texttt{\bs sqlfield[setvar=1]\{SELECT NR FROM INVOICES \\
 WHERE CUST\_NR = '\$PAR1' AND INVOICE\_DATE = '\$VAR0'\}}
 \item use \texttt{\$VAR1} to retrieve all invoice information.
 \end{itemize}
@@ -423,9 +429,9 @@ and ``\texttt{rowsep}'' can be used.
 e.g. In a \texttt{tabular} enviroment the fields should be seperated by an amphesand (\texttt{\&}),
 perhaps a line should seperate the rows of information. (\texttt{\bs\bs~\bs hline}).
 To do this, the options can be used with \texttt{\bs sqlrow} as shown here: \\
-\texttt{\bs sqlrow[fldsep=\&,rowsep=\bs\bs~\bs hline]\{SELECT I.LINE\_NR, A.ARTICLE\_NR, 
-A.PRICE, I.AMOUNT, (A.PRICE * I.AMOUNT) FROM ARTICLE A, INVOICE\_LINE I WHERE I.INVOICE\_NR = \$VAR1 
-AND I.ARTICLE\_NR = A.ARTICLE\_NR\}}
+\texttt{\bs sqlrow[fldsep=\&,rowsep=\bs\bs~\bs hline]\{SELECT I.NR, A.NR, 
+A.PRICE, I.AMOUNT, (A.PRICE * I.AMOUNT) FROM ARTICLE A, INVOICE\_LINE I WHERE I.NR = \$VAR1 
+AND I.ARTICLE\_NR = A.NR\}}
 
 \vs
 
@@ -464,14 +470,14 @@ Multiple textblocks can occur in the document, but they can \textit{not} be nest
 
 In the example below, data for unpaid invoices is stored in an array identified with sequence number 0:
  
-\texttt{\bs sqlrow[setarr=0]\{SELECT I.INVOICE\_NR AS nr\\
+\texttt{\bs sqlrow[setarr=0]\{SELECT I.NR AS nr\\
 \hspace*{15mm},  I.DUE\_DATE AS date\\
 \hspace*{15mm},  I.TOTAL AS amount\\
 \hspace*{15mm},  C.NAME AS customer\\
-\hspace*{15mm}FROM INVOICES I\\
-\hspace*{15mm}LEFT OUTER JOIN CUSTOMERS C\\
-\hspace*{20mm}ON C.CUST\_NR = I.CUST\_NR\\
-\hspace*{15mm}WHERE I.PAY\_DATE = NULL\}}
+\hspace*{15mm}FROM INVOICE I\\
+\hspace*{15mm}LEFT OUTER JOIN CUSTOMER C\\
+\hspace*{20mm}ON C.NR = I.CUST\_NR\\
+\hspace*{15mm}WHERE I.PAY\_DATE IS NULL\}}
 
 \vs
 
@@ -508,7 +514,7 @@ retrieves the first parameter (see section~\ref{params}) from the database
 The input document must contain the command \texttt{\bs sqlsetparams} (in the
 default configuration) without any options. The query that follows can return an
 unlimited number of rows all containing exactly 1 field: \\
-\texttt{\bs sqlsetparams\{SELECT INVOICE\_NR FROM INVOICES WHERE PAY\_DATE = NULL\}}
+\texttt{\bs sqlsetparams\{SELECT NR FROM INVOICES WHERE PAY\_DATE = NULL\}}
 
 \vs
 
@@ -516,7 +522,7 @@ By processing this command, SQL\TeX\ builds a list with all values retrieved and
 processes the input file again for each value.\\
 In those runs, the queries are executed as described in the previous sections,
 using the value as a parameter:\\
-\texttt{\bs sqlrow\{SELECT * FROM INVOICES WHERE INVOICE\_NR = \$PAR1\}}
+\texttt{\bs sqlrow\{SELECT * FROM INVOICES WHERE NR = \$PAR1\}}
 
 \vs
 
@@ -535,7 +541,7 @@ database (\texttt{invoice\_nr} in the example above). Note the parameter will no
 
 Since version 1.5, SQL\TeX\ supports database updates as well: \\
 \texttt{\bs sqlupdate\{UPDATE INVOICES SET REMINDERS = REMINDERS + 1,
-LAST\_REMINDER = NOW() WHERE INVOICE\_NR = \$VAR1\}}
+LAST\_REMINDER = NOW() WHERE NR = \$VAR1\}}
 
 \vs
 
@@ -563,13 +569,17 @@ parameter `0' cannot be used, since that contains the filename!}, it is replaced
 
 \subsection{Command line options}\label{cmdline}
 
-SQL\TeX\ accepts the followint command- line options:
+SQL\TeX\ accepts the following command- line options:
 
 \begin{description}
-\item[-c \textit{file}] SQL\TeX\ configuration file. Default is \texttt{SQLTeX.cfg}
+\item[\texttt{--configfile \textit{file}, -c \textit{file}}] SQL\TeX\ configuration file. Default is \texttt{SQLTeX.cfg}
 in the same location where SQL\TeX\ is installed.
 
-\item[-e \textit{string}] add \textit{string} to the output filename:
+\item[\texttt{--fileextension \textit{string}, -E \textit{string}}] replace input file extension in outputfile:
+\texttt{input.tex} will be \texttt{input.\textit{string}} \\
+For further notes, see option \texttt{--filename-extend} below.
+
+\item[\texttt{--filename-extend \textit{string}, -e \textit{string}}] add \textit{string} to the output filename:
 \texttt{input.tex} will be \texttt{input\textit{string}.tex}. This overwrites
 the configuration setting \texttt{stx} \\
 In \textit{string}, the values between curly braces \{\} will be substituted:
@@ -581,56 +591,55 @@ In \textit{string}, the values between curly braces \{\} will be substituted:
 \item[DT] current date and time (\textit{yyyymmddhhmmss})
 \item[T] current time (\textit{hhmmss})
 \end{description}
-e.g., the command `\texttt{SQLTeX -e \_\{P1\}\_\{W\} my\_file code}'
+e.g., the command `\texttt{SQLTeX --filename-extend \_\{P1\}\_\{W\} my\_file code}'
 will read `\texttt{my\_file.tex}' and write `\texttt{myfile\_code\_Tue.tex}'
-The same command, but with option \texttt{-E} would create the
-outputfile \texttt{myfile.\_code\_Tuesday}
-By default (without \texttt{-e} or \texttt{-E}) the outputfile
-\texttt{myfile\_stx.tex} would have been written.
-The options \texttt{-E} and \texttt{-e} cannot be used together or with \texttt{-o}.
+The same command, but with option \texttt{-E} would create the outputfile \texttt{myfile.\_code\_Tue}
+By default (without \texttt{-e} or \texttt{-E}) the outputfile \texttt{myfile\_stx.tex} would have been written.
+The options \texttt{--fileextension} and \texttt{--filename-extend} cannot be used together or with \texttt{--output}.
 
-\item[-E \textit{string}] replace input file extension in outputfile:
-\texttt{input.tex} will be \texttt{input.\textit{string}} \\
-For further notes, see option \texttt{-e} above.
-
-\item[-f] force overwrite of existing files. By default, SQL\TeX\ exists with a
+\item[\texttt{--force, -f}] force overwrite of existing files. By default, SQL\TeX\ exists with a
 warning message it the outputfile already exists.
 
-\item[-h] print this help message and exit.
+\item[\texttt{--help, -h}] print this help message and exit.
 
-\item[-m] Multidocument mode; create one document for each parameter that is retrieved
-from the database in the input document (see section~\ref{multidoc}). This option cannot be used with \texttt{-o}.
+\item[\texttt{--multidoc-numbered, -m}] Multidocument mode; create one document for each parameter that is retrieved
+from the database in the input document (see section~\ref{multidoc}). This option cannot be used with \texttt{--output}.
 
-\item[-M] Same as -m, but with the parameter in the filename instead of a serial number (see section~\ref{multidoc}).
+\item[\texttt{--multidoc-named, -M}] Same as \texttt{--multidoc-numbered}, but with the parameter in the filename instead of a serial number (see section~\ref{multidoc}).
 
-\item[-N] \texttt{NULL} return values allowed. By default SQL\TeX\ exits if a
+\item[\texttt{--null-allowed, -N}] \texttt{NULL} return values allowed. By default SQL\TeX\ exits if a
 query returns an empty set.
 
-\item[-o \textit{file}] specify an output file. Cannot be used with \texttt{-e} or \texttt{-E}.
+\item[\texttt{--output \textit{file}, -o \textit{file}}] specify an output file. Cannot be used with \texttt{--fileextension},
+\texttt{--filename-extend} or the  \texttt{--multidoc} options.
 
-\item[-p \textit{prefix}] prefix used in the SQL\TeX\ file. Default is \texttt{sql} (see also section~\ref{config}
+\item[\texttt{--prefix \textit{prefix}, -p \textit{prefix}}] prefix used in the SQL\TeX\ file. Default is \texttt{sql} (see also section~\ref{config}
 on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{cmd\_prefix}.
 
-\item[-P] prompt for database password. This overwrites the password in the
+\item[\texttt{--password, -P}] prompt for database password. This overwrites the password in the
 input file.\\
 If the SQL\TeX\ file specifies \texttt{?} as database password (see section \ref{opendb}), the user will always be prompted
 for a password.
 
-\item[-q] run in quiet mode.
+\item[\texttt{--quiet, -q}] run in quiet mode.
 
-\item[-r \textit{replace}] Specify a file that contains the replace characters (see section~\ref{replfiles}). This is
-a list with two \texttt{TAB}- seperated fields per lione. The first field holds a string that will be replaced in the SQL output 
+\item[\texttt{--replacementfile \textit{replace}, -r \textit{replace}}] Specify a file that contains the replace characters (see section~\ref{replfiles}). This is
+a list with two \texttt{TAB}- seperated fields per lione. The first field holds a string that will be replaced in the SQL output by the second string.\\
+Default is \texttt{SQLTeX{\_}r.dat} in the same location where SQL\TeX\ is installed.
 
-\item[-rn] Do not use a replace file. \texttt{-rn} and \texttt{-r \textit{file}} are handled on the same order in which they appear
-on the commandline and overwrite each other.
+\item[\texttt{--no-replacementfile, -R}] Do not use a replace file. \texttt{--no-replacementfile} and \texttt{--replacementfile \textit{file}} are handled in the same order as
+they appear on the command line, overwriting each other.\\
+For backwards compatibility, \texttt{-rn} is also still supported.
 
-\item[-s \textit{server}] SQL server to connect to. Default is \texttt{localhost}.
+\item[\texttt{--sqlserver \textit{server}, -s \textit{server}}] SQL server to connect to. Default is \texttt{localhost}.
 
-\item[-U \textit{user}] database username. This overwrites the username in the
-input file.
+\item[\texttt{--updates, -u}] if the input file contains updates, execute them.
 
-\item[-V] print version number and exit.
+\item[\texttt{--username \textit{user}, -U \textit{user}}] database username. This overwrites the username in the input file.
+
+\item[\texttt{--version, -V}] print version number and exit.
 \end{description}
+
 
 
 \section{SQL\TeX\ errors and warnings}
@@ -806,7 +815,7 @@ see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 \item[v1.4.1] \textit{released: Feb 15, 2005}\\Fix: removed leading whitespaces added to database results befure replace
 \item[v1.5] \textit{released: Nov 23, 2007}\\Support for multiple databases\\Implemented database updates (\texttt{sqlupdate})\\Implemented multiple output documents (option \texttt{-m})
 \item[v2.0] \textit{released: Jan 12, 2016}\\Fix: Oracle support using ORASID\\Fix: Ensure replacements are handled in the same order as they appear in the replacements file\\Separate configuration file(s)\\Added the options \texttt{-c} and \texttt{-M}\\Support for regular expressions in replace files\\Implemented support for the \LaTeX\ \texttt{\bs input} and \texttt{\bs include} directives\\Implemented loop context\\Skip commentlines\\Project moved from local CVS to GitHub
-\item[vx.x] \textit{released: xxx xx, 20xx}\\Implemented '?' as password in \texttt{dbopen}\\Some code cleanup
+\item[vx.x] \textit{released: xxx xx, 20xx}\\Implemented '?' as password in \texttt{dbopen}Implemented '?' as username in \texttt{dbopen}\\Implemented long options\\Some code cleanup
 \end{description}
 
 \end{document}
