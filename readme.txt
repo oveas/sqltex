@@ -49,10 +49,10 @@ For more information, please refer to the LaTeX documentation.
 
 Requirements:
 -------------
-* Perl          (http://perl.org/)
+* Perl (>v5.10) (http://perl.org/)
 * Perl-DBI      (http://dbi.perl.org/)
 * The DBI driver for your database (see: http://search.cpan.org/search?query=DBD%3A%3A&mode=module)
-* Getopt::Std   (https://metacpan.org/pod/Term::ReadKey)
+* Getopt::Long  (https://metacpan.org/pod/Getopt::Long)
 * Term::ReadKey (https://metacpan.org/pod/Term::ReadKey)
 
 Note for MAC users:
