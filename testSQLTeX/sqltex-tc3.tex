@@ -1,0 +1,30 @@
+\documentclass[a4paper]{article}
+\pagestyle{empty}
+\sqldb{testsqltex}
+\begin{document}
+
+\large{Overview invoices}
+
+\vspace{8mm}
+
+\begin{tabular}{llllll}\\ \hline
+{\bfseries Customer} &
+{\bfseries InvoiceNr} &
+{\bfseries Date} &
+{\bfseries Paydate} &
+{\bfseries Reminders} &
+{\bfseries Last reminder} \\ \hline\hline
+\sqlrow[fldsep= &,rowsep= \\]{
+SELECT c.name
+,      i.nr
+,      i.invoice_date
+,      IFNULL(i.pay_date, "-")
+,      i.reminders
+,      IFNULL(i.last_reminder, "-")
+FROM   invoice i
+LEFT JOIN customer c
+     ON c.nr = i.cust_nr
+}\\\hline
+\end{tabular}
+
+\end{document}

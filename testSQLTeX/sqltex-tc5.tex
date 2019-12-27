@@ -1,0 +1,57 @@
+\documentclass[a4paper]{article}
+\pagestyle{empty}
+\sqldb{testsqltex}
+\begin{document}
+
+\sqlsetparams{SELECT nr FROM invoice}
+
+\sqlfield[setvar=2]{SELECT cust_nr FROM invoice WHERE nr = $PAR1}
+
+\noindent\textbf{\sqlrow[fldsep=\\]{
+SELECT name 
+,      city
+FROM   customer
+WHERE  nr = '$VAR2'
+}}
+
+\vspace{8mm}
+
+\sqlfield[setvar=3]{SELECT SUM(l.amount * a.price)
+FROM   invoice      i
+,      invoice_line l
+,      article      a
+WHERE  i.nr         = $PAR1
+AND    l.invoice_nr = i.nr
+AND    a.nr         = l.article_nr
+}
+
+\begin{tabbing}
+Invoice number: \= \sqlfield{SELECT nr FROM invoice WHERE nr = $PAR1} \\
+Invoice date:   \> \sqlfield{SELECT invoice_date FROM invoice WHERE nr = $PAR1} \\
+Total amount:   \> EUR \sqlfield{SELECT FORMAT($VAR3,2) FROM invoice WHERE nr = $PAR1} \\
+Due date:       \> \sqlfield{SELECT due_date FROM invoice WHERE nr = $PAR1} \\
+\end{tabbing}
+
+\begin{tabular}{lp{30mm}ll|l}\\ \hline
+{\bfseries Nr} &
+{\bfseries Article} &
+{\bfseries Amount} &
+{\bfseries Price} &
+{\bfseries Total} \\ \hline\hline
+\sqlrow[fldsep= &,rowsep= \\]{
+SELECT l.nr
+,      a.name
+,      l.amount
+,      CONCAT("EUR ",a.price)
+,      CONCAT("EUR ",FORMAT(l.amount*a.price,2))
+FROM   invoice      i
+,      invoice_line l
+,      article      a
+WHERE  i.nr          = $PAR1
+AND    l.invoice_nr  = i.nr
+AND    a.nr          = l.article_nr
+}\\\hline
+ & & & & \textbf{EUR \sqlfield{SELECT FORMAT($VAR3,2)}} \\
+\end{tabular}
+
+\end{document}
