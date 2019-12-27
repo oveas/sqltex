@@ -616,10 +616,8 @@ query returns an empty set.
 \item[\texttt{--prefix \textit{prefix}, -p \textit{prefix}}] prefix used in the SQL\TeX\ file. Default is \texttt{sql} (see also section~\ref{config}
 on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{cmd\_prefix}.
 
-\item[\texttt{--password, -P}] prompt for database password. This overwrites the password in the
-input file.\\
-If the SQL\TeX\ file specifies \texttt{?} as database password (see section \ref{opendb}), the user will always be prompted
-for a password.
+\item[\texttt{--password \textit{[password]}, -P} \textit{[password]}] database password. The value is optional; if omitted, SQL\TeX\ will prompt for a password. This overwrites the password in the input file.\\
+%If the SQL\TeX\ file specifies \texttt{?} as database password (see section \ref{opendb}), the user will always be prompted for a password.
 
 \item[\texttt{--quiet, -q}] run in quiet mode.
 

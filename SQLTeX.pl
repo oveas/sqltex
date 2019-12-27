@@ -54,7 +54,7 @@ sub parse_options {
 		, 'fileextension|E=s' => \$main::options{'E'}
 		, 'sqlserver|s=s' => \$main::options{'s'}
 		, 'username|U=s' => \$main::options{'U'}
-		, 'password|P' => \$main::options{'P'}
+		, 'password|P:s' => \$main::options{'P'}
 		, 'null-allowed|N' => \$main::options{'N'}
 		, 'version|V' => \$main::options{'V'}
 		, 'force|f' => \$main::options{'f'}
@@ -142,9 +142,10 @@ sub print_help {
 	$helptext .= "       -N\n";
 	$helptext .= "            NULL return values allowed. By default SQLTeX exits if a\n";
 	$helptext .= "            query returns an empty set\n";
-	$helptext .= "       --password\n";
-	$helptext .= "       -P\n";
-	$helptext .= "            prompt for database password\n";
+	$helptext .= "       --password [password]\n";
+	$helptext .= "       -P [password]\n";
+	$helptext .= "            database password. The value is optional; if omitted, SQLTeX will prompt for\n";
+	$helptext .= "            a password. This overwrites the password in the input file.\n";
 	$helptext .= "       --username\n";
 	$helptext .= "       -U user\n";
 	$helptext .= "            database username\n";
@@ -426,7 +427,20 @@ sub db_connect($$) {
 
 	$un = $main::options{'U'} if (defined $main::options{'U'});
 	$un = &get_username($main::options{'s'} || 'localhost') if ($un eq '?');
-	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if (defined $main::options{'P'} || $pw eq '?');
+	
+	my $promptForPwd = 0;
+	if (defined $main::options{'P'}) {
+		if ($main::options{'P'} eq '') {
+			$promptForPwd = 1;
+		} else {
+			$pw = $main::options{'P'}
+		}
+	}
+	if ($pw eq '?') {
+		$promptForPwd = 1;
+	}
+	$pw = &get_password ($un, $main::options{'s'} || 'localhost') if ($promptForPwd);
+
 	$hn = $main::options{'s'} if (defined $main::options{'s'});
 
 	if ($main::configuration{'dbdriver'} eq "Pg") {
