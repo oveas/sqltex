@@ -2,8 +2,9 @@
 # Simple testscript to perform some SQLTeX regression tests
 # This script requires a MySQL database. This database will be created with the sql file provided.
 
-SQLTeXLocation=$HOME/projects/sqltex
-SQLTeXTestLocation=$SQLTeXLocation/testSQLTeX
+SQLTeXTop=$HOME/projects/sqltex
+SQLTeXLocation=$SQLTeXTop/src
+SQLTeXTestLocation=$SQLTeXTop/testSQLTeX
 SQLTeXRefLocation=$SQLTeXTestLocation/reference
 
 check_result() {
