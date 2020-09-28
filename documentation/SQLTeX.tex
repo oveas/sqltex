@@ -600,7 +600,7 @@ SQL\TeX\ accepts the following command- line options:
 \item[\texttt{--configfile \textit{file}, -c \textit{file}}] SQL\TeX\ configuration file. Default is \texttt{SQLTeX.cfg}
 in the same location where SQL\TeX\ is installed.
 
-\item[\texttt{--fileextension \textit{string}, -E \textit{string}}] replace input file extension in outputfile:
+\item[\texttt{--file-extension \textit{string}, -E \textit{string}}] replace input file extension in outputfile:
 \texttt{input.tex} will be \texttt{input.\textit{string}}. \\
 For further notes, see option \texttt{--filename-extend} below.
 
@@ -619,8 +619,8 @@ In \textit{string}, the values between curly braces \{\} will be substituted:
 e.g., the command\\
 \hspace*{1em}\texttt{SQLTeX --filename-extend \_\{P1\}\_\{W\} my\_file code}\\
 will read `\texttt{my\_file.tex}' and write `\texttt{myfile\_code\_Tue.tex}'.\\
-The same command, but with option \texttt{---fileextension} would create the outputfile \texttt{my\_file.\_code\_Tue}\\
-The options \texttt{--fileextension} and \texttt{--filename-extend} cannot be used together or with \texttt{--output}.
+The same command, but with option \texttt{---file-extension} would create the outputfile \texttt{my\_file.\_code\_Tue}\\
+The options \texttt{--file-extension} and \texttt{--filename-extend} cannot be used together or with \texttt{--output}.
 
 \item[\texttt{--force, -f}] force overwrite of existing files. By default, SQL\TeX\ exits with a
 warning message it the outputfile already exists.
@@ -635,7 +635,7 @@ from the database in the input document (see section~\ref{multidoc}). This optio
 \item[\texttt{--null-allowed, -N}] \texttt{NULL} return values allowed. By default SQL\TeX\ exits if a
 query returns an empty set.
 
-\item[\texttt{--output \textit{file}, -o \textit{file}}] specify an output file. Cannot be used with \texttt{--fileextension},
+\item[\texttt{--output \textit{file}, -o \textit{file}}] specify an output file. Cannot be used with \texttt{--file-extension},
 \texttt{--filename-extend} or the  \texttt{--multidoc} options.
 
 \item[\texttt{--prefix \textit{prefix}, -p \textit{prefix}}] prefix used in the SQL\TeX\ file. Default is \texttt{sql} (see also section~\ref{config}

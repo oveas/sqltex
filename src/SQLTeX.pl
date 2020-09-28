@@ -52,7 +52,7 @@ sub parse_options {
 		, 'no-replacementfile|R' => \$main::options{'R'}
 		, 'output|o=s' => \$main::options{'o'}
 		, 'filename-extend|e=s' => \$main::options{'e'}
-		, 'fileextension|E=s' => \$main::options{'E'}
+		, 'file-extension|E=s' => \$main::options{'E'}
 		, 'sqlserver|s=s' => \$main::options{'s'}
 		, 'username|U=s' => \$main::options{'U'}
 		, 'password|P:s' => \$main::options{'P'}
@@ -134,7 +134,7 @@ sub print_help {
 	$helptext .= "       -c <file>\n";
 	$helptext .= "            SQLTeX configuration file.\n";
 	$helptext .= "            Default is \'$main::my_location/SQLTeX.cfg\'.\n";
-	$helptext .= "       --fileextension <string>\n";
+	$helptext .= "       --file-extension <string>\n";
 	$helptext .= "       -E <string>\n";
 	$helptext .= "            replace input file extension in outputfile:\n";
 	$helptext .= "            \'input.tex\' will be \'input.string\'\n";
@@ -167,10 +167,10 @@ sub print_help {
 	$helptext .= "                 T       current time (hhmmss)\n";
 	$helptext .= "               e.g., the command \'$main::myself --filename-extend _{P1}_{W} my_file code\'\n";
 	$helptext .= "               will read \'my_file.tex\' and write \'myfile_code_Tue.tex\'\n";
-	$helptext .= "               The same command, but with option \--fileextension\' would create the\n";
+	$helptext .= "               The same command, but with option \--file-extension\' would create the\n";
 	$helptext .= "               outputfile \'myfile._code_Tue\'\n";
 	$helptext .= "               By default the outputfile \'myfile_stx.tex\' would have been written.\n";
-	$helptext .= "               The options \'--fileextension\' and \'--filename-extend\' cannot be used\n";
+	$helptext .= "               The options \'--file-extension\' and \'--filename-extend\' cannot be used\n";
 	$helptext .= "               together or with \'--output\'.\n";
 	$helptext .= "       --force\n";
 	$helptext .= "       -f\n";
@@ -188,7 +188,7 @@ sub print_help {
 	$helptext .= "               Same as -m, but with the parameter in the filename i.s.o. a serial number\n";
 	$helptext .= "       --output <file>\n";
 	$helptext .= "       -o <file>\n";
-	$helptext .= "               specify an output file. Cannot be used with \'--fileextension\',\n";
+	$helptext .= "               specify an output file. Cannot be used with \'--file-extension\',\n";
 	$helptext .= "               \'--filename-extend\' or the \'--multidoc\' options.\n";
 	$helptext .= "       --prefix <prefix>\n";
 	$helptext .= "       -p <prefix>\n";
