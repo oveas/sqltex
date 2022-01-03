@@ -1,0 +1,151 @@
+.TH SQLTeX 1 "Version 2.2" "LaTeX preprocessor"
+
+.SH NAME
+.B SQLTeX
+- a preprocessor to enable the use of SQL statements in LaTeX documents.
+
+.SH SYNOPSIS
+.B SQLTeX
+.RB <INPUT-FILE>
+.RB [PARAMETERS]
+.RB [OPTIONS]
+
+.SH DESCRIPTION
+.B SQLTeX
+is a preprocessor to enable the use of SQL statements in LaTeX. It is a tool that reads
+an input file containing the SQL commands, and writes a LaTeX file that can be processed with your
+LaTeX package.
+
+The SQL commands will be replaced by their values. It's possible to select a single field for substitution
+substitution in your LaTeX document, or to be used as input in another SQL command.
+
+For a full description, please refer to the PDF documentation.
+
+.SH INPUT-FILE
+.TP
+The input file is required. It is a regular LaTeX file that contains SQLTeX commands for processing. For a detailed description how to create in input files, refer to the SQLTeX documentation.
+
+.SH PARAMETERS
+SQL queries in the input file can contain parameters in the form '$PAR<n>' where <n> is a number between 1 and 9, e.g.:
+
+.TP
+\fB\\sqlrow{SELECT * FROM table WHERE field_s = '$PAR1' AND field_i = $PAR2}\fR
+
+.TP
+These parameters are taken from the commandline.
+
+.SH OPTIONS
+
+.IP "\fB-c|--configfile\fP <file>"
+SQLTeX configuration file.
+
+.IP "\fB-E|--file-extension\fP <string>"
+Replace input file extension in outputfile: 'input.tex' will be 'input.string'.
+For further notes, see option '--filename-extend'
+
+.IP "\fB-N|--null-allowed\fP"
+NULL return values allowed. By default SQLTeX exits if a query returns an empty set
+
+.IP "\fB-P|--password\fP [password]"
+Database password. The value is optional; if omitted, SQLTeX will prompt for a password. This overwrites the password in the input file.
+
+.IP "\fB-U|--username\fP user"
+Database username
+
+.IP "\fB-V|--version\fP"
+Print version number and exit
+
+.IP "\fB-e|--filename-extend\fP <string>"
+Add string to the output filename: 'input.tex' will be 'inputstring.tex'. In 'string', the values between curly braces {} will be substituted:
+.PP
+.RS
+.IP Pn
+parameter n
+.IP M
+current monthname (Mon)
+.IP W
+current weekday (Wdy)
+.IP D
+current date (yyyymmdd)
+.IP DT
+current date and time (yyyymmddhhmmss)
+-IP T
+current time (hhmmss)
+.RE
+
+.in +.7i
+The options '--file-extension' and '--filename-extend' cannot be used together or with '--output'.
+.in
+
+.IP "\fB-f|--force\fP"
+Force overwrite of existing files
+
+.IP "\fB-h|--help\fP"
+Print this help message and exit
+
+.IP "\fB-m|--multidoc-numbered\fP"
+Multidocument mode; create one document for each parameter that is retrieved from the database in the input document (see documentation)
+This option cannot be used with '--output'.
+
+.IP "\fB-M|--multidoc-named\fP"
+Same as -m, but with the parameter in the filename i.s.o. a serial number
+
+.IP "\fB-o|--output\fP <file>"
+Specify an output file. Cannot be used with '--file-extension', '--filename-extend' or the '--multidoc' options.
+
+.IP "\fB-p|--prefix\fP <prefix>"
+Prefix used in the SQLTeX file. Default is 'sql' (see documentation)
+
+.IP "\fB-q|--quiet\fP"
+Run in quiet mode
+
+.IP "\fB-r|--replacementfile\fP <file>"
+Specify a file that contains replace characters. This is a list with two tab- seperated fields per line. The first field holds a string that will be replaced in the SQL output by the second string.
+
+.IP "\fB-R|-rn|--no-replacementfile\fP"
+Do not use a replace file. '--replacementfile' '--no-replacementfile' are handled in the same order as they appear on the command line.
+
+.IP "\fB-s|--sqlserver\fP <server>"
+SQL server to connect to. Default is \'localhost\'
+
+.IP "\fB-u|--updates\fP"
+If the input file contains updates, execute them.
+
+.SH FILES
+.TP
+.I
+/etc/SQLTeX_r.dat
+.TP
+.I
+/etc/SQLTeX.cfg
+.TP
+.I
+/usr/bin/SQLTeX
+
+.SH EXAMPLES
+.TP
+.BI SQLTeX\ --filename-extend\ _{P1}_{W}\ my_file\ code
+.TP
+Read input file 'my_file.tex' and generate 'myfile_code_Tue.tex' with the processed results.
+
+.TP
+.BI SQLTeX\ --file-extension\ _{P1}_{W}\ my_file\ code
+.TP
+Read input file 'my_file.tex' and generate 'myfile._code_Tue' with the processed results.
+
+.SH EXIT STATUS
+.TP
+.B
+0
+Success
+
+.TP
+.B
+1
+SQLTeX ended with an error, check the last message.
+
+.SH COPYRIGHT
+.PP
+Copyright 2001-2022 Oscar van Eijk, Oveas Functionality Provider. All rights reserved
+https://oveas.com
+
