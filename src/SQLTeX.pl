@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 
 ################################################################################
 #
@@ -13,7 +12,7 @@
 # This software is subject to the terms of the LaTeX Project Public License; 
 # see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 #
-# Copyright:  (c) 2001-2019, Oscar van Eijk, Oveas Functionality Provider
+# Copyright:  (c) 2001-2022, Oscar van Eijk, Oveas Functionality Provider
 # ==========                 oscar@oveas.com
 #
 # History:
@@ -23,6 +22,7 @@
 #   v1.4.1   Feb 15, 2005
 #   v1.5     Nov 23, 2007
 #   v2.0     Jan 12, 2016
+#   v2.1     xxx xx, 20xx
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -37,6 +37,13 @@ use Getopt::Long;
 use Term::ReadKey;
 Getopt::Long::Configure ("bundling");
 use feature 'state';
+
+#####
+# Check if we're running on linux
+#
+sub is_linux {
+	return ($^O eq "linux");
+}
 
 #####
 # Find out if any command-line options have been given
@@ -63,6 +70,7 @@ sub parse_options {
 		, 'multidoc-numbered|m' => \$main::options{'m'}
 		, 'multidoc-named|M' => \$main::options{'M'}
 		, 'prefix|p=s' => \$main::options{'p'}
+		, 'use-local-config|l' => \$main::options{'l'}
 		, 'updates|u' => \$main::options{'u'}
 	)) {
 		print "usage: $main::myself [options] <file[.$main::configuration{'texex'}]> [parameter...]\n"
@@ -110,6 +118,10 @@ sub parse_options {
 		}
 	}
 
+	if (defined $main::options{'l'} && !&is_linux) {
+		warn "Option \"-l\" is ignored on $^O";
+		delete $main::options{'l'};
+	}
 }
 
 #####
@@ -117,7 +129,7 @@ sub parse_options {
 #
 sub short_help ($) {
 	my $onerror = shift;
-	my $helptext = "usage: $main::myself [-cENPUVefhmopqs] <file[.$main::configuration{'texex'}]> [parameter...]\n";
+	my $helptext = "usage: $main::myself [options] <file[.$main::configuration{'texex'}]> [parameter...]\n";
 	$helptext .= "       type \"$main::myself -h\" for help\n" if ($onerror);
 	return ($helptext);
 }
@@ -133,7 +145,7 @@ sub print_help {
 	$helptext .= "       --configfile <file>\n";
 	$helptext .= "       -c <file>\n";
 	$helptext .= "            SQLTeX configuration file.\n";
-	$helptext .= "            Default is \'$main::my_location/SQLTeX.cfg\'.\n";
+	$helptext .= "            Default is \'$main::config_location/SQLTeX.cfg\'.\n";
 	$helptext .= "       --file-extension <string>\n";
 	$helptext .= "       -E <string>\n";
 	$helptext .= "            replace input file extension in outputfile:\n";
@@ -147,8 +159,8 @@ sub print_help {
 	$helptext .= "       -P [password]\n";
 	$helptext .= "            database password. The value is optional; if omitted, SQLTeX will prompt for\n";
 	$helptext .= "            a password. This overwrites the password in the input file.\n";
-	$helptext .= "       --username\n";
-	$helptext .= "       -U user\n";
+	$helptext .= "       --username <user>\n";
+	$helptext .= "       -U <user>\n";
 	$helptext .= "            database username\n";
 	$helptext .= "       --version\n";
 	$helptext .= "       -V\n";
@@ -156,7 +168,7 @@ sub print_help {
 	$helptext .= "       --filename-extend <string>\n";
 	$helptext .= "       -e <string>\n";
 	$helptext .= "            add string to the output filename:\n";
-	$helptext .= "               \'input.tex\' will be \"inputstring.tex\"\n";
+	$helptext .= "               \'input.tex\' will be \'inputstring.tex\'\n";
 	$helptext .= "               In \'string\', the values between curly braces \{\}\n";
 	$helptext .= "                 will be substituted:\n";
 	$helptext .= "                 Pn      parameter n\n";
@@ -203,12 +215,20 @@ sub print_help {
 	$helptext .= "               specify a file that contains replace characters. This is a list with two tab- seperated\n";
 	$helptext .= "               fields per line. The first field holds a string that will be replaced in the SQL output\n";
 	$helptext .= "               by the second string.\n";
-	$helptext .= "               By default the file \'$main::my_location/SQLTeX_r.dat\' is used.\n";
+	$helptext .= "               By default the file \'$main::config_location/SQLTeX_r.dat\' is used.\n";
 	$helptext .= "       --no-replacementfile\n";
 	$helptext .= "       -R\n";
 	$helptext .= "               do not use a replace file. \'--replacementfile\' \'--no-replacementfile\' are handled\n";
 	$helptext .= "               in the same order as they appear on the command line.\n";
 	$helptext .= "               For backwards compatibility, -rn is also still supported.\n";
+
+	if (&is_linux) {
+		$helptext .= "       --use-local-config\n";
+		$helptext .= "       -l\n";
+		$helptext .= "               use $main::my_location as default location for the config- and replacement files\n";
+		$helptext .= "               in stead of $main::config_location.\n";
+	}
+
 	$helptext .= "       --sqlserver <server>\n";
 	$helptext .= "       -s <server>\n";
 	$helptext .= "               SQL server to connect to. Default is \'localhost\'\n";
@@ -373,7 +393,7 @@ sub get_filenames {
 	if (defined $main::options{'c'}) {
 		$main::configurationfile = $main::options{'c'};
 	} else {
-		$main::configurationfile = "$main::my_location/SQLTeX.cfg";
+		$main::configurationfile = "$main::config_location/SQLTeX.cfg";
 	}
 	if (!-e $main::configurationfile) {
 		die ("Configfile $main::configurationfile does not exist\n");
@@ -382,7 +402,7 @@ sub get_filenames {
 	if (defined $main::options{'r'}) {
 		$main::replacefile = $main::options{'r'};
 	} else {
-		$main::replacefile = "$main::my_location/SQLTeX_r.dat" unless (defined $main::options{'R'});
+		$main::replacefile = "$main::config_location/SQLTeX_r.dat" unless (defined $main::options{'R'});
 	}
 	if (defined $main::replacefile && !-e $main::replacefile) {
 		warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
@@ -1015,11 +1035,11 @@ sub process_file {
 	,'sql_open'			=> 'db'
 	,'sql_field'		=> 'field'
 	,'sql_row'			=> 'row'
-	,'sql_params'   	=> 'setparams'
-	,'sql_update'   	=> 'update'
-	,'sql_start'    	=> 'start'
-	,'sql_end'      	=> 'end'
-	,'sql_use'      	=> 'use'
+	,'sql_params'		=> 'setparams'
+	,'sql_update'		=> 'update'
+	,'sql_start'		=> 'start'
+	,'sql_end'			=> 'end'
+	,'sql_use'			=> 'use'
 	,'less_av'			=> 1
 	,'more_av'			=> 1
 	,'repl_step'		=> 'OSTX'
@@ -1033,6 +1053,12 @@ sub process_file {
 	my @dir_list = split /\//, $0;
 	pop @dir_list;
 	$main::my_location = join '/', @dir_list;
+	
+	if (&is_linux) {
+		$main::config_location = '/etc';
+	} else {
+		$main::config_location = $main::my_location;
+	}
 }
 
 # Check config
@@ -1044,10 +1070,13 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 $main::myself = $ENV{'_'};
 while ($main::myself =~ /\//) { $main::myself = $'; }
 
-$main::version = '2.0';
-$main::rdate = 'Jan 12, 2016';
+$main::version = '2.1';
+$main::rdate = 'xxx xx, 20xx';
 
 &parse_options;
+if (defined $main::options{'l'}) {
+	$main::config_location = $main::my_location;
+}
 &get_filenames;
 
 if (!$main::multidoc && -e "$main::path$main::outputfile") {
