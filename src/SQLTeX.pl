@@ -500,15 +500,6 @@ sub db_connect($$) {
 	return;
 }
 
-######
-## Execute the SQL query and return the result in an array
-## FIXME This one is never called it seems.. why is this here?
-#sub execute_query ($) {
-#	my $query = shift;
-#	my (@result, @res);
-#	return @result;
-#}
-
 #####
 # Check if the SQL statement contains options
 # Supported options are:
