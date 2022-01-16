@@ -1,3 +1,4 @@
+#!{PERLDIR}
 
 ################################################################################
 #
@@ -1046,7 +1047,7 @@ sub process_file {
 	$main::my_location = join '/', @dir_list;
 	
 	if (&is_linux) {
-		$main::config_location = '/etc';
+		$main::config_location = '{SYSCONFDIR}';
 	} else {
 		$main::config_location = $main::my_location;
 	}
