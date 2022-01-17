@@ -10,7 +10,6 @@ distdir : ${DISTFILES}
 	cp $(DISTFILES) $(distdir)
 
 SQLTeX: SQLTeX.pl
-	echo GZIP_ENV=$(GZIP_ENV)
 	cat $^ | sed -e 's#{PERLDIR}#$(PL)#;s#{SYSCONFDIR}#$(sysconfdir)#' > $@
 	@chmod +x $@
 
