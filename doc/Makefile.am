@@ -1,5 +1,5 @@
 .PHONY: all
-DISTFILES = Makefile SQLTeX.pdf
+DISTFILES = Makefile.am Makefile.in SQLTeX.pdf
 
 all : 
 

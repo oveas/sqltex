@@ -1,5 +1,5 @@
 .PHONY: all distdir
-DISTFILES = Makefile SQLTeX.1
+DISTFILES = Makefile.am Makefile.in SQLTeX.1
 
 all : 
 

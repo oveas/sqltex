@@ -1,6 +1,6 @@
 .PHONY: distdir
 DATAFILES = SQLTeX_r.dat SQLTeX.cfg
-DISTFILES = Makefile SQLTeX.pl ${DATAFILES}
+DISTFILES = Makefile.am Makefile.in SQLTeX.pl ${DATAFILES}
 
 PL=$(shell which perl)
 

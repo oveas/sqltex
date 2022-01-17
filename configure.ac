@@ -11,6 +11,6 @@ AM_INIT_AUTOMAKE
 
 AX_PROG_PERL_MODULES(DBI Getopt::Long Term::ReadKey, , )
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile man/Makefile])
 
 AC_OUTPUT
