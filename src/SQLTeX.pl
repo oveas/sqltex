@@ -1,4 +1,4 @@
-#!{PERLDIR}
+#{PERLDIR}
 
 ################################################################################
 #
@@ -351,6 +351,37 @@ sub file_extension ($) {
 }
 
 #####
+# Find the configuration files
+#
+sub get_configfiles {
+	if (defined $main::options{'c'}) {
+		$main::configurationfile = $main::options{'c'};
+	} else {
+		$main::configurationfile = $main::config_location
+			. ($main::config_location eq '' ? '' : '/')
+			. 'SQLTeX.cfg';
+	}
+	if (!-e $main::configurationfile) {
+		die ("Configfile $main::configurationfile does not exist\n");
+	}
+	
+	if (defined $main::options{'r'}) {
+		$main::replacefile = $main::options{'r'};
+	} else {
+		$main::replacefile = $main::config_location
+			. ($main::config_location eq '' ? '' : '/')
+			. 'SQLTeX_r.dat'
+			unless (defined $main::options{'R'});
+	}
+	if (defined $main::replacefile && !-e $main::replacefile) {
+		warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
+		undef $main::replacefile;
+	}
+	
+	return;
+}
+
+#####
 # Declare the filenames to use in this run.
 # If a file has been entered 
 #
@@ -387,29 +418,15 @@ sub get_filenames {
 		} else {
 			$main::outputfile .= "$main::configuration{'stx'}$main::multidoc_id\.$lastext";
 		}
+		if ($main::configuration{'def_out_is_in'}) {
+			$main::outputfile = $main::path . $main::outputfile;
+		}
 	} else {
 		$main::outputfile = $main::options{'o'};
+		if ($main::configuration{'def_out_is_in'} && !($main::outputfile =~ /\//)) {
+			$main::outputfile = $main::path . $main::outputfile;
+		}
 	}
-
-	if (defined $main::options{'c'}) {
-		$main::configurationfile = $main::options{'c'};
-	} else {
-		$main::configurationfile = "$main::config_location/SQLTeX.cfg";
-	}
-	if (!-e $main::configurationfile) {
-		die ("Configfile $main::configurationfile does not exist\n");
-	}
-	
-	if (defined $main::options{'r'}) {
-		$main::replacefile = $main::options{'r'};
-	} else {
-		$main::replacefile = "$main::config_location/SQLTeX_r.dat" unless (defined $main::options{'R'});
-	}
-	if (defined $main::replacefile && !-e $main::replacefile) {
-		warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
-		undef $main::replacefile;
-	}
-	
 
 	return;
 }
@@ -794,7 +811,7 @@ sub just_died ($) {
 #		$main::db_handle->disconnect();
 	}
 	if ($step >= 1 && $step <= 2 && !$Resurect) {
-		unlink ("$main::path$main::outputfile");
+		unlink ($main::outputfile);
 	}
 
 	#####
@@ -934,11 +951,11 @@ sub read_input($$$$) {
 	$main::fcount++;
 	$main::lcount[$main::fcount] = 0;
 
-	if (!-e $main::path . $input_file) {
-		die "input file $main::path$input_file not found";
+	if (!-e $input_file) {
+		die "input file $input_file not found";
 	}
-	print_message("Processing file $main::path$input_file...");
-	open (my $fileIn,  "<$main::path$input_file");
+	print_message("Processing file $input_file...");
+	open (my $fileIn,  "<$input_file");
 
 	while ($main::line = <$fileIn>) {
 		$main::lcount[$main::fcount]++;
@@ -992,7 +1009,7 @@ sub process_file {
 	if ($main::multidoc && ($main::multidoc_cnt == 0)) {
 		$fileOut = -1;
 	} else {
-		open ($fileOut, ">$main::path$main::outputfile");
+		open ($fileOut, ">$main::outputfile");
 	}
 
 	$main::sql_statements = 0;
@@ -1013,13 +1030,14 @@ sub process_file {
 ## Main:
 
 #####
-# Default config values, will be overwritten with SQLTeX.cfg
+# Default config values, can be overwritten with SQLTeX.cfg
 #
 %main::configuration = (
 	 'dbdriver'			=> 'mysql'
 	,'oracle_sid'		=> 'ORASID'
 	,'texex'			=> 'tex'
 	,'stx'				=> '_stx'
+	,'def_out_is_in'	=> 0
 	,'rfile_comment'	=> ';'
 	,'rfile_regexploc'	=> '...'
 	,'rfile_regexp'		=> 're(...)'
@@ -1069,12 +1087,8 @@ $main::rdate = 'xxx xx, 20xx';
 if (defined $main::options{'l'}) {
 	$main::config_location = $main::my_location;
 }
-&get_filenames;
 
-if (!$main::multidoc && -e "$main::path$main::outputfile") {
-	die ("outputfile $main::path$main::outputfile already exists\n")
-		unless (defined $main::options{'f'});
-}
+&get_configfiles;
 
 if (defined $main::configurationfile) {
 	open (CF, "<$main::configurationfile");
@@ -1090,6 +1104,13 @@ if (defined $main::configurationfile) {
 		}
 	}
 	close CF;
+}
+
+&get_filenames;
+
+if (!$main::multidoc && -e "$main::outputfile") {
+	die ("outputfile $main::outputfile already exists\n")
+		unless (defined $main::options{'f'});
 }
 
 if (defined $main::replacefile) {
@@ -1116,11 +1137,11 @@ do {
 	&process_file;
 	$main::restart = 0;
 	if ($main::sql_statements == 0) {
-		unlink ("$main::path$main::outputfile");
+		unlink ("$main::outputfile");
 		print "no sql statements found in $main::path$main::inputfile\n";
 		$main::multidoc = 0; # Problem in the input, useless to continue
 	} else {
-		print "$main::sql_statements queries executed - TeX file $main::path$main::outputfile written\n"
+		print "$main::sql_statements queries executed - TeX file $main::outputfile written\n"
 			unless ($main::multidoc && ($main::multidoc_cnt == 1));
 	}
 } while ($main::multidoc); # Set to false when done
