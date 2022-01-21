@@ -106,7 +106,7 @@ Specify a file that contains replace characters. This is a list with two tab- se
 Do not use a replace file. '--replacementfile' '--no-replacementfile' are handled in the same order as they appear on the command line.
 
 .IP "\fB-l|--use-local-config\fP"
-Use the current installation directory as default location for the config- and replacement files in stead of '/etc' (linux only).
+Use the current installation directory as default location for the config- and replacement files in stead of '{SYSCONFDIR}' (linux only).
 
 .IP "\fB-s|--sqlserver\fP <server>"
 SQL server to connect to. Default is \'localhost\'
@@ -117,13 +117,13 @@ If the input file contains updates, execute them.
 .SH FILES
 .TP
 .I
-/etc/SQLTeX_r.dat
+{SYSCONFDIR}/SQLTeX_r.dat
 .TP
 .I
-/etc/SQLTeX.cfg
+{SYSCONFDIR}/SQLTeX.cfg
 .TP
 .I
-/usr/bin/SQLTeX
+{BINDIR}/SQLTeX
 
 .SH EXAMPLES
 .TP
