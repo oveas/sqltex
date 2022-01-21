@@ -23,7 +23,7 @@
 #   v1.4.1   Feb 15, 2005
 #   v1.5     Nov 23, 2007
 #   v2.0     Jan 12, 2016
-#   v2.1     xxx xx, 20xx
+#   v2.1     Jan 21, 2022
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -44,6 +44,13 @@ use feature 'state';
 #
 sub is_linux {
 	return ($^O eq "linux");
+}
+
+#####
+# Check if we're running on windows
+#
+sub is_windows {
+	return ($^O eq "MSWin32");
 }
 
 #####
@@ -243,13 +250,7 @@ sub print_help {
 	$helptext .= "                     the string \$PAR[x] somewhere in the statement, where\n";
 	$helptext .= "                     \'x\' is the number of the parameter.\n";
 
-	if ($main::configuration{'less_av'}) {
-		system ("echo \"$helptext\" | less");
-	} elsif ($main::configuration{'more_av'}) {
-		system ("echo \"$helptext\" | more");
-	} else {
-		print $helptext;
-	}
+	print $helptext;
 }
 
 #####
@@ -1050,8 +1051,6 @@ sub process_file {
 	,'sql_start'		=> 'start'
 	,'sql_end'			=> 'end'
 	,'sql_use'			=> 'use'
-	,'less_av'			=> 1
-	,'more_av'			=> 1
 	,'repl_step'		=> 'OSTX'
 	,'alt_cmd_prefix' 	=> 'processedsqlcommand'
 );
@@ -1077,11 +1076,10 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 	die "Configuration item 'alt_cmd_prefix' cannot start with $main::configuration{'cmd_prefix'}";
 }
 
-$main::myself = $ENV{'_'};
-while ($main::myself =~ /\//) { $main::myself = $'; }
+$main::myself = $0;
 
 $main::version = '2.1';
-$main::rdate = 'xxx xx, 20xx';
+$main::rdate = 'Jan 21, 2022';
 
 &parse_options;
 if (defined $main::options{'l'}) {
