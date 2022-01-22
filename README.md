@@ -42,7 +42,7 @@ type:
 This distribution contains an .EXE file that was generated using `PAR::Packer`
 with Strawberry Perl.
 
-The files `SQLTeX.EXE`, `SQLTeX.cfg` and `SQLTeX-r.dat` must be placed manually
+The files `sqltex-2.1\SQLTeX.EXE`, `sqltex-2.1\src\SQLTeX.cfg` and `sqltex-2.1\src\SQLTeX_r.dat` must be placed manually
 in the directory of your choice, all in the same direcrtory.
 
 #### OpenVMS ####
@@ -52,9 +52,9 @@ it manually.
 
 On OpenVMS it would be something like:
 
-    $ COPY SQLTEX.PL SYS$SYSTEM:
-    $ COPY SQLTEX.CFG SYS$SYSTEM:
-    $ COPY SQLTEX_R.DAT SYS$SYSTEM:
+    $ COPY [.SQLTEX-2_1.SRC]SQLTEX.PL SYS$SYSTEM:
+    $ COPY [.SQLTEX-2_1.SRC]SQLTEX.CFG SYS$SYSTEM:
+    $ COPY [.SQLTEX-2_1.SRC]SQLTEX_R.DAT SYS$SYSTEM:
     $ SET FILE/PROTECTION=(W:R) SYS$SYSTEM:SQLTEX*.*
 
 However, on OpenVMS you also need to define the command SQLTEX by setting a
@@ -62,8 +62,6 @@ symbol, either in the LOGIN.COM for all users who need to execute this script,
 or in some group-- or system wide login procedure, with the command:
 
     $ SQLTEX :== "PERL SYS$SYSTEM:SQLTEX.PL"
-  
-For more information, please refer to the LaTeX documentation.
 
 Documentation
 -------------

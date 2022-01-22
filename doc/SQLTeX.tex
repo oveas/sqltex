@@ -8,8 +8,8 @@
 	,linkcolor=blue
 	,unicode]{hyperref}
 \begin{document}
-\title{SQL\TeX\\v2.0}
-\date{Januari 12, 2016}
+\title{SQL\TeX\\v2.1}
+\date{Jan 21, 2022}
 \author{Oscar van Eijk}
 \maketitle
 \hrulefill
@@ -59,36 +59,74 @@ SQL\TeX\ requires the following software:
 
 \subsection{Installation}
 
-On a Unix system, make sure the file \texttt{install} is executable by issueing
-the command:\\
-\texttt{bash\$ chmod +x install}\\
-then execute it with:\\
-\texttt{bash\$ ./install}
+To install SQL\TeX, unpack the archive in a location of your choice and follow the steps below.
 
-The script will ask in which directory SQL\TeX\ should be installed. If you are
-logged in as `root', the default will be \texttt{/usr/local/bin}, otherwise the
-current directory.\\
-Make sure the directory where SQL\TeX\ is installed is in your path.
+\subsubsection{Linux}
+
+Go to the top directory where the archive was unpacked (`\texttt{cd sqltex-2.1}') and execute the following commands:
 
 \vs
 
-For other operating systems, there is no install script, you will have to install
-it manually.
+\noindent\texttt{\$ ./configure \textit{[options]}\\
+\$ make \\
+\$ \textit{[sudo] }make install}
 
-On \textsc{OpenVMS} it would be something like:\\
-\texttt{\$ SET FILE/PROTECTION=(W:RE) SQLTEX.\footnote{Note the dot (`.') at the end of the file; on
-\textsc{OpenVMS} systems, all files must to have a file extension, which can
-be empty, in which case the filename ends with a dot.}\\
-\$ COPY SQLTEX. SYS\$SYSTEM:\\
-\$ COPY SQLTEX\_R.DAT SYS\$SYSTEM:}\\
-However, on \textsc{OpenVMS} you also need to define the command \texttt{SQLTEX} by setting a symbol,
+\vs
+
+In the last command, \texttt{sudo} is only required if the install destination (\texttt{PREFIX}, see below) is outside the own user environment.
+
+\vs
+
+For \texttt{configure}, the following options are user buy SQL\TeX\ (type \texttt{./configure --help} for a full list):
+
+\begin{description}
+\item[\texttt{--prefix=PREFIX}]         install architecture-independent files in PREFIX. Default is \texttt{/usr/local}.
+\item[\texttt{--exec-prefix=EPREFIX}]   install architecture-dependent files in EPREFIX. Default is \texttt{PREFIX}.
+\end{description}
+
+The directives above are used by the ones below:
+
+\begin{description}
+\item[\texttt{--bindir=DIR}]            Location of the SQL\TeX\ script. Default is \texttt{EPREFIX/bin}
+\item[\texttt{--sysconfdir=DIR}]        Location of the Configuration- and replacefiles. Default is \texttt{PREFIX/etc}
+\item[\texttt{--datarootdir=DIR}]       Data root, used by  the directives below. Default is \texttt{PREFIX/share}
+\item[\texttt{--mandir=DIR}]            Location of the SQL\TeX\ manpage. Default is \texttt{DATAROOTDIR/man}
+\item[\texttt{--docdir=DIR}]            Documentation root, used by \texttt{pdfdir} below. Default is \texttt{DATAROOTDIR/doc/sqltex}
+\item[\texttt{--pdfdir=DIR}]            Location of SQL\TeX.pdf. Default is \texttt{DOCDIR}
+\end{description}
+
+\vs
+
+After installation, the archive and unpack- directory can be removed.
+
+\subsubsection{Windows}
+
+This distribution contains an \texttt{.EXE} file that was generated using \texttt{PAR::Packer} (\url{https://metacpan.org/pod/PAR::Packer}) with Strawberry Perl (\url{https://strawberryperl.com/}).
+
+\vs
+
+The files \texttt{sqltex-2.1\ensuremath{\backslash}SQLTeX.EXE}, \texttt{sqltex-2.1\ensuremath{\backslash}src\ensuremath{\backslash}SQLTeX.cfg} and \\ \texttt{sqltex-2.1\ensuremath{\backslash}src\ensuremath{\backslash}SQLTeX\_r.dat} must be placed manually in the directory of your choice, all in the same direcrtory.
+
+
+\subsubsection{OpenVMS}
+
+On \textsc{OpenVMS} the files must be copied manually to the destination. All files must reside in the same location:\\
+\texttt{\$ COPY [.SQLTEX-2\_1.SRC]SQLTEX.PL SYS\$SYSTEM:\\
+\$ COPY [.SQLTEX-2\_1.SRC]SQLTEX.CFG SYS\$SYSTEM:\\
+\$ COPY [.SQLTEX-2\_1.SRC]SQLTEX\_R.DAT SYS\$SYSTEM:\\
+\$ SET FILE/PROTECTION=(W:RE) SYS\$SYSTEM:SQLTEX.PL}
+
+\vs
+
+Next, define the command \texttt{SQLTEX} by setting a symbol,
 either in the \texttt{LOGIN.COM} for all users who need to execute this script, or in some group-- or
 system wide login procedure, with the command:  \\
-\texttt{\$ SQLTEX :== "PERL SYS\$SYSTEM:SQLTEX."} 
+\texttt{\$ SQLTEX :== "PERL SYS\$SYSTEM:SQLTEX.PL"} 
 
 \subsection{Configuration}\label{config}
 
-The location where SQL\TeX\ is installed also holds the configuration file \texttt{SQLTeX.cfg}.
+The configuration file \texttt{SQLTeX.cfg} is located in \texttt{/etc} (linux) or the same location where
+SQL\TeX\ is installed (all other operating systems).
 Multiple configuration files can be created, the command line option \texttt{--configfile} can be used to
 select the requested configuration.
 
@@ -118,6 +156,9 @@ SQL\TeX\ looks for one with the default extension.
 SQL\TeX\ composes an output file name using this string.\\
 E.g, if your input file is called \texttt{db-doc.tex}, SQL\TeX\ will produce an
 outputfile with the name \texttt{db-docstx.tex}.
+
+\item[def\_out\_is\_in] By default, when no output file is specified or an output file without (relative) path is given, the output file will be generated in the current directory.\\
+This behaviour changed in version 2.1. In older version, the location of the output file always was the same as the input file location. To revert to the old behaviour, set \texttt{def\_out\_is\_in} to `\texttt{1}'\footnote{ Note the pre-v2.1 implementation also contained a bug: if the output file name contained an absolute or relative path, this path was always taken as relative from the input file location. In the new implementation, \texttt{def\_out\_is\_in} is ignored if the output file name contains a path.}.
 
 \item[rfile\_comment] The comment-sign used in replace files. If this is empty, comments are not allowed in
 the replace files.
@@ -161,11 +202,6 @@ With the default configuration this command is ``\texttt{\bs sqluse}''.
 \item[sql\_end] This string is appended to the \texttt{cmd\_prefix} to get the complete SQL\TeX\ command to end a loop context (see section~\ref{loops}).\\
 With the default configuration this command is ``\texttt{\bs sqlend}''.
 
-\item[less\_av \& more\_av] These settings are used to determine how the \textsl{help} output should be displayed. If the command `\texttt{less}' is available on the current system, the output will be parsed through this program. Otherwise the output will be parsed through the program `\texttt{more}' if availeble. Both programs are usually available on Unix system (\texttt{more} is standard on most Unix systems), but ports for other
-operating systems are available as well.\\
-Set the values to ``0'' for the program(s) that is (are) not available, or if you don't want to use it.\\
-If none of these programs is available, the \textsl{help} output is plain echoed to the display.
-
 \item[repl\_step] Replacing strings (see section~\ref{replfiles} below) is done two steps, to prevent values from being replaced twice.
 This setting---followed by a three-digit integer - ``000'' to ``999''---is used in the first step and replaces values from the first column.
 In the second step, values from the second column replace the temporary value. \\
@@ -181,8 +217,8 @@ Normally, this setting should never change, but if the value for \texttt{cmd\_pr
 Replace files can be used to substitute values in the output of your SQL commands with a different value. This is especially usefull when the database
 contains characters that are special characters in \LaTeX, like the percent sign (`\%'), underscore (`\_') etc.
 
-When SQL\TeX\ is installed, it comes with a standard file---\texttt{SQLTeX\_r.dat}---which is located in the same directory where SQLTeX is installed,
-with the following replacements:
+When SQL\TeX\ is installed, it comes with a standard file---\texttt{SQLTeX\_r.dat}---which is located in \texttt{/etc} (linux) or the same location where
+SQL\TeX\ is installed (all other operating systems), with the following replacements:
 
 \vspace{3mm}
 
@@ -308,7 +344,7 @@ the database, the returned value is written instead:
 
 \begin{minipage}[t]{0.5\textwidth}\textsl{Input file:}\\\texttt{\footnotesize{This invoice has \bs sqlfield\{SELECT COUNT(*) FROM INVOICE\_LINE \\
 WHERE INVOICE\_NR = 20190062\} lines.\\
-\hrulefill}}\end{minipage}\hfill\begin{minipage}[t]{0.5\textwidth}\textsl{Output file:}\\\texttt{\footnotesize{This invoice has 3 lines. \\
+\hrulefill}}\end{minipage}\hfill\begin{minipage}[t]{0.5\textwidth}\textsl{Output file:}\\\texttt{\footnotesize{This invoice has 3 lines \\
 }}\end{minipage}
 
 \subsection{SQL statements}\label{sqlstatements}
@@ -365,11 +401,13 @@ If the keywords \texttt{user}, \texttt{passwd} and \texttt{host} are omitted, SQ
 this order:\\
 \texttt{\bs sqldb[\textit{username},\textit{password},\textit{host}]\{database\}}
 
+Default host is localhost, the default user is the current user.
 
-Default host is localhost, the default user is the current user.\\
+\subsubsection{Prompt for password and/or username}
+
 If a password is omitted, SQL\TeX\ will try connect to the database without a password, unless the commandline option \texttt{--password} is given (see section \ref{cmdline}).
 
-\vs
+\vs 
 
 Forcing a user to enter a database password when SQL\TeX\ runs can be achieved by specifying \texttt{?} as password:\\
 \texttt{\bs sqldb[user=dbUser,passwd=?]\{database\}}
@@ -652,6 +690,8 @@ Default is \texttt{SQLTeX{\_}r.dat} in the same location where SQL\TeX\ is insta
 they appear on the command line, overwriting each other.\\
 For backwards compatibility, \texttt{-rn} is also still supported.
 
+\item[\texttt{--use-local-config, -l}] Use the current installation directory as default location for the config- and replacement files in stead of \texttt{/etc}\footnote{ linux only}.
+
 \item[\texttt{--sqlserver \textit{server}, -s \textit{server}}] SQL server to connect to. Default is \texttt{localhost}.
 
 \item[\texttt{--updates, -u}] if the input file contains updates, process them.
@@ -816,12 +856,11 @@ conflict with default SQL\TeX\ commands. Change the SQL\TeX\ command prefix (see
 
 \noindent\hrulefill \\
 The SQL\TeX\ project is available from GitHub: \url{https://github.com/oveas/sqltex}\\
-The latest stable release is always available at \url{http://oveas.com/freeware/overige/sqltex}\\
 For bugs, questions and comments, please use the issue tracker available at \url{https://github.com/oveas/sqltex/issues}
 
 \vspace{3mm}
 
-\noindent Copyright\copyright\ 2001-2016 - Oscar van Eijk, Oveas Functionality Provider
+\noindent Copyright\copyright\ 2001-2022 - Oscar van Eijk, Oveas Functionality Provider
 
 \noindent\hrulefill \\
 
@@ -831,32 +870,52 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 \section{History}
 
 \begin{description}
-\item[v1.3] \textit{released: Mar 16, 2001}\\
-First public release
-\item[v1.4] \textit{released: May 2, 2002}\\
-Implemented replace files
+\item[v2.1] \textit{released: Jan 21, 2022}
+\begin{itemize}
+\item Fix bug \#2 (\url{https://github.com/oveas/sqltex/issues/2}): standard path management for output files.\\
+See config item \texttt{def\_out\_is\_in} in section \ref{config} to revert to pre v2.1 behaviour.
+\item Fix: help was not displayed on Windows
+\item Implemented '?' as password in \texttt{dbopen}
+\item Implemented '?' as username in \texttt{dbopen}
+\item Implemented long options
+\item Allow overwriting variables in multidocument mode
+\item Added simple automated regression tests
+\item Added a man page for linux users
+\item Rewrote the installation procedure, now using \texttt{autotools} on linux.
+\item On linux, change the default installation directory to \texttt{/usr/bin} and store the configuration- and replacement files is \texttt{/etc}.
+\item Added option \texttt{--use-local-config}.
+\end{itemize}
+
+
+\item[v2.0] \textit{released: Jan 12, 2016}
+\begin{itemize}
+\item Fix: Oracle support using ORASID
+\item Fix: Ensure replacements are handled in the same order as they appear in the replacements file
+\item Separate configuration file(s)
+\item Added the options \texttt{-c} and \texttt{-M}
+\item Support for regular expressions in replace files
+\item Implemented support for the \LaTeX\ \texttt{\bs input} and \texttt{\bs include} directives
+\item Implemented loop context
+\item Skip commentlines
+\item Project moved from local CVS to GitHub
+\end{itemize}
+
+\item[v1.5] \textit{released: Nov 23, 2007}
+\begin{itemize}
+\item Support for multiple databases
+\item Implemented database updates (\texttt{sqlupdate})
+\item Implemented multiple output documents (option \texttt{-m})
+\end{itemize}
+
 \item[v1.4.1] \textit{released: Feb 15, 2005}\\
 Fix: removed leading whitespaces added to database results before replace
-\item[v1.5] \textit{released: Nov 23, 2007}\\
-Support for multiple databases\\
-Implemented database updates (\texttt{sqlupdate})\\
-Implemented multiple output documents (option \texttt{-m})
-\item[v2.0] \textit{released: Jan 12, 2016}\\
-Fix: Oracle support using ORASID\\
-Fix: Ensure replacements are handled in the same order as they appear in the replacements file\\
-Separate configuration file(s)\\
-Added the options \texttt{-c} and \texttt{-M}\\
-Support for regular expressions in replace files\\
-Implemented support for the \LaTeX\ \texttt{\bs input} and \texttt{\bs include} directives\\
-Implemented loop context\\
-Skip commentlines\\
-Project moved from local CVS to GitHub
-\item[vx.x] \textit{released: xxx xx, 20xx}\\
-Implemented '?' as password in \texttt{dbopen}\\
-Implemented '?' as username in \texttt{dbopen}\\
-Implemented long options\\
-Allow overwriting variables in multidocument mode\\
-Some code cleanup
+
+\item[v1.4] \textit{released: May 2, 2002}\\
+Implemented replace files
+
+\item[v1.3] \textit{released: Mar 16, 2001}\\
+First public release
+
 \end{description}
 
 \end{document}
