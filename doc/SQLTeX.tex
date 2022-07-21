@@ -8,8 +8,8 @@
 	,linkcolor=blue
 	,unicode]{hyperref}
 \begin{document}
-\title{SQL\TeX\\v2.1}
-\date{Jan 21, 2022}
+\title{SQL\TeX\\vx.x}
+\date{Xxx xx, 20xx}
 \author{Oscar van Eijk}
 \maketitle
 \hrulefill
@@ -142,11 +142,17 @@ Some values can be overwritten using command line options (see section~\ref{cmdl
 \begin{description}
 
 \item[dbdriver] Database driver. The default is \texttt{mysql}.
-Other supported databases are \texttt{Pg}, \texttt{Sybase}, \texttt{Oracle},
-\texttt{Ingres}, \texttt{mSQL} and \texttt{PostgreSQL}, but also others might
-work without modification. \\
+Other supported databases are \texttt{Pg}, \texttt{Sybase}, \texttt{Oracle}\footnote{ This requires the configuration setting \texttt{oracle\_sid}}, \texttt{Ingres}, \texttt{mSQL}, \texttt{PostgreSQL} and \texttt{ODBC}\footnote{ The actual driver can specified with the configuration setting \texttt{odbc\_driver}}, but also others might work without modification. \\
+
+\vs
+
 If your database driver is not support, look for the function
 \texttt{db\_connect} to add support (and please notify me :) 
+
+\item[oracle\_sid] Oracle Site Identifier, required when the \texttt{Oracle} database driver is selected.
+
+\item[odbc\_driver] Specification of the ODBC driver. Default is ``\texttt{SQL Server}''}
+ 
 
 \item[texex] The default file extension for \LaTeX\ file. When SQL\TeX\ is called, the first
 parameter should be the name of the input file. If this filename has no extension,
@@ -860,7 +866,7 @@ For bugs, questions and comments, please use the issue tracker available at \url
 
 \vspace{3mm}
 
-\noindent Copyright\copyright\ 2001-2022 - Oscar van Eijk, Oveas Functionality Provider
+\noindent Copyright\copyright\ 2001-20xx - Oscar van Eijk, Oveas Functionality Provider
 
 \noindent\hrulefill \\
 
@@ -870,6 +876,11 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 \section{History}
 
 \begin{description}
+\item[vx.x] \textit{released: Xxx xx, 20xx}
+\begin{itemize}
+\item Added support for ODBC drivers
+\end{itemize}
+
 \item[v2.1] \textit{released: Jan 21, 2022}
 \begin{itemize}
 \item Fix bug \#2 (\url{https://github.com/oveas/sqltex/issues/2}): standard path management for output files.\\
@@ -885,7 +896,6 @@ See config item \texttt{def\_out\_is\_in} in section \ref{config} to revert to p
 \item On linux, change the default installation directory to \texttt{/usr/bin} and store the configuration- and replacement files is \texttt{/etc}.
 \item Added option \texttt{--use-local-config}.
 \end{itemize}
-
 
 \item[v2.0] \textit{released: Jan 12, 2016}
 \begin{itemize}
