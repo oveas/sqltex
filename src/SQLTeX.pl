@@ -24,6 +24,7 @@
 #   v1.5     Nov 23, 2007
 #   v2.0     Jan 12, 2016
 #   v2.1     Jan 21, 2022
+#   v2.1-1   Apr 19, 2022 (test version for MSSQL, no official release)
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -502,19 +503,30 @@ sub db_connect($$) {
 		} elsif ($main::configuration{'dbdriver'} eq "Sybase") {
 			$data_source = "DBI:$main::configuration{'dbdriver'}:$db";
 			$data_source .= ";server=$hn" unless ($hn eq "");
+		} elsif ($main::configuration{'dbdriver'} eq "ODBC") {
+			if (!exists ($main::configuration{'odbc_driver'})) {
+				$main::configuration{'odbc_driver'} = 'SQL Server';
+			}
+			if ($hn eq "") {
+				$hn = 'localhost';
+			}
+			$data_source = "DBI:ODBC:Driver={$main::configuration{'odbc_driver'}};Server=$hn";
+			$data_source .= ";Database=$db";
+			$data_source .= ";UID=$un" unless ($un eq "");
+			$data_source .= ";PWD=$pw" unless ($pw eq "");
 		} else { # MySQL, mSQL, ...
 			$data_source = "DBI:$main::configuration{'dbdriver'}:database=$db";
 			$data_source .= ";host=$hn" unless ($hn eq "");
 		}
 	}
-
 	if (!defined $main::options{'q'}) {
 		my $msg = "Connect to database $db on ";
-		$msg .= $hn|| 'localhost';
+		$msg .= $hn || 'localhost';
 		$msg .= " as user $un" unless ($un eq '');
 		$msg .= " using a password" unless ($pw eq '');
 		&print_message ($msg);
 	}
+
 	$main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &just_died (1); # TODO Proper errorhandling
 	return;
 }
@@ -1078,8 +1090,8 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 
 $main::myself = $0;
 
-$main::version = '2.1';
-$main::rdate = 'Jan 21, 2022';
+$main::version = '2.1-1';
+$main::rdate = 'Apr 19, 2022';
 
 &parse_options;
 if (defined $main::options{'l'}) {
@@ -1094,7 +1106,7 @@ if (defined $main::configurationfile) {
 		next if ($main::line =~ /^\s*#/);
 		next if ($main::line =~ /^\s*$/);
 		chomp $main::line;
-		my ($ck, $cv) = split /=/, $main::line;
+		my ($ck, $cv) = split /=/, $main::line, 2;
 		$ck =~ s/\s//g;
 		$cv =~ s/\s//g;
 		if ($cv ne '') {
