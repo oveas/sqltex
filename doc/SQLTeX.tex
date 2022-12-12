@@ -220,7 +220,7 @@ Normally, this setting should never change, but if the value for \texttt{cmd\_pr
 
 \subsection{Create replace files}\label{replfiles}
 
-Replace files can be used to substitute values in the output of your SQL commands with a different value. This is especially usefull when the database
+Replace files can be used to substitute values in the output of your SQL commands with a different value. This is especially useful when the database
 contains characters that are special characters in \LaTeX, like the percent sign (`\%'), underscore (`\_') etc.
 
 When SQL\TeX\ is installed, it comes with a standard file---\texttt{SQLTeX\_r.dat}---which is located in \texttt{/etc} (linux) or the same location where
@@ -302,7 +302,7 @@ re(</h\d>)      }
 
 For SQL\TeX, you write your \LaTeX\ document just as you're used to. SQL\TeX\ provides you with
 some extra commands that you can include in your file.\\
-The basic format\footnote{in this document, in all examples will be asumed the default values in the
+The basic format\footnote{in this document, in all examples will be assumed the default values in the
 configuration section as described in section~\ref{config}, have not been changed} of an SQL\TeX\ command is: \\
 \texttt{\bs sql\emph{cmd}[options]\{SQL statement\}}
 
@@ -361,7 +361,7 @@ Details about the SQL\TeX\ commands will be described in the next sections.
 
 \vs
 
-Let's look at a simple example. Suppose we want to retreive all header information from the database
+Let's look at a simple example. Suppose we want to retrieve all header information from the database
 for a specific invoice. The SQL statement could look something like this: \\
 \texttt{SELECT $\ast$ FROM INVOICE WHERE NR = 20190062;}\\
 To implement this statement in an SQL\TeX\ file, the \texttt{\bs sqlrow} command should be used (see
@@ -420,14 +420,14 @@ Forcing a user to enter a database password when SQL\TeX\ runs can be achieved b
 
 \vs
 
-When different database users should be able to use the same SQL\TeX\ file, the username can also be a questionmark, forcing SQL\TeX
+When different database users should be able to use the same SQL\TeX\ file, the username can also be a question mark, forcing SQL\TeX
 to prompt for a username:\\
 \texttt{\bs sqldb[user=?,passwd=?]\{database\}}
 
 \subsection{Reading a single field}\label{sqlfield}
 
 When a single field of information is to be read from the database, the command \texttt{\textbf{\bs sqlfield}}
-is used. By default, the command in the inputfile is replaced by its result in the outputfile.\\
+is used. By default, the command in the input file is replaced by its result in the output file.\\
 The SQL command is enclosed by curly braces. Square brackets can optionally be used to enter some extra options.
 Currently, the only supported option is \texttt{setvar} (see section~\ref{vars}).
 
@@ -451,11 +451,11 @@ Therefore, the option \texttt{\textbf{[setvar=\textit{n}]}} is used, where \text
 Suppose you have an invoice in \LaTeX. SQL\TeX\ is executed to retrieve the invoice header information
 from the database for a specific customer. Next, the invoice lines are read from the database.
 
-You could pass the invoice number as a paramater to SQL\TeX\ for use in your queries, but that could
+You could pass the invoice number as a parameter to SQL\TeX\ for use in your queries, but that could
 change every month. It is easier to :\\
 \begin{itemize}
 \item pass the customer number as a parameter,
-\item retrieve the current date (asuming that is the invoice date as stored in
+\item retrieve the current date (assuming that is the invoice date as stored in
 the database by another program), and store it in a variable: \\
 \texttt{\bs sqlfield[setvar=0]\{SELECT DATE\_FORMAT(NOW(), "\%Y-\%m-\%d")\}} \\
 This creates a variable that can be used as \texttt{\$VAR0},
@@ -477,7 +477,7 @@ The SQL queries used here do not display any output in your \LaTeX\ document.
 When an SQL query returns more information than one single field, the SQL\TeX\
 command \texttt{\textbf{\bs sqlrow}} should be used. As with the \texttt{\bs sqlfield},
 command, SQL\TeX\ replaces the command with the values it returns, but \texttt{\bs sqlrow}
-accepts different options for formating the output.
+accepts different options for formatting the output.
 
 \vs
 
@@ -485,8 +485,8 @@ By default, fields are separated by a comma and a blank (`\texttt{,~}'), and row
 a newline character (`\texttt{\bs\bs}'). To change this, the options ``\texttt{fldsep}''
 and ``\texttt{rowsep}'' can be used.
 
-e.g. In a \texttt{tabular} enviroment the fields should be seperated by an amphesand (\texttt{\&}),
-perhaps a line should seperate the rows of information. (\texttt{\bs\bs~\bs hline}).
+e.g. In a \texttt{tabular} environment the fields should be separated by an ampersand (\texttt{\&}),
+perhaps a line should separate the rows of information. (\texttt{\bs\bs~\bs hline}).
 To do this, the options can be used with \texttt{\bs sqlrow} as shown here: \\
 \texttt{\bs sqlrow[fldsep=\&,rowsep=\bs\bs~\bs hline]\{SELECT I.NR, A.NR, 
 A.PRICE, I.AMOUNT, (A.PRICE * I.AMOUNT) FROM ARTICLE A, INVOICE\_LINE I WHERE I.NR = \$VAR1 
@@ -500,9 +500,9 @@ This will produce an output like: \\
 3 \& 4363 \& 1.95 \& 10 \& 19.5 \bs\bs~\bs hline 
 4 \& 8375 \& 12.5 \& 2 \& 25 \bs\bs~\bs hline}
 
-\subsubsection{Output rows on seperate lines}
+\subsubsection{Output rows on separate lines}
 
-Some \LaTeX\ packages require input on a seperate line. If this output is to be
+Some \LaTeX\ packages require input on a separate line. If this output is to be
 read from a database, this can be set with the \texttt{rowsep} option using the
 fixed text ``\texttt{NEWLINE}''.
 
@@ -513,7 +513,7 @@ AND I.ARTICLE\_NR = A.NR\}}
 
 \vs
 
-would procude the following result: \\
+would produce the following result: \\
 \texttt{1 \& 9712 \& 12 \& 1 \& 12 \bs\bs~\bs hline \\
 2 \& 4768 \& 9.75 \& 3 \& 29.25 \bs\bs~\bs hline \\
 3 \& 4363 \& 1.95 \& 10 \& 19.5 \bs\bs~\bs hline \\
@@ -532,13 +532,13 @@ Therefore, the option \texttt{\textbf{[setarr=\textit{n}]}} is used, where \text
 \subsection{Loop context}\label{loops}
 
 In a loop context, an array is filled with data from the database using \texttt{\bs sqlrow}.\\
-Later in the document, the data can be used in a textblock that will be written to the outputfile once for every record retrieved.
+Later in the document, the data can be used in a text block that will be written to the output file once for every record retrieved.
 
 \vs
 
-The textblock is between the \texttt{\bs sqlstart\{\textit{n}\}} and \texttt{\bs sqlend\{\textit{n}\}} commands, where \textit{n} is the sequence number of the array to use\footnote{ in \texttt{\bs sqlend}, the sequence number is ignored, but required by syntax.}.
+The text block is between the \texttt{\bs sqlstart\{\textit{n}\}} and \texttt{\bs sqlend\{\textit{n}\}} commands, where \textit{n} is the sequence number of the array to use\footnote{ in \texttt{\bs sqlend}, the sequence number is ignored, but required by syntax.}.
 
-Multiple textblocks can occur in the document, but they can \textit{not} be nested!
+Multiple text blocks can occur in the document, but they can \textit{not} be nested!
 
 \vs
 
@@ -555,8 +555,8 @@ In the example below, data for unpaid invoices is stored in an array identified 
 
 \vs
 
-To use this data, a textblock must start with: \texttt{\bs sqlstart\{0\}}\\
-Between this command and the first occurrence of \texttt{\bs sqlend\{\}}, an unlimited amount\footnote{ limited by your computer's memory only} of \LaTeX\ text can be written. Within this text, every occurence of \texttt{\bs sqluse\{<\textit{field name}>\}} will be replaced with the matching field from the current row, e.g.:
+To use this data, a text block must start with: \texttt{\bs sqlstart\{0\}}\\
+Between this command and the first occurrence of \texttt{\bs sqlend\{\}}, an unlimited amount\footnote{ limited by your computer's memory only} of \LaTeX\ text can be written. Within this text, every occurrence of \texttt{\bs sqluse\{<\textit{field name}>\}} will be replaced with the matching field from the current row, e.g.:
 
 \noindent\begin{verbatim}
 \sqlstart{0}
@@ -816,7 +816,7 @@ Otherwise, SQL\TeX\ exits. \\
 \vspace{1mm}
 
 \noindent In multidocument mode, the lis of parameters retrieved on line
-\textit{line nr} returned more than one fiels per row. \\
+\textit{line nr} returned more than one fields per row. \\
 \textit{Action:} Check your query.
 
 \vs

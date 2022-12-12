@@ -5,7 +5,7 @@
 ; but any value can be added here.
 ; The first column is the character (sequence) that will be replaced.
 ; The second column is the value to replace col 1 with.
-; Columns are sepated with one or more tab- characters.
+; Columns are separated with one or more tab characters.
 ;
 ; Note all values are case sensitive; if you add the line:
 ;   LaTeX	\LaTeX\ 

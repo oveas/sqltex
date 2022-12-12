@@ -43,7 +43,7 @@ This distribution contains an .EXE file that was generated using `PAR::Packer`
 with Strawberry Perl.
 
 The files `sqltex-2.1\SQLTeX.EXE`, `sqltex-2.1\src\SQLTeX.cfg` and `sqltex-2.1\src\SQLTeX_r.dat` must be placed manually
-in the directory of your choice, all in the same direcrtory.
+in the directory of your choice, all in the same directory.
 
 #### OpenVMS ####
 

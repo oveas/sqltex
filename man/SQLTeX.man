@@ -100,7 +100,7 @@ Prefix used in the SQLTeX file. Default is 'sql' (see documentation)
 Run in quiet mode
 
 .IP "\fB-r|--replacementfile\fP <file>"
-Specify a file that contains replace characters. This is a list with two tab- seperated fields per line. The first field holds a string that will be replaced in the SQL output by the second string.
+Specify a file that contains replace characters. This is a list with two tab-separated fields per line. The first field holds a string that will be replaced in the SQL output by the second string.
 
 .IP "\fB-R|-rn|--no-replacementfile\fP"
 Do not use a replace file. '--replacementfile' '--no-replacementfile' are handled in the same order as they appear on the command line.
