@@ -1,5 +1,5 @@
 # Autoconf configfile for SQLTeX.
-# To create a new distribuition, 3execute the following steps:
+# To create a new distribution, execute the following steps:
 #   aclocal
 #   autoconf
 #   automake --add-missing
@@ -25,7 +25,7 @@ AX_PROG_PERL_MODULES([DBI DBD::mysql Getopt::Long Term::ReadKey]
                     ,[AC_MSG_ERROR([Not all required perl modules are installed])]
 )
 
-# Makefile to be generated in the subdircetories as welll
+# Makefile to be generated in the subdirectories as well
 AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile man/Makefile])
 
 AC_OUTPUT

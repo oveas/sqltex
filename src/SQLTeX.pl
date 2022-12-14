@@ -221,7 +221,7 @@ sub print_help {
 	$helptext .= "               run in quiet mode\n";
 	$helptext .= "       --replacementfile <file>\n";
 	$helptext .= "       -r <file>\n";
-	$helptext .= "               specify a file that contains replace characters. This is a list with two tab- seperated\n";
+	$helptext .= "               specify a file that contains replace characters. This is a list with two tab-separated\n";
 	$helptext .= "               fields per line. The first field holds a string that will be replaced in the SQL output\n";
 	$helptext .= "               by the second string.\n";
 	$helptext .= "               By default the file \'$main::config_location/SQLTeX_r.dat\' is used.\n";
@@ -598,9 +598,9 @@ sub replace_values ($) {
 #####
 # Select multiple rows from the database. This function can have
 # the [fldsep=s] and [rowsep=s] options to define the string which
-# should be used to seperate the fields and rows.
-# By default, fields are seperated with a comma and blank (', '), and rows
-# are seperated with a newline character ('\\')
+# should be used to separate the fields and rows.
+# By default, fields are separated with a comma and blank (', '), and rows
+# are separated with a newline character ('\\')
 #
 sub sql_row ($$) {
 	my ($options, $query) = @_;
