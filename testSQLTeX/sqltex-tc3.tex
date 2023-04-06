@@ -24,6 +24,7 @@ SELECT c.name
 FROM   invoice i
 LEFT JOIN customer c
      ON c.nr = i.cust_nr
+ORDER BY i.invoice_date
 }\\\hline
 \end{tabular}
 
