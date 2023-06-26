@@ -13,7 +13,7 @@
 # This software is subject to the terms of the LaTeX Project Public License; 
 # see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 #
-# Copyright:  (c) 2001-2022, Oscar van Eijk, Oveas Functionality Provider
+# Copyright:  (c) 2001-2023, Oscar van Eijk, Oveas Functionality Provider
 # ==========                 oscar@oveas.com
 #
 # History:
@@ -25,6 +25,7 @@
 #   v2.0     Jan 12, 2016
 #   v2.1     Jan 21, 2022
 #   v2.1-1   Apr 19, 2022 (test version for MSSQL, no official release)
+#   v2.1-2   Jun 25, 2023 (test version parameter in sql_setparams(), no official release)
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -293,6 +294,7 @@ sub get_password ($$) {
 		}
 	}
 	ReadMode(0);
+	print "\n";
 
 	return $pwd;
 }
@@ -780,7 +782,7 @@ sub sql_setparams ($$) {
 	}
 
 	$rc = $#return_values + 1;
-	&print_message ("Multidocument parameters found; $rc documents will be created: handle document $main::multidoc_cnt");
+	&print_message ("Multidocument parameters found; $rc documents will be created: handle document $main::multidoc_cnt") unless ($main::multidoc_cnt == 0);
 
 	return (@return_values);
 }
@@ -903,11 +905,21 @@ sub parse_command ($$$) {
 	}
 
 	if ($varallowed) {
-		if (($main::multidoc_cnt > 0) && $main::multidoc) {
-			$statement =~ s/\$PAR1/$multidoc_par/g;
-		} else {
-			for (my $i = 1; $i <= $#ARGV; $i++) {
+		if ($cmdfound =~ /$main::configuration{'sql_params'}/) {
+			for (my $i = 1; $statement =~ /\$PAR$i/; $i++) {
+				if ($#ARGV < $i) {
+					die "Missing parameters - no input for \$PAR$i given";
+				}
 				$statement =~ s/\$PAR$i/$ARGV[$i]/g;
+				$main::multidoc_next_param = $i + 1;
+			}
+		} else {
+			if (($main::multidoc_cnt > 0) && $main::multidoc) {
+				$statement =~ s/\$PAR$main::multidoc_next_param/$multidoc_par/g;
+			} else {
+				for (my $i = $main::multidoc_next_param; $i <= $#ARGV; $i++) {
+					$statement =~ s/\$PAR$i/$ARGV[$i]/g;
+				}
 			}
 		}
 		while ($statement =~ /\$VAR[0-9]/) {
@@ -1090,8 +1102,8 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 
 $main::myself = $0;
 
-$main::version = '2.1-1';
-$main::rdate = 'Apr 19, 2022';
+$main::version = '2.1-2';
+$main::rdate = 'Jun 25, 2023';
 
 &parse_options;
 if (defined $main::options{'l'}) {
@@ -1144,6 +1156,7 @@ if (defined $main::replacefile) {
 
 # Start processing
 do {
+	$main::multidoc_next_param = 1;
 	&process_file;
 	$main::restart = 0;
 	if ($main::sql_statements == 0) {
