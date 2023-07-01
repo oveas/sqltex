@@ -3,20 +3,20 @@
 \sqldb{testsqltex}
 \begin{document}
 
-\sqlsetparams{SELECT nr FROM invoice}
+\sqlsetparams{SELECT nr, cust_nr FROM invoice WHERE reminders = $PAR1 ORDER BY $PAR2}
 
-\sqlfield[setvar=2]{SELECT cust_nr FROM invoice WHERE nr = $MPAR1}
+
 
 \noindent\textbf{\sqlrow[fldsep=\\]{
 SELECT name 
 ,      city
 FROM   customer
-WHERE  nr = '$VAR2'
+WHERE  nr = '$MPAR2'
 }}
 
 \vspace{8mm}
 
-\sqlfield[setvar=3]{SELECT SUM(l.amount * a.price)
+\sqlfield[setvar=2]{SELECT SUM(l.amount * a.price)
 FROM   invoice      i
 ,      invoice_line l
 ,      article      a
@@ -28,7 +28,7 @@ AND    a.nr         = l.article_nr
 \begin{tabbing}
 Invoice number: \= \sqlfield{SELECT nr FROM invoice WHERE nr = $MPAR1} \\
 Invoice date:   \> \sqlfield{SELECT invoice_date FROM invoice WHERE nr = $MPAR1} \\
-Total amount:   \> EUR \sqlfield{SELECT FORMAT($VAR3,2) FROM invoice WHERE nr = $MPAR1} \\
+Total amount:   \> EUR \sqlfield{SELECT FORMAT($VAR2,2) FROM invoice WHERE nr = $MPAR1} \\
 Due date:       \> \sqlfield{SELECT due_date FROM invoice WHERE nr = $MPAR1} \\
 \end{tabbing}
 
@@ -51,7 +51,7 @@ WHERE  i.nr          = $MPAR1
 AND    l.invoice_nr  = i.nr
 AND    a.nr          = l.article_nr
 }\\\hline
- & & & & \textbf{EUR \sqlfield{SELECT FORMAT($VAR3,2)}} \\
+ & & & & \textbf{EUR \sqlfield{SELECT FORMAT($VAR2,2)}} \\
 \end{tabular}
 
 \end{document}

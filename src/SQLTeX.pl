@@ -34,7 +34,7 @@
 #
 ################################################################################
 #
-use strict;
+#use strict;
 use DBI;
 use Getopt::Long;
 use Term::ReadKey;
@@ -756,13 +756,12 @@ sub sql_end () {
 
 
 #####
-# Select a (list of) single field(s) from the database. This list is used in
-# multidocument mode as the first parameter in all queries.
-# Currently, only 1 parameter per run is supported.
+# Select a list of rows from the database. Each row will be input
+# for a document in multuidocument mode.
 #
 sub sql_setparams ($$) {
 	my ($options, $query) = @_;
-	my (@values, @return_values, $rc);
+	my (@values, @return_values);
 
 	&check_options ($options);
 
@@ -771,18 +770,19 @@ sub sql_setparams ($$) {
 	my $stat_handle = $main::db_handle->prepare ($query);
 	$stat_handle->execute ();
 
-	while (@values = $stat_handle->fetchrow_array ()) {
-		&just_died (9) if ($#values > 0); # Only one allowed TODO Proper errorhandling
-		push @return_values, @values;
+	for (my $i = 0; @values = $stat_handle->fetchrow_array (); $i++) {
+		for ($j = 0; $j <= $#values; $j++) {
+			$return_values[$i][$j] = $values[$j];
+		}
 	}
+
 	$stat_handle->finish ();
 
 	if ($#return_values < 0) {
 		&just_died (8); # TODO Proper errorhandling
 	}
 
-	$rc = $#return_values + 1;
-	&print_message ("Multidocument parameters found; $rc documents will be created: handle document $main::multidoc_cnt") unless ($main::multidoc_cnt == 0);
+	&print_message ('Multidocument parameters found; ' . $#return_values+1 ." documents will be created: handle document $main::multidoc_cnt") unless ($main::multidoc_cnt == 0);
 
 	return (@return_values);
 }
@@ -847,8 +847,8 @@ sub just_died ($) {
 		$msg = "trying to overwrite an existing variable on line $main::lcount[$main::fcount]";
 	} elsif ($step == 8) {
 		$msg = "no parameters for multidocument found on line $main::lcount[$main::fcount]";
-	} elsif ($step == 9) {
-		$msg = "too many fields returned in multidocument mode on $main::lcount[$main::fcount]";
+#	} elsif ($step == 9) {
+#		$msg = "too many fields returned in multidocument mode on $main::lcount[$main::fcount]";
 	} elsif ($step == 10) {
 		$msg = "unrecognized command on line $main::lcount[$main::fcount]";
 	} elsif ($step == 11) {
@@ -903,24 +903,14 @@ sub parse_command ($$$) {
 		$options = $`;
 		$statement = $';
 	}
-
 	if ($varallowed) {
-		if ($cmdfound =~ /$main::configuration{'sql_params'}/) {
-			for (my $i = 1; $statement =~ /\$PAR$i/; $i++) {
-				if ($#ARGV < $i) {
-					die "Missing parameters - no input for \$PAR$i given";
-				}
-				$statement =~ s/\$PAR$i/$ARGV[$i]/g;
-				$main::multidoc_next_param = $i + 1;
+		if (($main::multidoc_cnt > 0) && $main::multidoc) {
+			for (my $i = 1; $i <= $#main::parameters; $i++) {
+				$statement =~ s/\$MPAR$i/$main::parameters[$main::multidoc_cnt-1][$i-1]/g;
 			}
-		} else {
-			if (($main::multidoc_cnt > 0) && $main::multidoc) {
-				$statement =~ s/\$PAR$main::multidoc_next_param/$multidoc_par/g;
-			} else {
-				for (my $i = $main::multidoc_next_param; $i <= $#ARGV; $i++) {
-					$statement =~ s/\$PAR$i/$ARGV[$i]/g;
-				}
-			}
+		}
+		for (my $i = 1; $i <= $#ARGV; $i++) {
+			$statement =~ s/\$PAR$i/$ARGV[$i]/g;
 		}
 		while ($statement =~ /\$VAR[0-9]/) {
 			my $varno = $&;
@@ -1027,7 +1017,7 @@ sub process_file {
 		$main::saved_outfile_template = $main::outputfile if ($main::multidoc_cnt == 1); # New global name; should be a static
 		$main::outputfile = $main::saved_outfile_template if ($main::multidoc_cnt > 1);
 		$main::outputfile =~ s/\#M\#/$main::multidoc_cnt/;
-		$main::outputfile =~ s/\#P\#/$main::parameters[($main::multidoc_cnt-1)]/;
+		$main::outputfile =~ s/\#P\#/$main::parameters[($main::multidoc_cnt-1)][0]/;
 		$multidoc_par = @main::parameters[$main::multidoc_cnt - 1];
 	}
 	my $fileOut;
@@ -1156,7 +1146,6 @@ if (defined $main::replacefile) {
 
 # Start processing
 do {
-	$main::multidoc_next_param = 1;
 	&process_file;
 	$main::restart = 0;
 	if ($main::sql_statements == 0) {

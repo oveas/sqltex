@@ -1,0 +1,22 @@
+\documentclass[a4paper]{article}
+\pagestyle{empty}
+\sqldb{testsqltex}
+\begin{document}
+\Large{Pricelist}
+
+\vspace{8mm}
+
+\begin{tabular}{ll}\\ \hline
+{\bfseries Article} &
+{\bfseries Price} \\ \hline\hline
+\sqlrow[fldsep= &,rowsep= \\]{
+SELECT   name
+,        FORMAT(price,2)
+FROM     article
+WHERE    price < $PAR1
+ORDER BY $PAR2
+
+}\\\hline
+\end{tabular}
+
+\end{document}

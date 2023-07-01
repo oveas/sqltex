@@ -66,7 +66,7 @@ testcase_3 () {
 #
 testcase_4 () {
 	echo ""
-	echo " * Testcase 4: verify loop function..."
+	echo " * Testcase 4: verify replacement function..."
 	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --replace $SQLTeXTestLocation/sqltex-tc4_rpl.dat --filename-extend _nl sqltex-tc4.tex
 	check_result 4 nl
 }
@@ -96,6 +96,35 @@ testcase_5 () {
 	check_result 5 stx_20190205
 	check_result 5 stx_20190216
 }
+
+# Testcase 6: Upodate and multi document with parameters
+# This testcase handles the multidocument functionality where the selection 
+# statement needs parameters.
+#  \sqlsetparams{}
+#  \parse_command()
+#  --multidoc-numbered commandline option
+# This testcase relies on TC2 where an update was performed.
+# 
+testcase_6 () {
+	echo ""
+	echo " * Testcase 6: verify multidoc mode with parameters..."
+	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --multidoc-numbered sqltex-tc6.tex 1 nr
+	check_result 6 stx_1
+	check_result 6 stx_2
+	check_result 6 stx_3
+}
+
+# Testcase 7: replacements
+# This testcase tests the use of parameters
+#  \parse_command()
+#
+testcase_7 () {
+	echo ""
+	echo " * Testcase 7: verify parameters..."
+	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc7.tex 10 price
+	check_result 7 stx
+}
+
 
 CWD=`pwd`
 STEST=0
@@ -132,6 +161,10 @@ testcase_3
 testcase_4
 
 testcase_5
+
+testcase_6
+
+testcase_7
 
 echo "Drop the test database..."
 mysql --user=$USR --password=$PWD --host=$HST --execute='DROP SCHEMA `testsqltex`'
