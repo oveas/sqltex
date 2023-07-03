@@ -918,7 +918,12 @@ sub parse_command ($$$) {
 			&just_died (6) if (!defined ($main::var[$varno])); # TODO Proper errorhandling
 			$statement =~ s/\$VAR$varno/$main::var[$varno]/g;
 		}
-		&just_died (3) if ($statement =~ /\$PAR/ && ($main::multidoc_cnt > 0) && $main::multidoc); # TODO Proper errorhandling
+		if ($statement =~ /\$PAR/ && ($main::multidoc_cnt > 0) && $main::multidoc) {
+			print "Did you update your input file to reflect the changes in v2.2?\n";
+			print "Multidoc parameters are now used to replace \$MPARn (was \$PARn).\n";
+			print "Please check the documentation for more info.\n";
+			die ("No parameters found to replace in multidoc mode");
+		}
 		$statement =~ s/\{//;
 	}
 
