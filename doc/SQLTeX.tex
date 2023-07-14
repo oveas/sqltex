@@ -34,7 +34,6 @@ in the document.
 \item The \LaTeX\ \texttt{\bs includeonly} directive is ignored; all documents included with \texttt{\bs include} will be parsed and written to the output file.
 \item Currently, only 9 command- line parameters (1-9), and 10 variables (0-9) can be used in SQL statements.
 \item Replace files can hold only 1,000 items.
-\item In multidocument mode, only one parameter can be retrieved.
 \end{itemize}
 
 \section{Installing SQL\TeX}
@@ -151,7 +150,7 @@ If your database driver is not support, look for the function
 
 \item[oracle\_sid] Oracle Site Identifier, required when the \texttt{Oracle} database driver is selected.
 
-\item[odbc\_driver] Specification of the ODBC driver. Default is ``\texttt{SQL Server}''}
+\item[odbc\_driver] Specification of the ODBC driver. Default is ``\texttt{SQL Server}''
  
 
 \item[texex] The default file extension for \LaTeX\ file. When SQL\TeX\ is called, the first
@@ -581,16 +580,17 @@ as soon as possible.
 
 A single input file can be created to generate more output files using the \texttt{--multidoc-numbered} or \texttt{--multidoc-named} commandline option.
 
-The input document must contain the command \texttt{\bs sqlsetparams} without any options. The query that follows can return an unlimited number of rows all containing exactly 1 field: \\
-\texttt{\bs sqlsetparams\{SELECT NR FROM INVOICES WHERE PAY\_DATE = NULL\}}
+The input document must contain the command \texttt{\bs sqlsetparams} without any options. The query that follows can return an unlimited number of rows: \\
+\texttt{\bs sqlsetparams\{SELECT NR, CUST\_NR FROM INVOICES WHERE REMINDERS = \$PAR1\}}
 
 \vs
 
 By processing this command, SQL\TeX\ builds a list with all values retrieved and
-processes the input file again for each value.\\
+processes the input file again for each row.\\
 In those runs, the queries are executed as described in the previous sections,
-using the value as a parameter:\\
-\texttt{\bs sqlrow\{SELECT * FROM INVOICES WHERE NR = \$PAR1\}}
+using the returned fields to replace \texttt{\$MPAR\textit{n}} placeholders, where \textit{n} starts with 1 and represents the fields in the order as they have been retrieved:\\
+\texttt{\bs sqlrow\{SELECT * FROM INVOICES WHERE NR = \$MPAR1\}} \\
+\texttt{\bs sqlrow\{SELECT * FROM CUSTOMER WHERE CUST\_NR = \$MPAR2\}}
 
 \vs
 
@@ -601,8 +601,9 @@ document will be created, ignoring the \texttt{\bs sqlsetparams} command.
 \vs
 
 With the \texttt{--multidoc-numbered} option, output filenames will be numbered \texttt{\emph{filename}\_1.tex} to \texttt{\emph{filename}\_\emph{n}.tex}.\\
-With the \texttt{--multidoc-named} option, output filenames will be numbered \texttt{\emph{filename}\_\emph{parameter}.tex}, where \emph{parameter} is the value taken from the database (the incoie number \texttt{nr} in the example above). \\
+With the \texttt{--multidoc-named} option, output filenames will be numbered \\\texttt{\emph{filename}\_\emph{parameter}.tex}, where \emph{parameter} is the value taken from the database (the invoice number \texttt{nr} in the example above). \\
 Note the parameter will not be formatted to be filename-friendly!\\
+
 
 \subsection{Update database records}
 
@@ -879,6 +880,8 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 \item[vx.x] \textit{released: Xxx xx, 20xx}
 \begin{itemize}
 \item Added support for ODBC drivers
+\item Added support for parameter-driven in \texttt{\bs sqlsetparams} statements (multi-document mode).\\
+\textit{\textbf{Note:}} This requires an update of your input files for multi-document mode that have been created before v2.2. Refer to section \ref{mdocupdates} for details.
 \end{itemize}
 
 \item[v2.1] \textit{released: Jan 21, 2022}
@@ -927,5 +930,17 @@ Implemented replace files
 First public release
 
 \end{description}
+
+\subsection{Changes that require updates in your input files}
+
+\subsubsection{Multi-document mode since v2.2}\label{mdocupdates}
+
+Up until v2.1, the statement in \texttt{\bs sqlsetparams} could return only one field per row and the statement itself could not handle parameters. The placeholder \texttt{\$PAR1} was reserved for the subsequent statements.
+
+Since v2.2 it is possible to retrieve multiple values per row. They will replace the placeholders \texttt{\$MPAR\textit{n}} in the subsequent statements, while \texttt{\$PAR\textit{n}} placeholders can now also be used for regular parametes in the \texttt{\bs sqlsetparams} statement itself.
+
+\vs
+
+This means, in input documents created before v2.2, all  ``\texttt{\$PAR1}'' placeholders must be replaced by ``\texttt{\$MPAR1}''.
 
 \end{document}
