@@ -435,6 +435,13 @@ sub get_filenames {
 	return;
 }
 
+#####
+# Trim functions 
+#
+sub ltrim { my $s = shift; $s =~ s/^\s+//;       return $s };
+sub rtrim { my $s = shift; $s =~ s/\s+$//;       return $s };
+sub  trim { my $s = shift; $s =~ s/^\s+|\s+$//g; return $s };
+
 #######
 # Connect to the database
 #
@@ -528,7 +535,14 @@ sub db_connect($$) {
 		$msg .= " using a password" unless ($pw eq '');
 		&print_message ($msg);
 	}
-
+	if ($main::configuration{'sqlsystem_allowed'}) {
+		%main::connect_info = (
+			'hn' => $hn
+			,'un' => $un
+			,'pw' => $pw
+			,'db' => $db
+		);
+	}
 	$main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &just_died (1); # TODO Proper errorhandling
 	return;
 }
@@ -745,6 +759,28 @@ sub sql_end () {
 					$buffered_line = $lin1 . &sql_use($statement, $cnt) . $lin2;
 				}
 		 	}
+			if ($buffered_line =~ /\\$main::configuration{'last_cmd_prefix'}$main::configuration{'sql_system'}/) {
+				my $cmdfound = $&;
+				$cmdfound =~ s/\\//;
+				$cmdfound =~ s/\{/\\\{/;
+
+				$buffered_line  =~ /\\$cmdfound/;
+				my $lin1 = $`;
+				$buffered_line = $';
+				$buffered_line =~ /\}/;
+				my $statement = $`;
+				my $lin2 = $';
+				$statement =~ s/^\{//;
+
+				while ($buffered_line =~ /\\$main::configuration{'alt_cmd_prefix'}$main::configuration{'sql_use'}\{(\w+)\}/) {
+					my $usereplacement = &sql_use($1, $cnt);
+					print "$usestring -> $usereplacement\n";
+					$buffered_line =~ s/\\$main::configuration{'last_cmd_prefix'}$main::configuration{'sql_use'}\{(\w+)\}/$usereplacement/;
+				}
+			 	if ($cmdfound =~ /$main::configuration{'sql_system'}/) {
+					$buffered_line = $lin1 . &sql_system($statement) . $lin2;
+				}
+			}
 		 	$result .= $buffered_line;
 		}
 	}
@@ -753,11 +789,37 @@ sub sql_end () {
 	return $result;
 }
 
+#####
+# Start a conditional block
+#
+sub sql_if ($) {
+	my $condition = shift;
+	if (my $conditions =~ /(&&|\|\|)/) {
+		my $c1 = &check_condition($`);
+		my $c2 = &check_condition($');
+		return eval("$c1 $& $c2");
+	} else {
+		return &check_condition($condition);
+	}
+}
 
+#####
+# Helper function for sql_if
+#
+sub check_condition ($) {
+	my $condition = shift;
+	$condition =~ /(==|!=|<|>|<=|>=)/;
+
+	my $lval = &trim($`);
+	my $mval = &trim($');
+	my $comparisson = $&;
+
+#	if ()
+} 
 
 #####
 # Select a list of rows from the database. Each row will be input
-# for a document in multuidocument mode.
+# for a document in multidocument mode.
 #
 sub sql_setparams ($$) {
 	my ($options, $query) = @_;
@@ -804,6 +866,23 @@ sub sql_update ($$) {
 	&print_message ("Updating values with \"$query\"");
 	my $rc = $main::db_handle->do($query);
 	&print_message ("$rc rows updated");
+}
+
+####
+# Call an external script or system command
+# 
+sub sql_system ($) {
+	my $cmd = shift;
+
+	my $return_value = '\\textbf{use of the \\sqlsystem command is disallowed in the configuration}';
+	if ($main::configuration{'sqlsystem_allowed'}) {
+		$cmd =~ s/\<SRV\>/$main::connect_info{'hn'}/;
+		$cmd =~ s/\<USR\>/$main::connect_info{'un'}/;
+		$cmd =~ s/\<PWD\>/$main::connect_info{'pw'}/;
+		$cmd =~ s/\<DB\>/$main::connect_info{'db'}/;
+		$return_value = `$cmd`;
+	}
+	return $return_value;
 }
 
 ##### 
@@ -855,6 +934,8 @@ sub just_died ($) {
 		$msg = "start using a non-existing array on line $main::lcount[$main::fcount]";
 	} elsif ($step == 12) {
 		$msg = "\\sqluse command encountered outside loop context on line $main::lcount[$main::fcount]";
+	} elsif ($step == 13) {
+		$msg = "\\sqlif command encountered outside loop context on line $main::lcount[$main::fcount]";
 	}
 	if ($main::fcount > 0) {
 		for (my $fcnt = 0; $fcnt < $main::fcount; $fcnt++) {
@@ -898,6 +979,8 @@ sub parse_command ($$$) {
 	my $statement = $`;
 	my $lin2 = $';
 
+	my $raw_statement = $statement;
+	$raw_statement =~ s/^\{//;
 	$statement =~ s/(\[|\{)//g;
 	if ($statement =~ /\]/) {
 		$options = $`;
@@ -934,7 +1017,6 @@ sub parse_command ($$$) {
 	}
 
 	&just_died (2) if (!$main::db_opened); # TODO Proper errorhandling
-
 	if ($cmdfound =~ /$main::configuration{'sql_field'}/) {
 		$main::line = $lin1 . &sql_field($options, $statement) . $lin2;
 	} elsif ($cmdfound =~ /$main::configuration{'sql_row'}/) {
@@ -958,10 +1040,22 @@ sub parse_command ($$$) {
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_use'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound =~ /$main::configuration{'sql_end'}/) {
 		$main::line = $lin1 . &sql_end() . $lin2;
+	} elsif ($cmdfound =~ /$main::configuration{'sql_if'}/) {
+		&just_died (13) if (!@main::current_array); # TODO Proper errorhandling
+		$main::skipping_mode = &sql_if($statement);
+		$main::line = $lin1;
+		if ($main::skipping_mode) {
+			$main::line .= $lin2;
+		}
+	} elsif ($cmdfound =~ /$main::configuration{'sql_system'}/) {
+		if ($main::configuration{'sqlsystem_allowed'}) {
+			$main::line = $lin1 . &sql_system($raw_statement) . $lin2;
+		} else {
+			$main::line = "$lin1 (use of the \\sqlsystem command is disallowed in the configuration) $lin2";
+		}
 	} else {
 		&just_died (10); # TODO Proper errorhandling
 	}
-
 	return 0;
 }
 
@@ -979,6 +1073,16 @@ sub read_input($$$$) {
 
 	while ($main::line = <$fileIn>) {
 		$main::lcount[$main::fcount]++;
+		my $endifCommand = '\\' . $main::configuration{'cmd_prefix'} . $main::configuration{'sql_endif'}; 
+		if ($main::line =~ /$endifCommand\{\}/) {
+			if ($main::skipping_mode) {
+				$main::line = '';
+			} else {
+				$main::line = $`;
+			}
+			$main::line .= $';
+			$main::skipping_mode = 0;
+		}
 		next if ($main::line =~ /^\s*%/);
 		if ($main::line =~ /(.*?)(\\in(put|clude))(\s*?)\{(.*?)\}(.*)/) {
 			print $output_handle "$1" unless ($output_handle == -1);
@@ -987,6 +1091,10 @@ sub read_input($$$$) {
 			print $output_handle "$6\n" unless ($output_handle == -1);
 		}
 		my $cmdPrefix = $main::configuration{'cmd_prefix'};
+		if (@main::current_array) {
+			# Inside loop contect the \sqlsystem{} command can contain \sqluse{}
+			$main::line =~ s/$cmdPrefix$main::configuration{'sql_system'}/$main::configuration{'last_cmd_prefix'}$main::configuration{'sql_system'}/;	
+		}
 		while (($main::line =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($main::line =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
 			if (&parse_command($&, $multidoc_par, $fileIn) && $main::multidoc && ($main::multidoc_cnt == 0)) {
 				close $fileIn;
@@ -1062,6 +1170,7 @@ sub process_file {
 	,'rfile_regexploc'	=> '...'
 	,'rfile_regexp'		=> 're(...)'
 	,'cmd_prefix'		=> 'sql'
+	,'sql_system'		=> 'system'
 	,'sql_open'			=> 'db'
 	,'sql_field'		=> 'field'
 	,'sql_row'			=> 'row'
@@ -1070,8 +1179,12 @@ sub process_file {
 	,'sql_start'		=> 'start'
 	,'sql_end'			=> 'end'
 	,'sql_use'			=> 'use'
+	,'sql_if'           => 'if'
+	,'sql_endif'        => 'endif'
+	,'sqlsystem_allowed'=> 0
 	,'repl_step'		=> 'OSTX'
 	,'alt_cmd_prefix' 	=> 'processedsqlcommand'
+	,'last_cmd_prefix' 	=> 'lastsqlcommand'
 );
 
 #####
@@ -1081,6 +1194,7 @@ sub process_file {
 	my @dir_list = split /\//, $0;
 	pop @dir_list;
 	$main::my_location = join '/', @dir_list;
+	$main::skipping_mode = 0;
 	
 	if (&is_linux) {
 		$main::config_location = '{SYSCONFDIR}';
@@ -1091,8 +1205,9 @@ sub process_file {
 
 # Check config
 # Used for loops, should not start with $main::configuration{'cmd_prefix'} !!
-if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/) {
-	die "Configuration item 'alt_cmd_prefix' cannot start with $main::configuration{'cmd_prefix'}";
+if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/
+	|| $main::configuration{'last_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/) {
+	die "Configuration items 'alt_cmd_prefix' and ĺast_cnd_prefix' cannot start with $main::configuration{'cmd_prefix'}";
 }
 
 $main::myself = $0;
