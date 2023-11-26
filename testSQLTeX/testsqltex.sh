@@ -125,10 +125,32 @@ testcase_7 () {
 	check_result 7 stx
 }
 
+# Testcase 8: if-endif construction and system callbacks
+# This testcase handles conditional functionality:
+#  \sqlif{condition}
+#  \sqlendif{}
+#  \sqlrow[setarr]
+#  \sqlstart{}
+#  \sqlend{}
+#  \sqluse[setvar]{}
+#  \sqlsystem{}
+#
+testcase_8 () {
+	echo ""
+	echo " * Testcase 8: verify if-endif condition block and system commands..."
+	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc8.tex
+	check_result 8 stx
+}
+
 
 CWD=`pwd`
 STEST=0
 FTEST=0
+EXEC=0
+if [ "$1" != "" ]
+then
+	EXEC=$1
+fi
 
 cd $SQLTeXTestLocation
 echo -n "Database user: "
@@ -147,24 +169,50 @@ HST=${HST:-localhost}
 echo "Creating the the test database..."
 mysql --user=$USR --password=$PWD --host=$HST < testSQLTeX.sql
 
-testcase_1 20190047
-testcase_1 20190062
-testcase_1 20190091
-testcase_1 20190138
-testcase_1 20190205
-testcase_1 20190216
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 1 ]
+then
+	testcase_1 20190047
+	testcase_1 20190062
+	testcase_1 20190091
+	testcase_1 20190138
+	testcase_1 20190205
+	testcase_1 20190216
+fi
 
-testcase_2
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 2 ]
+then
+	testcase_2
+fi
 
-testcase_3
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 3 ]
+then
+	testcase_3
+fi
 
-testcase_4
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 4 ]
+then
+	testcase_4
+fi
 
-testcase_5
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 5 ]
+then
+	testcase_5
+fi
 
-testcase_6
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 6 ]
+then
+	testcase_6
+fi
 
-testcase_7
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 7 ]
+then
+	testcase_7
+fi
+
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 8 ]
+then
+	testcase_8
+fi
 
 echo "Drop the test database..."
 mysql --user=$USR --password=$PWD --host=$HST --execute='DROP SCHEMA `testsqltex`'

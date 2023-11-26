@@ -1,0 +1,51 @@
+\documentclass[a4paper]{article}
+\pagestyle{empty}
+\sqldb[user=?,passwd=?]{testsqltex}
+\begin{document}
+
+\sqlrow[setarr=0]{
+SELECT i.nr AS nr
+     , i.due_date AS date
+     , SUM(FORMAT(l.amount*a.price,2)) AS amount
+     , c.name AS customer
+FROM invoice i
+LEFT JOIN customer c
+     ON c.nr = i.cust_nr
+LEFT JOIN invoice_line l
+     ON l.invoice_nr = i.nr
+LEFT JOIN article a
+     ON l.article_nr = a.nr
+WHERE i.pay_date IS NULL
+GROUP BY i.nr 
+       , i.due_date
+       , c.name}
+
+\sqlsystem{echo "Start list from <DB>"}
+
+\sqlstart{0}
+\sqlif{amount > 30 && nr > 20190000}
+\begin{flushright}
+
+Regarding: invoicenumber \sqlsystem{echo \sqluse{nr}}
+\end{flushright}
+
+\vspace{3cm}
+
+Dear \sqluse{customer},
+
+\vspace{2cm}
+
+On \today, the invoice with number \sqluse{nr}, payable before
+\sqluse{date}, was not yet received by us.
+
+\vspace{5mm}
+
+We kindly request you to pay the amount of EUR \sqluse{amount}
+as soon as possible.
+
+\newpage
+\sqlendif{}
+\sqlend{}
+
+
+\end{document}
