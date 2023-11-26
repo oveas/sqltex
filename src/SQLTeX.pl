@@ -730,7 +730,12 @@ sub sql_start ($) {
 #
 sub sql_use ($$) {
 	my ($field, $loop) = @_;
-	return $main::arr[$#main::current_array][$loop]->{$field};
+	my $return_value = $main::configuration{'no_such_used_fld'};
+	if ($main::arr[$#main::current_array][$loop]->{$field}) {
+		$return_value =  $main::arr[$#main::current_array][$loop]->{$field};
+	}
+	return $return_value;
+	
 }
 
 
@@ -744,6 +749,25 @@ sub sql_end () {
 		for (my $lines = 0; $lines < $#{$main::loop_data[$#main::current_array]}; $lines++) {
 			my $buffered_line = ${$main::loop_data[$#main::current_array]}[$lines];
 			my $cmdPrefix = $main::configuration{'alt_cmd_prefix'};
+			if ($buffered_line =~ s/\\$cmdPrefix$main::configuration{'sql_endif'}\{\}//) {
+				$main::if_enabled = 1;
+			}
+			if ($buffered_line =~ /\\$cmdPrefix$main::configuration{'sql_if'}/) {
+				my $lin1 = $`;
+				my $lin2 = $';
+				$lin2 =~ s/^\{//;
+				$lin2 =~ /\}/;
+				my $statement = $`;
+				$lin2 = $';
+				$main::if_enabled = &sql_if($statement, $cnt);
+				$buffered_line = $lin1;
+				if ($main::if_enabled) {
+					$buffered_line .= $lin2;
+				}
+			}
+			if (!$main::if_enabled) {
+				next;
+			}
 			while (($buffered_line  =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($buffered_line  =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
 				my $cmdfound = $&;
 				$cmdfound =~ s/\\//;
@@ -755,6 +779,7 @@ sub sql_end () {
 				$buffered_line =~ /\}/;
 				my $statement = $`;
 				my $lin2 = $';
+
 			 	if ($cmdfound =~ /$main::configuration{'sql_use'}/) {
 					$buffered_line = $lin1 . &sql_use($statement, $cnt) . $lin2;
 				}
@@ -774,7 +799,6 @@ sub sql_end () {
 
 				while ($buffered_line =~ /\\$main::configuration{'alt_cmd_prefix'}$main::configuration{'sql_use'}\{(\w+)\}/) {
 					my $usereplacement = &sql_use($1, $cnt);
-					print "$usestring -> $usereplacement\n";
 					$buffered_line =~ s/\\$main::configuration{'last_cmd_prefix'}$main::configuration{'sql_use'}\{(\w+)\}/$usereplacement/;
 				}
 			 	if ($cmdfound =~ /$main::configuration{'sql_system'}/) {
@@ -792,29 +816,54 @@ sub sql_end () {
 #####
 # Start a conditional block
 #
-sub sql_if ($) {
-	my $condition = shift;
-	if (my $conditions =~ /(&&|\|\|)/) {
-		my $c1 = &check_condition($`);
-		my $c2 = &check_condition($');
+sub sql_if ($$) {
+	my ($condition, $cnt) = @_;
+	if ($condition =~ /(&&|\|\|)/) {
+		my $c1 = &check_condition($`, $cnt);
+		my $c2 = &check_condition($', $cnt);
 		return eval("$c1 $& $c2");
 	} else {
-		return &check_condition($condition);
+		return &check_condition($condition, $cnt);
 	}
 }
 
 #####
 # Helper function for sql_if
 #
-sub check_condition ($) {
-	my $condition = shift;
+sub check_condition ($$) {
+	my ($condition, $cnt) = @_;
 	$condition =~ /(==|!=|<|>|<=|>=)/;
 
-	my $lval = &trim($`);
-	my $mval = &trim($');
+	my $lval = $`;
+	my $rval = $';
 	my $comparisson = $&;
+	$lval = &trim($lval);
+	$rval = &trim($rval);
 
-#	if ()
+	my $uf = &sql_use($lval, $cnt);
+	if ($uf ne $main::configuration{'no_such_used_fld'}) {
+		$lval = $uf;
+	}
+	$uf = &sql_use($rval, $cnt);
+	if ($uf ne $main::configuration{'no_such_used_fld'}) {
+		$rval = $uf;
+	}
+
+	my $result = 0;
+	if ($comparisson eq "==") {
+		$result = ($lval == $rval);
+	} elsif ($comparisson eq '!=') {
+		$result = ($lval != $rval);
+	} elsif ($comparisson eq '<') {
+		$result = ($lval < $rval);
+	} elsif ($comparisson eq '>') {
+		$result = ($lval > $rval);
+	} elsif ($comparisson eq '<=') {
+		$result = ($lval <= $rval);
+	} elsif ($comparisson eq '>=') {
+		$result = ($lval >= $rval);
+	}
+	return $result;
 } 
 
 #####
@@ -1010,18 +1059,20 @@ sub parse_command ($$$) {
 		$statement =~ s/\{//;
 	}
 
-	if ($cmdfound =~ /$main::configuration{'sql_open'}/) {
+	$cmdfound =~ s/^$main::configuration{'cmd_prefix'}//;
+	if ($cmdfound eq $main::configuration{'sql_open'}
+	) {
 		&db_connect($options, $statement);
 		$main::db_opened = 1;
 		return 0;
 	}
 
 	&just_died (2) if (!$main::db_opened); # TODO Proper errorhandling
-	if ($cmdfound =~ /$main::configuration{'sql_field'}/) {
+	if ($cmdfound eq $main::configuration{'sql_field'}) {
 		$main::line = $lin1 . &sql_field($options, $statement) . $lin2;
-	} elsif ($cmdfound =~ /$main::configuration{'sql_row'}/) {
+	} elsif ($cmdfound eq $main::configuration{'sql_row'}) {
 		$main::line = $lin1 . &sql_row($options, $statement) . $lin2;
-	} elsif ($cmdfound =~ /$main::configuration{'sql_params'}/) {
+	} elsif ($cmdfound eq $main::configuration{'sql_params'}) {
 		if ($main::multidoc) { # Ignore otherwise
 			@main::parameters = &sql_setparams($options, $statement);
 			$main::line = $lin1 . $lin2;
@@ -1029,30 +1080,24 @@ sub parse_command ($$$) {
 		} else {
 			$main::line = $lin1 . $lin2;
 		}
-	} elsif ($cmdfound =~ /$main::configuration{'sql_update'}/) {
+	} elsif ($cmdfound eq $main::configuration{'sql_update'}) {
 		&sql_update($options, $statement);
 		$main::line = $lin1 . $lin2;
-	} elsif ($cmdfound =~ /$main::configuration{'sql_start'}/) {
+	} elsif ($cmdfound eq $main::configuration{'sql_start'}) {
 		&sql_start($statement);
 		$main::line = $lin1 . $lin2;
-	} elsif ($cmdfound =~ /$main::configuration{'sql_use'}/) {
+	} elsif ($cmdfound eq $main::configuration{'sql_use'}) {
 		&just_died (12) if (!@main::current_array); # TODO Proper errorhandling
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_use'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
-	} elsif ($cmdfound =~ /$main::configuration{'sql_end'}/) {
+	} elsif ($cmdfound eq $main::configuration{'sql_end'}) {
 		$main::line = $lin1 . &sql_end() . $lin2;
-	} elsif ($cmdfound =~ /$main::configuration{'sql_if'}/) {
+	} elsif ($cmdfound eq $main::configuration{'sql_endif'}) {
+		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_endif'} . "{}" . $lin2; # Restore the line, will be processed later
+	} elsif ($cmdfound eq $main::configuration{'sql_if'}) {
 		&just_died (13) if (!@main::current_array); # TODO Proper errorhandling
-		$main::skipping_mode = &sql_if($statement);
-		$main::line = $lin1;
-		if ($main::skipping_mode) {
-			$main::line .= $lin2;
-		}
+		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_if'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound =~ /$main::configuration{'sql_system'}/) {
-		if ($main::configuration{'sqlsystem_allowed'}) {
-			$main::line = $lin1 . &sql_system($raw_statement) . $lin2;
-		} else {
-			$main::line = "$lin1 (use of the \\sqlsystem command is disallowed in the configuration) $lin2";
-		}
+		$main::line = $lin1 . &sql_system($raw_statement) . $lin2;
 	} else {
 		&just_died (10); # TODO Proper errorhandling
 	}
@@ -1073,16 +1118,7 @@ sub read_input($$$$) {
 
 	while ($main::line = <$fileIn>) {
 		$main::lcount[$main::fcount]++;
-		my $endifCommand = '\\' . $main::configuration{'cmd_prefix'} . $main::configuration{'sql_endif'}; 
-		if ($main::line =~ /$endifCommand\{\}/) {
-			if ($main::skipping_mode) {
-				$main::line = '';
-			} else {
-				$main::line = $`;
-			}
-			$main::line .= $';
-			$main::skipping_mode = 0;
-		}
+
 		next if ($main::line =~ /^\s*%/);
 		if ($main::line =~ /(.*?)(\\in(put|clude))(\s*?)\{(.*?)\}(.*)/) {
 			print $output_handle "$1" unless ($output_handle == -1);
@@ -1185,6 +1221,7 @@ sub process_file {
 	,'repl_step'		=> 'OSTX'
 	,'alt_cmd_prefix' 	=> 'processedsqlcommand'
 	,'last_cmd_prefix' 	=> 'lastsqlcommand'
+	,'no_such_used_fld'	=> 'sqltex_used_field_does_not_exist'
 );
 
 #####
@@ -1194,7 +1231,7 @@ sub process_file {
 	my @dir_list = split /\//, $0;
 	pop @dir_list;
 	$main::my_location = join '/', @dir_list;
-	$main::skipping_mode = 0;
+	$main::if_enabled = 1;
 	
 	if (&is_linux) {
 		$main::config_location = '{SYSCONFDIR}';
