@@ -89,6 +89,7 @@ Credits
 * **Ingo Reich**       for the comment on Mac OS
 * **Johan W. Klüwer**  for verifying the SyBase support
 * **Paolo Cavallini**  for adding PostgreSQL support
+* **Silpa Suresh**     for testing the ODBC support
 
 ----------
 

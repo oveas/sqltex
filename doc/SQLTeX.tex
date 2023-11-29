@@ -207,6 +207,8 @@ With the default configuration this command is ``\texttt{\bs sqluse}''.
 \item[sql\_end] This string is appended to the \texttt{cmd\_prefix} to get the complete SQL\TeX\ command to end a loop context (see section~\ref{loops}).\\
 With the default configuration this command is ``\texttt{\bs sqlend}''.
 
+\item[sqlsystem\_allowed] Set this to ``1'' to allow the use of the \texttt{\bs sqlsystem} command (see section~\ref{sqlsystem}.
+
 \item[repl\_step] Replacing strings (see section~\ref{replfiles} below) is done two steps, to prevent values from being replaced twice.
 This setting---followed by a three-digit integer - ``000'' to ``999''---is used in the first step and replaces values from the first column.
 In the second step, values from the second column replace the temporary value. \\
@@ -575,6 +577,58 @@ as soon as possible.
 \sqlend{}
 \end{verbatim}
 
+\subsubsection{If-endif control block}
+
+In the loop context, parts of the document can be enabled if certain conditions are met, using a control block with \texttt{\bs sqlif\{\textit{condition(s)}\}} and \texttt{\bs sqlendif\{\}}.
+
+\vs
+
+\textit{Conditions} can be up to 2 conditions separated by an \textit{and} (\texttt{\&\&}) or \textit{or} (\texttt{||}).
+
+The condition(s) consist of an left value and an right value seperated by 1 of the following comparisson operators: `\texttt{==}', `\texttt{!=}', `\texttt{<}',. `\texttt{>}', `\texttt{<=}' or `\texttt{>=}'.\\
+Both values can be a database value retrieved via \texttt{\bs sqluse\{\}}.
+
+\vs
+
+\noindent Example:\\
+\texttt{\bs sqlif\{\bs sqluse\{article\_nr\} == 123 \&\& \bs sqluse\{stock\} < 5\}\\
+Stock is below threshold, please reorder.
+}\\
+\bs sqlendif\{\}
+
+\vs
+
+Note the conditions are very basic with the following limitations:
+\begin{itemize}
+\item A maximum of 2 conditions is supported per if-statement.
+\item Only numeric comparissons are supported.
+\item If-elsif blocks cannot be nested.
+\end{itemize}
+
+When checks are needed that are not supported by SQL\TeX, a workaround can be implemented in the SQL code.
+
+
+\subsection{Get input from external programs}\label{sqlsystem}
+
+This command can be used to call external scripts and use their output in the location where the command was given.
+
+The command can be any command for the operating system. If command arguments must be given, the following tags van be used, they will be replaced by the credentials for connecting to the database (see section~\ref{opendb}:
+
+\begin{itemize}
+\item[\texttt{<SRV>}] Name of the database server.
+\item[\texttt{<USR>}] Username to connect to the database.
+\item[\texttt{<PWD>}] Password to connect to the database.
+\item[\texttt{<DB>}] Name of the database.
+\end{itemize}
+
+When used in a loop contect (see section~\ref{loop}), \texttt{\bs sqluse} can also be used to  provide data to the script.
+
+\vs
+
+By default, use of this command is disallowed. To enable it, set the value of \texttt{sqlsystem\_allowed} to ``1'' in the configuration file (see also section~\ref{config}.
+
+If the command is disabled, occurances of this command will be replaced byy the fixed text ``\texttt{use of the \\sqlsystem command is disallowed in the configuration}''.
+
 
 \subsection{Output multiple documents}\label{multidoc}
 
@@ -879,9 +933,11 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 \begin{description}
 \item[vx.x] \textit{released: Xxx xx, 20xx}
 \begin{itemize}
-\item Added support for ODBC drivers
-\item Added support for parameter-driven in \texttt{\bs sqlsetparams} statements (multi-document mode).\\
+\item Issue \#6 (\url{https://github.com/oveas/sqltex/issues/6}): added support for ODBC drivers
+\item Issue \#8 (\url{https://github.com/oveas/sqltex/issues/8}): added support for parameter-driven in \texttt{\bs sqlsetparams} statements (multi-document mode).\\
 \textit{\textbf{Note:}} This requires an update of your input files for multi-document mode that have been created before v2.2. Refer to section \ref{mdocupdates} for details.
+\item Added the \texttt{\bs sqlsystem} command.
+\item Added the \texttt{\bs sqlif}-\texttt{\bs sqlendif} control block.
 \end{itemize}
 
 \item[v2.1] \textit{released: Jan 21, 2022}
