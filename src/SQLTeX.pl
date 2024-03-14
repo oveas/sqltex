@@ -26,6 +26,7 @@
 #   v2.1     Jan 21, 2022
 #   v2.1-1   Apr 19, 2022 (test version for MSSQL, no official release)
 #   v2.1-2   Jun 25, 2023 (test version parameter in sql_setparams(), no official release)
+#   v2.1-3   Nov 30, 2023 (test version \sqlif-\sqlendif & \sqlsysten, no official release)
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -1221,7 +1222,7 @@ sub process_file {
 	,'repl_step'		=> 'OSTX'
 	,'alt_cmd_prefix' 	=> 'processedsqlcommand'
 	,'last_cmd_prefix' 	=> 'lastsqlcommand'
-	,'no_such_used_fld'	=> 'sqltex_used_field_does_not_exist'
+	,'no_such_used_fld'	=> '\textit{SQL\TeX\ use-field does not exist}'
 );
 
 #####
@@ -1249,8 +1250,8 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 
 $main::myself = $0;
 
-$main::version = '2.1-2';
-$main::rdate = 'Jun 25, 2023';
+$main::version = '2.1-3';
+$main::rdate = 'Nov 30, 2023';
 
 &parse_options;
 if (defined $main::options{'l'}) {

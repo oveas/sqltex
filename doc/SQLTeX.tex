@@ -586,12 +586,11 @@ In the loop context, parts of the document can be enabled if certain conditions 
 \textit{Conditions} can be up to 2 conditions separated by an \textit{and} (\texttt{\&\&}) or \textit{or} (\texttt{||}).
 
 The condition(s) consist of an left value and an right value seperated by 1 of the following comparisson operators: `\texttt{==}', `\texttt{!=}', `\texttt{<}',. `\texttt{>}', `\texttt{<=}' or `\texttt{>=}'.\\
-Both values can be a database value retrieved via \texttt{\bs sqluse\{\}}.
-
+Numeric values will be used as is. When the value is text, it is expected to be the name of a field and `\texttt{\bs sqluse\{\}}` will be called to retrieve the value.
 \vs
 
 \noindent Example:\\
-\texttt{\bs sqlif\{\bs sqluse\{article\_nr\} == 123 \&\& \bs sqluse\{stock\} < 5\}\\
+\texttt{\bs sqlif\{article\_nr == 123 \&\& \bs stock < 5\}\\
 Stock is below threshold, please reorder.
 }\\
 \bs sqlendif\{\}
