@@ -26,7 +26,7 @@
 #   v2.1     Jan 21, 2022
 #   v2.1-1   Apr 19, 2022 (test version for MSSQL, no official release)
 #   v2.1-2   Jun 25, 2023 (test version parameter in sql_setparams(), no official release)
-#   v2.1-3   Nov 30, 2023 (test version \sqlif-\sqlendif & \sqlsysten, no official release)
+#   v2.1-3   Nov 30, 2023 (test version \sqlif-\sqlendif & \sqlsystem, no official release)
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -924,7 +924,7 @@ sub sql_update ($$) {
 sub sql_system ($) {
 	my $cmd = shift;
 
-	my $return_value = '\\textbf{use of the \\sqlsystem command is disallowed in the configuration}';
+	my $return_value = '\\textbf{use of the \\textbackslash sqlsystem command is disallowed in the configuration}';
 	if ($main::configuration{'sqlsystem_allowed'}) {
 		$cmd =~ s/\<SRV\>/$main::connect_info{'hn'}/;
 		$cmd =~ s/\<USR\>/$main::connect_info{'un'}/;
