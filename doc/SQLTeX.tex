@@ -8,8 +8,8 @@
 	,linkcolor=blue
 	,unicode]{hyperref}
 \begin{document}
-\title{SQL\TeX\\vx.x}
-\date{Xxx xx, 20xx}
+\title{SQL\TeX\\v2.2}
+\date{July 31, 2024}
 \author{Oscar van Eijk}
 \maketitle
 \hrulefill
@@ -62,7 +62,7 @@ To install SQL\TeX, unpack the archive in a location of your choice and follow t
 
 \subsubsection{Linux}
 
-Go to the top directory where the archive was unpacked (`\texttt{cd sqltex-2.1}') and execute the following commands:
+Go to the top directory where the archive was unpacked (`\texttt{cd sqltex-2.2}') and execute the following commands:
 
 \vs
 
@@ -104,15 +104,15 @@ This distribution contains an \texttt{.EXE} file that was generated using \textt
 
 \vs
 
-The files \texttt{sqltex-2.1\ensuremath{\backslash}SQLTeX.EXE}, \texttt{sqltex-2.1\ensuremath{\backslash}src\ensuremath{\backslash}SQLTeX.cfg} and \\ \texttt{sqltex-2.1\ensuremath{\backslash}src\ensuremath{\backslash}SQLTeX\_r.dat} must be placed manually in the directory of your choice, all in the same direcrtory.
+The files \texttt{sqltex-2.2\ensuremath{\backslash}SQLTeX.EXE}, \texttt{sqltex-2.2\ensuremath{\backslash}src\ensuremath{\backslash}SQLTeX.cfg} and \\ \texttt{sqltex-2.2\ensuremath{\backslash}src\ensuremath{\backslash}SQLTeX\_r.dat} must be placed manually in the directory of your choice, all in the same direcrtory.
 
 
 \subsubsection{OpenVMS}
 
 On \textsc{OpenVMS} the files must be copied manually to the destination. All files must reside in the same location:\\
-\texttt{\$ COPY [.SQLTEX-2\_1.SRC]SQLTEX.PL SYS\$SYSTEM:\\
-\$ COPY [.SQLTEX-2\_1.SRC]SQLTEX.CFG SYS\$SYSTEM:\\
-\$ COPY [.SQLTEX-2\_1.SRC]SQLTEX\_R.DAT SYS\$SYSTEM:\\
+\texttt{\$ COPY [.SQLTEX-2\_2.SRC]SQLTEX.PL SYS\$SYSTEM:\\
+\$ COPY [.SQLTEX-2\_2.SRC]SQLTEX.CFG SYS\$SYSTEM:\\
+\$ COPY [.SQLTEX-2\_2.SRC]SQLTEX\_R.DAT SYS\$SYSTEM:\\
 \$ SET FILE/PROTECTION=(W:RE) SYS\$SYSTEM:SQLTEX.PL}
 
 \vs
@@ -609,9 +609,9 @@ When checks are needed that are not supported by SQL\TeX, a workaround can be im
 
 \subsection{Get input from external programs}\label{sqlsystem}
 
-This command can be used to call external scripts and use their output in the location where the command was given.
+The \texttt{\bs sqlsystem} command can be used to call commands at the operating system or external scripts and use their output in the location where the command was given. Any command arguments can be given in the command line.
 
-The command can be any command for the operating system. If command arguments must be given, the following tags van be used, they will be replaced by the credentials for connecting to the database (see section~\ref{opendb}):
+When used in a loop context (see section~\ref{loops}), \texttt{\bs sqluse} can also be used to  provide data to the script. If command arguments must be given for database access, the following tags can be used:
 
 \begin{itemize}
 \item[\texttt{<SRV>}] Name of the database server.
@@ -620,13 +620,20 @@ The command can be any command for the operating system. If command arguments mu
 \item[\texttt{<DB>}] Name of the database.
 \end{itemize}
 
-When used in a loop context (see section~\ref{loops}), \texttt{\bs sqluse} can also be used to  provide data to the script.
+They will be replaced by the credentials for connecting to the database (see section~\ref{opendb}).
+
+
+\vs
+
+\noindent Example:\\
+\texttt{\bs sqlsystem\{./add\_vat --usr <USR> --db <DB> --pwd <PWD> \\
+--inv \bs sqluse\{invoice\_nr\}\}}
 
 \vs
 
 By default, use of this command is disallowed. To enable it, set the value of \texttt{sqlsystem\_allowed} to ``1'' in the configuration file (see also section~\ref{config}.
 
-If the command is disabled, occurances of this command will be replaced byy the fixed text ``\texttt{use of the \\sqlsystem command is disallowed in the configuration}''.
+If the command is disabled, occurances of this command will be replaced by the fixed text ``\texttt{use of the \bs sqlsystem command is disallowed in the configuration}''.
 
 
 \subsection{Output multiple documents}\label{multidoc}
@@ -750,7 +757,7 @@ Default is \texttt{SQLTeX{\_}r.dat} in the same location where SQL\TeX\ is insta
 they appear on the command line, overwriting each other.\\
 For backwards compatibility, \texttt{-rn} is also still supported.
 
-\item[\texttt{--use-local-config, -l}] Use the current installation directory as default location for the config- and replacement files in stead of \texttt{/etc}\footnote{ linux only}.
+\item[\texttt{--use-local-config, -l}]\footnote{ linux only} Use the current installation directory as default location for the config- and replacement files in stead of \texttt{/usr/local/etc}.
 
 \item[\texttt{--sqlserver \textit{server}, -s \textit{server}}] SQL server to connect to. Default is \texttt{localhost}.
 
@@ -920,7 +927,7 @@ For bugs, questions and comments, please use the issue tracker available at \url
 
 \vspace{3mm}
 
-\noindent Copyright\copyright\ 2001-20xx - Oscar van Eijk, Oveas Functionality Provider
+\noindent Copyright\copyright\ 2001-2024 - Oscar van Eijk, Oveas Functionality Provider
 
 \noindent\hrulefill \\
 
@@ -930,7 +937,7 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 \section{History}
 
 \begin{description}
-\item[vx.x] \textit{released: Xxx xx, 20xx}
+\item[v2.2] \textit{released: Jul 31, 2024}
 \begin{itemize}
 \item Issue \#6 (\url{https://github.com/oveas/sqltex/issues/6}): added support for ODBC drivers
 \item Issue \#8 (\url{https://github.com/oveas/sqltex/issues/8}): added support for parameter-driven in \texttt{\bs sqlsetparams} statements (multi-document mode).\\
