@@ -6,10 +6,11 @@ DISTFILES = Makefile.am Makefile.in SQLTeX.man
 all : 
 
 SQLTeX.1 : SQLTeX.man
-	cat $^ | sed -e 's#{BINDIR}#$(bindir)#;s#{SYSCONFDIR}#$(sysconfdir)#' > $@
+	@cat $^ | sed -e 's#{BINDIR}#$(bindir)#;s#{SYSCONFDIR}#$(sysconfdir)#' > $@
 
 distdir : ${DISTFILES}
 	cp ${DISTFILES} $(distdir)
 
 install: SQLTeX.1
+	@if [ ! -d ${mandir} ]; then mkdir -p ${mandir}; fi
 	cp $^ ${mandir}/man1

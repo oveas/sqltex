@@ -16,5 +16,13 @@ SQLTeX: SQLTeX.pl
 	@chmod +x $@
 
 install : SQLTeX ${DATAFILES}
-	@cp $< $(bindir)
-	@cp $(DATAFILES) $(sysconfdir)
+	@if [ ! -d ${bindir} ]; then mkdir -p ${bindir}; fi
+	@if [ ! -d ${sysconfdir} ]; then mkdir -p ${sysconfdir}; fi
+	cp $< $(bindir)
+	@$(foreach datafile, $(DATAFILES), \
+		if [ -e $(sysconfdir)/$(datafile) ]; \
+			then echo 'cp $(datafile) $(sysconfdir)/$(datafile).new'; \
+				cp $(datafile) $(sysconfdir)/$(datafile).new; \
+			else echo 'cp $(datafile) $(sysconfdir)/$(datafile)';  \
+				cp $(datafile) $(sysconfdir)/$(datafile); \
+		fi;)

@@ -13,4 +13,5 @@ SQLTeX.pdf: SQLTeX.tex
 	@pdflatex $^
 
 install: SQLTeX.pdf
+	@if [ ! -d ${pdfdir} ]; then mkdir -p ${pdfdir}; fi
 	cp $^ ${pdfdir}
