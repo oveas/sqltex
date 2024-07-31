@@ -1,8 +1,7 @@
 ; This file contains all characters or character sequences that
 ; will be be replaced by SQLTeX when the occur in the response
 ; of an SQL query.
-; It is mainly used for escaping the (La)TeX special characters,
-; but any value can be added here.
+;
 ; The first column is the character (sequence) that will be replaced.
 ; The second column is the value to replace col 1 with.
 ; Columns are separated with one or more tab characters.
@@ -11,19 +10,125 @@
 ;   LaTeX	\LaTeX\ 
 ; the word "latex" will be untouched, but "LaTeX" will be replaced.
 ;
-; To replace using regular expressions, use 're(<regular expression>)' as key (or any other
-; regexp indicator if that has been changed in the config file), e.g.
+; To replace using regular expressions, use 're(<regular expression>)'
+; as key (or any other regexp indicator if that has been changed in the
+; config file), e.g.
 ;   re(<p\.*?>)		\paragraph*{}
-; will replace all HTML <p> variants (<p style='font-size: normal'>, <p align='center'> etc)
+; will replace all HTML <p> variants (<p style='font-size: normal'>,
+; <p align='center'> etc)
 ;
-$	\$
-_	\_
-%	\%
-&	\&
-<	\texttt{<}
->	\texttt{>}
-{	\{
-}	\}
-#	\#
-~	\~{}
-\	\ensuremath{\backslash}
+;
+; LaTeX special characters
+; ------------------------
+;
+$		\$
+_		\_
+%		\%
+&		\&
+<		\texttt{<}
+>		\texttt{>}
+{		\{
+}		\}
+#		\#
+~		\~{}
+\		\ensuremath{\backslash}
+;
+; Diacretics
+; ----------
+;
+ñ		\~{n}
+â		\^{a}
+ä		\"{a}
+á		\'{a}
+à		\`{a}
+ç		\c{c}
+ê		\^{e}
+ë		\"{e}
+è		\`{e}
+é		\'{e}
+î		\^{i}
+ï		\"{i}
+í		\'{i}
+ì		\`{i}
+ô		\^{o}
+ö		\"{o}
+ó		\'{o}
+ò		\`{o}
+û		\^{u}
+ü		\"{u}
+ú		\'{u}
+ù		\`{u}
+ÿ		\"{y}
+;
+; Other special characters
+; ------------------------
+;
+"		''
+´		'
+		.
+		'
+		'
+		'
+		'
+		---
+±		$\pm$
+;
+; HTML special characters
+; -----------------------
+;
+&nbsp;	\hspace{1em}
+&amp;	\&
+&#38;	\&
+&#39;	'
+;
+; HTML font types
+; ---------------
+;
+re(<strong.*?>)	\textbf{
+</strong>		}
+re(<em.*?>)		\textit{
+</em>			}
+<del>			\sout{
+</del>			}
+<sup>			$^{
+</sup>			}$
+;
+; HTML links (ignored)
+; --------------------
+;
+re(<a .*?>)		
+</a>			
+;
+; HTML sections and breaks
+; ------------------------
+;
+re(<p.*?>)		
+</p>			\\[0pt]
+re(<h1.*?>)		\section{
+re(<h2.*?>)		\subsection{
+re(<h3.*?>)		\subsubsection{
+re(</h\d>)		}
+<br />			\\
+;
+; HTML lists
+; ----------
+;
+<ul>			\begin{itemize}
+<li>			\item\
+</li>			
+</ul>			\end{itemize}
+;
+; HTML tables
+; -----------
+; This is meant as an example only and outcommented.
+; Replace the tabular with the desired number of columns
+; before using this.
+;
+;re(<table.*?>)	\begin{tabular}{lll}
+;re(</?tbody>)	
+;re(<tr.*?>)		
+;</tr>			\\
+;re(<td.*?>)		
+;</td>			&
+;</table>		\end{tabular} \\
+;
