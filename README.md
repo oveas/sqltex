@@ -1,16 +1,38 @@
-SQLTeX v2.1
+SQLTeX v2.2
 ===========
 
 **SQLTeX** is a preprocessor to enable the use of SQL statements in LaTeX. It is a
-perl script that reads an input file containing the SQL commands, and writes a
-LaTeX file that can be processed with your LaTeX package.
+perl script that reads one or more input files containing the SQL commands, and writes a
+single LaTeX file or multiple files based on the data read from the database.
+Those files can be processed with your LaTeX package.
 
 The SQL commands will be replaced by their values. It's possible to select a
 single field for substitution substitution in your LaTeX document, or to be
 used as input in another SQL command.
 
-When an SQL command returns multiple fields and or rows, the values can only be
-used for substitution in the document.
+### Features ###
+
+* Replace the SQL statements with their result. This can be a single field, a row or multiple rows,
+* Configurable replace file to translate special characters or strings to LaTeX format, with support for regular expressions,
+* Use info read from the database as input for new SQL statements,
+* Process parts of the LaTeX input file in a loop generating multiple pages or documents,
+* Write updates to the database when data has been processed,
+* Process parts of the document conditionally using `\sqlif` and `\sqlendif` commands,
+* Process data by external scripts and use the output with the `\sqlsystem` command (by default disabled in the config file),
+
+and more.
+
+### Supported databases ###
+
+* MySQL/MariaDB
+* Sybase
+* Oracle
+* PostgreSQL
+* MSSQL
+
+ODBC is supported.
+
+Others database (Ingres, mSQL, ...) '*should work*'&trade;  but haven´t been tested.
 
 Installing SQLTeX
 -----------------
@@ -19,8 +41,8 @@ Installing SQLTeX
 
 On a linux system, download the archive and unpack:
 
-    $ tar vxzf sqltex-2.1.tar.gz
-    $ cd sqltex-2.1
+    $ tar vxzf sqltex-2.2.tar.gz
+    $ cd sqltex-2.2
 
 Next, install **SQLTeX** with the following commands:
 
@@ -42,7 +64,7 @@ type:
 This distribution contains an .EXE file that was generated using `PAR::Packer`
 with Strawberry Perl.
 
-The files `sqltex-2.1\SQLTeX.EXE`, `sqltex-2.1\src\SQLTeX.cfg` and `sqltex-2.1\src\SQLTeX_r.dat` must be placed manually
+The files `sqltex-2.2\SQLTeX.EXE`, `sqltex-2.2\src\SQLTeX.cfg` and `sqltex-2.2\src\SQLTeX_r.dat` must be placed manually
 in the directory of your choice, all in the same directory.
 
 #### OpenVMS ####
@@ -52,9 +74,9 @@ it manually.
 
 On OpenVMS it would be something like:
 
-    $ COPY [.SQLTEX-2_1.SRC]SQLTEX.PL SYS$SYSTEM:
-    $ COPY [.SQLTEX-2_1.SRC]SQLTEX.CFG SYS$SYSTEM:
-    $ COPY [.SQLTEX-2_1.SRC]SQLTEX_R.DAT SYS$SYSTEM:
+    $ COPY [.SQLTEX-2_2.SRC]SQLTEX.PL SYS$SYSTEM:
+    $ COPY [.SQLTEX-2_2.SRC]SQLTEX.CFG SYS$SYSTEM:
+    $ COPY [.SQLTEX-2_2.SRC]SQLTEX_R.DAT SYS$SYSTEM:
     $ SET FILE/PROTECTION=(W:R) SYS$SYSTEM:SQLTEX*.*
 
 However, on OpenVMS you also need to define the command SQLTEX by setting a
@@ -100,5 +122,5 @@ For bugs, questions and comments, please use the [issue tracker](https://github.
 This software is subject to the terms of the LaTeX Project Public License; 
 see [http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html](http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html)
   
-Copyright (c) 2001-2022 - Oscar van Eijk, Oveas Functionality Provider
+Copyright (c) 2001-2024 - Oscar van Eijk, Oveas Functionality Provider
 

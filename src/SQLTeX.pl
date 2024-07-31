@@ -13,7 +13,7 @@
 # This software is subject to the terms of the LaTeX Project Public License; 
 # see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html.
 #
-# Copyright:  (c) 2001-2023, Oscar van Eijk, Oveas Functionality Provider
+# Copyright:  (c) 2001-2024, Oscar van Eijk, Oveas Functionality Provider
 # ==========                 oscar@oveas.com
 #
 # History:
@@ -27,6 +27,7 @@
 #   v2.1-1   Apr 19, 2022 (test version for MSSQL, no official release)
 #   v2.1-2   Jun 25, 2023 (test version parameter in sql_setparams(), no official release)
 #   v2.1-3   Nov 30, 2023 (test version \sqlif-\sqlendif & \sqlsystem, no official release)
+#   v2.2     Jul 31, 2024
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -1250,8 +1251,8 @@ if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix
 
 $main::myself = $0;
 
-$main::version = '2.1-3';
-$main::rdate = 'Nov 30, 2023';
+$main::version = '2.2';
+$main::rdate = 'Jul 31, 2024';
 
 &parse_options;
 if (defined $main::options{'l'}) {
