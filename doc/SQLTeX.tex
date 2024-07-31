@@ -224,12 +224,12 @@ Normally, this setting should never change, but if the value for \texttt{cmd\_pr
 Replace files can be used to substitute values in the output of your SQL commands with a different value. This is especially useful when the database
 contains characters that are special characters in \LaTeX, like the percent sign (`\%'), underscore (`\_') etc.
 
-When SQL\TeX\ is installed, it comes with a standard file---\texttt{SQLTeX\_r.dat}---which is located in \texttt{/etc} (linux) or the same location where
-SQL\TeX\ is installed (all other operating systems), with the following replacements:
+When SQL\TeX\ is installed, it comes with a standard file---\texttt{SQLTeX\_r.dat}---which is located in \texttt{/usr/local/etc}\footnote{ if a replace file with that name already exists, it will be stored there as \texttt{SQLTeX\_r.dat.new}} (linux) or the same location where SQL\TeX\ is installed (all other operating systems).
 
 \vspace{3mm}
 
-\noindent\begin{verbatim}
+\noindent Example:
+\begin{verbatim}
 $       \$
 _       \_
 %       \%
@@ -245,8 +245,14 @@ _       \_
 
 \vspace{3mm}
 
-These are all single character replacements, but you can add your own replacements that consist of a single character or a character sequence (or even regular expressions, see section~\ref{regexp}).\\
-To do so, enter a new line with the character(string) that should be replaced, followed by one or more \texttt{TAB}-character(s) (\textit{not} blanks!) and the character(string) it should be replaced with.
+These are all single character replacements, but you can add your own replacements that consist of a single character or a character sequence (or even regular expressions, see section~\ref{regexp}).
+
+\vs
+
+To do so, enter a new line with the character(string) that should be replaced, followed by one or more \texttt{TAB}-character(s) (\textit{not} blanks!) and the character(string) it should be replaced with.\\
+That last one can be empty if the input character(string) should be ignored, but the \texttt{TAB} after the input character(string) is mandatory!
+
+\vs
 
 If the first non-blank character is a semicolon (`;'), the line is considered a comment line\footnote{ in the default configuration. See the description for \texttt{rfile\_comment} in section~\ref{config} to change of disable comment lines.}. Blank lines are ignored.
 
@@ -939,6 +945,7 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 \begin{description}
 \item[v2.2] \textit{released: Jul 31, 2024}
 \begin{itemize}
+\item Extended the default replace file (see \ref{replfiles}) with more special characters (e.g. with diacritics) and HTML tags.
 \item Issue \#6 (\url{https://github.com/oveas/sqltex/issues/6}): added support for ODBC drivers
 \item Issue \#8 (\url{https://github.com/oveas/sqltex/issues/8}): added support for parameter-driven in \texttt{\bs sqlsetparams} statements (multi-document mode).\\
 \textit{\textbf{Note:}} This requires an update of your input files for multi-document mode that have been created before v2.2. Refer to section \ref{mdocupdates} for details.
