@@ -149,6 +149,8 @@ SQLTeX ended with an error, check the last message.
 
 .SH COPYRIGHT
 .PP
-Copyright 2001-2022 Oscar van Eijk, Oveas Functionality Provider. All rights reserved
+Copyright 2001-2024 Oscar van Eijk, Oveas Functionality Provider.
 https://oveas.com
+
+This software is subject to the terms of the LaTeX Project Public License; see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html
 

@@ -15,6 +15,8 @@
 #
 # Copyright:  (c) 2001-2024, Oscar van Eijk, Oveas Functionality Provider
 # ==========                 oscar@oveas.com
+#             This software is subject to the terms of the LaTeX Project Public License;
+#             see http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html
 #
 # History:
 # ========
