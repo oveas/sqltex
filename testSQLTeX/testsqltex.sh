@@ -31,7 +31,7 @@ check_result() {
 testcase_1 () {
 	echo ""
 	echo " * Testcase 1: generate invoice number $1..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --username $USR --password $PWD --sqlserver $HST --quiet --null-allowed --filename-extend _{P1} sqltex-tc1 $1
+	perl $SQLTeXLocation/SQLTeX --use-local-config --username $USR --password $PWD --sqlserver $HST --quiet --null-allowed --filename-extend _{P1} sqltex-tc1 $1
 	check_result 1 $1
 }
 
@@ -45,7 +45,7 @@ testcase_1 () {
 testcase_2 () {
 	echo ""
 	echo " * Testcase 2: verify loop function..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --update sqltex-tc2.tex
+	perl $SQLTeXLocation/SQLTeX --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --update sqltex-tc2.tex
 	check_result 2 stx
 }
 
@@ -57,7 +57,7 @@ testcase_2 () {
 testcase_3 () {
 	echo ""
 	echo " * Testcase 3: verify update function..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc3.tex
+	perl $SQLTeXLocation/SQLTeX --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc3.tex
 	check_result 3 stx
 }
 
@@ -67,7 +67,7 @@ testcase_3 () {
 testcase_4 () {
 	echo ""
 	echo " * Testcase 4: verify replacement function..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --replace $SQLTeXTestLocation/sqltex-tc4_rpl.dat --filename-extend _nl sqltex-tc4.tex
+	perl $SQLTeXLocation/SQLTeX --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --replace $SQLTeXTestLocation/sqltex-tc4_rpl.dat --filename-extend _nl sqltex-tc4.tex
 	check_result 4 nl
 }
 
@@ -79,7 +79,7 @@ testcase_4 () {
 testcase_5 () {
 	echo ""
 	echo " * Testcase 5a: verify multidoc (numbered) mode..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --multidoc-numbered sqltex-tc5.tex
+	perl $SQLTeXLocation/SQLTeX --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --multidoc-numbered sqltex-tc5.tex
 	check_result 5 stx_1
 	check_result 5 stx_2
 	check_result 5 stx_3
@@ -88,7 +88,7 @@ testcase_5 () {
 	check_result 5 stx_6
 	echo ""
 	echo " * Testcase 5b: verify multidoc (named) mode..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --multidoc-named sqltex-tc5.tex
+	perl $SQLTeXLocation/SQLTeX --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --multidoc-named sqltex-tc5.tex
 	check_result 5 stx_20190047
 	check_result 5 stx_20190062
 	check_result 5 stx_20190091
@@ -108,7 +108,7 @@ testcase_5 () {
 testcase_6 () {
 	echo ""
 	echo " * Testcase 6: verify multidoc mode with parameters..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --multidoc-numbered sqltex-tc6.tex 1 nr
+	perl $SQLTeXLocation/SQLTeX --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet --multidoc-numbered sqltex-tc6.tex 1 nr
 	check_result 6 stx_1
 	check_result 6 stx_2
 	check_result 6 stx_3
@@ -121,7 +121,7 @@ testcase_6 () {
 testcase_7 () {
 	echo ""
 	echo " * Testcase 7: verify parameters..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc7.tex 10 price
+	perl $SQLTeXLocation/SQLTeX --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc7.tex 10 price
 	check_result 7 stx
 }
 
@@ -138,7 +138,7 @@ testcase_7 () {
 testcase_8 () {
 	echo ""
 	echo " * Testcase 8: verify if-endif condition block and system commands..."
-	perl $SQLTeXLocation/SQLTeX.pl --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc8.tex
+	perl $SQLTeXLocation/SQLTeX --use-local-config --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc8.tex
 	check_result 8 stx
 }
 

@@ -2,23 +2,23 @@
 
 .PHONY: distdir
 DATAFILES = SQLTeX_r.dat SQLTeX.cfg
-DISTFILES = Makefile.am Makefile.in SQLTeX.pl ${DATAFILES}
+DISTFILES = Makefile.am Makefile.in SQLTeX ${DATAFILES}
 
 PL=$(shell which perl)
 
-all : SQLTeX
+all : SQLTeX.pl
 
 distdir : ${DISTFILES}
 	cp $(DISTFILES) $(distdir)
 
-SQLTeX: SQLTeX.pl
-	cat $^ | sed -e 's#{PERLDIR}#!$(PL)#;s#{SYSCONFDIR}#$(sysconfdir)#' > $@
+SQLTeX.pl: SQLTeX
+	cat $^ | sed -e 's#!/usr/bin/env perl#!$(PL)#;s#{SYSCONFDIR}#$(sysconfdir)#' > $@
 	@chmod +x $@
 
-install : SQLTeX ${DATAFILES}
+install : SQLTeX.pl ${DATAFILES}
 	@if [ ! -d ${bindir} ]; then mkdir -p ${bindir}; fi
 	@if [ ! -d ${sysconfdir} ]; then mkdir -p ${sysconfdir}; fi
-	cp $< $(bindir)
+	cp $< $(bindir)/SQLTeX
 	@$(foreach datafile, $(DATAFILES), \
 		if [ -e $(sysconfdir)/$(datafile) ]; \
 			then echo 'cp $(datafile) $(sysconfdir)/$(datafile).new'; \
