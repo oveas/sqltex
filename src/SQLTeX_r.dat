@@ -58,7 +58,7 @@ re(<h1.*?>)		\section{
 re(<h2.*?>)		\subsection{
 re(<h3.*?>)		\subsubsection{
 re(</h\d>)		}
-<br />			\\
+re(<br\s*/?>)		\\
 ;
 ; HTML lists
 ; ----------

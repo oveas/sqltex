@@ -142,6 +142,15 @@ testcase_8 () {
 	check_result 8 stx
 }
 
+# Testcase 9: Replacement file
+# This testcase handles the text replacements using the replacement file
+#
+testcase_9 () {
+	echo ""
+	echo " * Testcase 9: verify replacement file..."
+	perl $SQLTeXLocation/sqltex --configfile $SQLTeXLocation/SQLTeX.cfg --replacementfile $SQLTeXLocation/SQLTeX_r.dat --user $USR --password $PWD --sqlserver $HST --quiet sqltex-tc9.tex
+	check_result 9 stx
+}
 
 CWD=`pwd`
 STEST=0
@@ -212,6 +221,11 @@ fi
 if [ $EXEC -eq 0 ] || [ $EXEC -eq 8 ]
 then
 	testcase_8
+fi
+
+if [ $EXEC -eq 0 ] || [ $EXEC -eq 9 ]
+then
+	testcase_9
 fi
 
 echo "Drop the test database..."

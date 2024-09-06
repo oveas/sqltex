@@ -1,0 +1,14 @@
+\documentclass[a4paper]{article}
+\pagestyle{empty}
+\sqldb{testsqltex}
+\begin{document}
+
+% Will result in an uncompilable latex since \section{} will contain a line end
+\sqlrow[fldsep=: ,rowsep= \\]{
+SELECT   nr
+,        txt
+FROM     text_strings
+ORDER BY nr
+}
+
+\end{document}

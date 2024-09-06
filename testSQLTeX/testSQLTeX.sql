@@ -93,6 +93,19 @@ CREATE TABLE IF NOT EXISTS `testsqltex`.`invoice_line` (
 ENGINE = InnoDB;
 
 
+
+-- -----------------------------------------------------
+-- Table `testsqltex`.`text_strings`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `testsqltex`.`text_strings` ;
+
+CREATE TABLE IF NOT EXISTS `testsqltex`.`text_strings` (
+  `nr` INT NOT NULL AUTO_INCREMENT,
+  `txt` VARCHAR(120) NULL,
+  PRIMARY KEY (`nr`))
+ENGINE = InnoDB;
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
@@ -165,4 +178,19 @@ INSERT INTO `testsqltex`.`invoice_line` (`nr`, `invoice_nr`, `article_nr`, `amou
 INSERT INTO `testsqltex`.`invoice_line` (`nr`, `invoice_nr`, `article_nr`, `amount`) VALUES (3, 20190205, 7, 3);
 
 COMMIT;
+
+-- -----------------------------------------------------
+-- Data for table `testsqltex`.`text_strings`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `testsqltex`;
+INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('$_%&<>{}#\~');
+INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('<p align="left">Paragraph</p>');
+INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('Line1<br>Line2');
+INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('Line3<br/>Line4');
+INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('<h1>Header 1</h1>');
+INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('<h2 style="background-color: white;">Header 2</h2>');
+
+COMMIT;
+
 
