@@ -17,61 +17,11 @@
 ; will replace all HTML <p> variants (<p style='font-size: normal'>,
 ; <p align='center'> etc)
 ;
+; Order matters!
+; We must start with the HTML code, since if the LaTeX special characters
+; would be first, the characters '<' and '>' would be replaced already so
+; HTML code is not recognised anymore.
 ;
-; LaTeX special characters
-; ------------------------
-;
-$		\$
-_		\_
-%		\%
-&		\&
-<		\texttt{<}
->		\texttt{>}
-{		\{
-}		\}
-#		\#
-~		\~{}
-\		\ensuremath{\backslash}
-;
-; Diacretics
-; ----------
-;
-ñ		\~{n}
-â		\^{a}
-ä		\"{a}
-á		\'{a}
-à		\`{a}
-ç		\c{c}
-ê		\^{e}
-ë		\"{e}
-è		\`{e}
-é		\'{e}
-î		\^{i}
-ï		\"{i}
-í		\'{i}
-ì		\`{i}
-ô		\^{o}
-ö		\"{o}
-ó		\'{o}
-ò		\`{o}
-û		\^{u}
-ü		\"{u}
-ú		\'{u}
-ù		\`{u}
-ÿ		\"{y}
-;
-; Other special characters
-; ------------------------
-;
-"		''
-´		'
-		.
-		'
-		'
-		'
-		'
-		---
-±		$\pm$
 ;
 ; HTML special characters
 ; -----------------------
@@ -132,3 +82,20 @@ re(</h\d>)		}
 ;</td>			&
 ;</table>		\end{tabular} \\
 ;
+;
+; LaTeX special characters
+; ------------------------
+;
+$		\$
+_		\_
+%		\%
+&		\&
+<		\texttt{<}
+>		\texttt{>}
+{		\{
+}		\}
+#		\#
+~		\~{}
+\		\ensuremath{\backslash}
+;
+
