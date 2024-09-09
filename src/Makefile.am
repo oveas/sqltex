@@ -18,6 +18,7 @@ sqltex.pl: sqltex
 install : sqltex.pl ${DATAFILES}
 	@if [ ! -d ${bindir} ]; then mkdir -p ${bindir}; fi
 	@if [ ! -d ${sysconfdir} ]; then mkdir -p ${sysconfdir}; fi
+	@if [ -f $(bindir)/SQLTeX ]; then rm $(bindir)/SQLTeX; fi
 	cp $< $(bindir)/sqltex
 	ln -s $(bindir)/sqltex $(bindir)/SQLTeX
 	@$(foreach datafile, $(DATAFILES), \

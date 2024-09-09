@@ -767,7 +767,7 @@ sub sql_start ($) {
 sub sql_use ($$) {
 	my ($field, $loop) = @_;
 	my $return_value = $main::configuration{'no_such_used_fld'};
-	if ($main::arr[$#main::current_array][$loop]->{$field}) {
+	if (defined $main::arr[$#main::current_array][$loop]->{$field}) {
 		$return_value =  $main::arr[$#main::current_array][$loop]->{$field};
 	}
 	return $return_value;
