@@ -69,6 +69,8 @@ sub parse_options {
 		, 'replacementfile|r=s' => \$main::options{'r'}
 		, 'no-replacementfile|R' => \$main::options{'R'}
 		, 'output|o=s' => \$main::options{'o'}
+		, 'skip-empty-lines|-S' => \$main::options{'S'}
+		, 'write-comments|-C' => \$main::options{'C'}
 		, 'filename-extend|e=s' => \$main::options{'e'}
 		, 'file-extension|E=s' => \$main::options{'E'}
 		, 'sqlserver|s=s' => \$main::options{'s'}
@@ -152,32 +154,37 @@ sub short_help ($) {
 sub print_help {
 	my $helptext = &short_help (0);
 
-	$helptext .= "       Options:\n";
+	$helptext .= "   Options:\n";
 	if ($main::ext_cfgfile_allowed) {
 		$helptext .= "       --configfile <file>\n";
 		$helptext .= "       -c <file>\n";
 		$helptext .= "            SQLTeX configuration file.\n";
-		$helptext .= "            Default is \'$main::config_location/SQLTeX.cfg\'.\n";
+		$helptext .= "            Default is \'$main::config_location/SQLTeX.cfg\'.\n\n";
 	}
 	$helptext .= "       --file-extension <string>\n";
 	$helptext .= "       -E <string>\n";
 	$helptext .= "            replace input file extension in outputfile:\n";
 	$helptext .= "            \'input.tex\' will be \'input.string\'\n";
-	$helptext .= "            For further notes, see option \'--filename-extend\' below\n";
+	$helptext .= "            For further notes, see option \'--filename-extend\' below\n\n";
+
 	$helptext .= "       --null-allowed\n";
 	$helptext .= "       -N\n";
 	$helptext .= "            NULL return values allowed. By default SQLTeX exits if a\n";
-	$helptext .= "            query returns an empty set\n";
+	$helptext .= "            query returns an empty set\n\n";
+
 	$helptext .= "       --password [password]\n";
 	$helptext .= "       -P [password]\n";
 	$helptext .= "            database password. The value is optional; if omitted, SQLTeX will prompt for\n";
-	$helptext .= "            a password. This overwrites the password in the input file.\n";
+	$helptext .= "            a password. This overwrites the password in the input file.\n\n";
+
 	$helptext .= "       --username <user>\n";
 	$helptext .= "       -U <user>\n";
-	$helptext .= "            database username\n";
+	$helptext .= "            database username\n\n";
+
 	$helptext .= "       --version\n";
 	$helptext .= "       -V\n";
-	$helptext .= "            print version number and exit\n";
+	$helptext .= "            print version number and exit\n\n";
+
 	$helptext .= "       --filename-extend <string>\n";
 	$helptext .= "       -e <string>\n";
 	$helptext .= "            add string to the output filename:\n";
@@ -196,33 +203,55 @@ sub print_help {
 	$helptext .= "               outputfile \'myfile._code_Tue\'\n";
 	$helptext .= "               By default the outputfile \'myfile_stx.tex\' would have been written.\n";
 	$helptext .= "               The options \'--file-extension\' and \'--filename-extend\' cannot be used\n";
-	$helptext .= "               together or with \'--output\'.\n";
+	$helptext .= "               together or with \'--output\'.\n\n";
+
 	$helptext .= "       --force\n";
 	$helptext .= "       -f\n";
-	$helptext .= "               force overwrite of existing files\n";
+	$helptext .= "               force overwrite of existing files\n\n";
+
 	$helptext .= "       --help\n";
 	$helptext .= "       -h\n";
-	$helptext .= "               print this help message and exit\n";
+	$helptext .= "               print this help message and exit\n\n";
+
 	$helptext .= "       --multidoc-numbered\n";
 	$helptext .= "       -m\n";
 	$helptext .= "               Multidocument mode; create one document for each parameter that is retrieved\n";
 	$helptext .= "               from the database in the input document (see documentation)\n";
-	$helptext .= "               This option cannot be used with \'--output\'.\n";
+	$helptext .= "               This option cannot be used with \'--output\'.\n\n";
+
 	$helptext .= "       --multidoc-named\n";
 	$helptext .= "       -M\n";
-	$helptext .= "               Same as -m, but with the parameter in the filename i.s.o. a serial number\n";
+	$helptext .= "               Same as -m, but with the parameter in the filename i.s.o. a serial number\n\n";
+
 	$helptext .= "       --output <file>\n";
 	$helptext .= "       -o <file>\n";
 	$helptext .= "               specify an output file. Cannot be used with \'--file-extension\',\n";
-	$helptext .= "               \'--filename-extend\' or the \'--multidoc\' options.\n";
+	$helptext .= "               \'--filename-extend\' or the \'--multidoc\' options.\n\n";
+
+	$helptext .= "       --skip-empty-lines\n";
+	$helptext .= "       -S\n";
+	$helptext .= "               All SQLTeX commands will be removed from the input line or replaced by the\n";
+	$helptext .= "               corresponding value. The rest of the input line is written to the output file.\n";
+	$helptext .= "               This includes lines that only contain a SQLTeX command (and a newline character).\n";
+	$helptext .= "               This will result in an empty line in the output file.\n";
+	$helptext .= "               By specifying this option, these empty lines will be skipped. Lines that were empty\n";
+	$helptext .= "               in the input will be written.\n\n";
+
+	$helptext .= "       --write-comments\n";
+	$helptext .= "       -C\n";
+	$helptext .= "               LaTeX comments in the input file will be skipped by default. With this option,\n";
+	$helptext .= "               comments will also be copied to the output file.\n\n";
+
 	$helptext .= "       --prefix <prefix>\n";
 	$helptext .= "       -p <prefix>\n";
 	$helptext .= "               prefix used in the SQLTeX file. Default is \'sql\'\n";
 	$helptext .= "               (e.g. \\sqldb[user]{database}), but this can be overwritten if it conflicts\n";
-	$helptext .= "               with other user-defined commands.\n";
+	$helptext .= "               with other user-defined commands.\n\n";
+
 	$helptext .= "       --quiet\n";
 	$helptext .= "       -q\n";
-	$helptext .= "               run in quiet mode\n";
+	$helptext .= "               run in quiet mode\n\n";
+
 	$helptext .= "       --replacementfile <file>\n";
 	$helptext .= "       -r <file>\n";
 	$helptext .= "               specify a file that contains replace characters. This is a list with two tab-separated\n";
@@ -230,25 +259,27 @@ sub print_help {
 	$helptext .= "               by the second string.\n";
 	$helptext .= "               By default the file \'$main::config_location/SQLTeX_r.dat\' is used.\n";
 	$helptext .= "               This default file will still be read after the given replacement file, unless support for\n";
-	$helptext .= "               multiple replacement files is disabled in the configuration.\n";
+	$helptext .= "               multiple replacement files is disabled in the configuration.\n\n";
+
 	$helptext .= "       --no-replacementfile\n";
 	$helptext .= "       -R\n";
 	$helptext .= "               do not use a replace file. \'--replacementfile\' \'--no-replacementfile\' are handled\n";
 	$helptext .= "               in the same order as they appear on the command line.\n";
-	$helptext .= "               For backwards compatibility, -rn is also still supported.\n";
+	$helptext .= "               For backwards compatibility, -rn is also still supported.\n\n";
 
 	$helptext .= "       --sqlserver <server>\n";
 	$helptext .= "       -s <server>\n";
-	$helptext .= "               SQL server to connect to. Default is \'localhost\'\n";
+	$helptext .= "               SQL server to connect to. Default is \'localhost\'\n\n";
+
 	$helptext .= "       --updates\n";
 	$helptext .= "       -u\n";
-	$helptext .= "               If the input file contains updates, execute them.\n";
+	$helptext .= "               If the input file contains updates, execute them.\n\n";
 
-	$helptext .= "\n       file          is the input file that should be read. By default,\n";
-	$helptext .= "                     sqltex looks for a file with extension \'.$main::configuration{'texex'}\'.\n";
-	$helptext .= "\n       parameter(s)  are substituted in the SQL statements if they contain\n";
-	$helptext .= "                     the string \$PAR[x] somewhere in the statement, where\n";
-	$helptext .= "                     \'x\' is the number of the parameter.\n";
+	$helptext .= "   file          is the input file that should be read. By default,\n";
+	$helptext .= "                 sqltex looks for a file with extension \'.$main::configuration{'texex'}\'.\n\n";
+	$helptext .= "   parameter(s)  are substituted in the SQL statements if they contain\n";
+	$helptext .= "                 the string \$PAR[x] somewhere in the statement, where\n";
+	$helptext .= "                 \'x\' is the number of the parameter.\n";
 
 	print $helptext;
 }
@@ -1148,9 +1179,10 @@ sub read_input($$$$) {
 
 	while ($main::line = <$fileIn>) {
 		$main::lcount[$main::fcount]++;
+		my $line_had_cmd = 0;
 
 		if ($main::line =~ /^\s*%/) {
-			next if (!$main::configuration{'write_comments'});
+			next if (!$main::options{'C'});
 		} else {
 			if ($main::line =~ /(.*?)(\\in(put|clude))(\s*?)\{(.*?)\}(.*)/) {
 				print $output_handle "$1" unless ($output_handle == -1);
@@ -1160,10 +1192,11 @@ sub read_input($$$$) {
 			}
 			my $cmdPrefix = $main::configuration{'cmd_prefix'};
 			if (@main::current_array) {
-				# Inside loop contect the \sqlsystem{} command can contain \sqluse{}
+				# Inside loop context the \sqlsystem{} command can contain \sqluse{}
 				$main::line =~ s/$cmdPrefix$main::configuration{'sql_system'}/$main::configuration{'last_cmd_prefix'}$main::configuration{'sql_system'}/;	
 			}
 			while (($main::line =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($main::line =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
+				$line_had_cmd = 1;
 				if (&parse_command($&, $multidoc_par, $fileIn) && $main::multidoc && ($main::multidoc_cnt == 0)) {
 					close $fileIn;
 					$main::fcount--;
@@ -1172,6 +1205,8 @@ sub read_input($$$$) {
 				}
 			}
 		}
+		next if ($line_had_cmd && $main::line eq "\n" && $main::options{'S'});
+
 		if (@main::current_array && $#main::current_array >= 0) {
 			push @{$main::loop_data[$#main::current_array]}, $main::line;
 		} else {	
@@ -1239,7 +1274,6 @@ sub process_file {
 	,'rfile_regexploc'	 => '...'
 	,'rfile_regexp'		 => 're(...)'
 	,'multi_rfile'		 => 1
-	,'write_comments'	 => 0
 	,'cmd_prefix'		 => 'sql'
 	,'sql_system'		 => 'system'
 	,'sql_open'			 => 'db'
