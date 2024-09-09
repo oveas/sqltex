@@ -1,5 +1,8 @@
 #!/usr/bin/env perl
 
+# To disable support for the --configfile option, set the value below to 0.
+$main::ext_cfgfile_allowed = 1;
+
 ################################################################################
 #
 # SQLTeX - SQL preprocessor for Latex
@@ -30,7 +33,7 @@
 #   v2.1-2   Jun 25, 2023 (test version parameter in sql_setparams(), no official release)
 #   v2.1-3   Nov 30, 2023 (test version \sqlif-\sqlendif & \sqlsystem, no official release)
 #   v2.2     Jul 31, 2024
-#   v2.3     Xxx xx, 202x
+#   v3.0     Xxx xx, 202x
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -150,10 +153,12 @@ sub print_help {
 	my $helptext = &short_help (0);
 
 	$helptext .= "       Options:\n";
-	$helptext .= "       --configfile <file>\n";
-	$helptext .= "       -c <file>\n";
-	$helptext .= "            SQLTeX configuration file.\n";
-	$helptext .= "            Default is \'$main::config_location/SQLTeX.cfg\'.\n";
+	if ($main::ext_cfgfile_allowed) {
+		$helptext .= "       --configfile <file>\n";
+		$helptext .= "       -c <file>\n";
+		$helptext .= "            SQLTeX configuration file.\n";
+		$helptext .= "            Default is \'$main::config_location/SQLTeX.cfg\'.\n";
+	}
 	$helptext .= "       --file-extension <string>\n";
 	$helptext .= "       -E <string>\n";
 	$helptext .= "            replace input file extension in outputfile:\n";
@@ -224,6 +229,8 @@ sub print_help {
 	$helptext .= "               fields per line. The first field holds a string that will be replaced in the SQL output\n";
 	$helptext .= "               by the second string.\n";
 	$helptext .= "               By default the file \'$main::config_location/SQLTeX_r.dat\' is used.\n";
+	$helptext .= "               This default file will still be read after the given replacement file, unless support for\n";
+	$helptext .= "               multiple replacement files is disabled in the configuration.\n";
 	$helptext .= "       --no-replacementfile\n";
 	$helptext .= "       -R\n";
 	$helptext .= "               do not use a replace file. \'--replacementfile\' \'--no-replacementfile\' are handled\n";
@@ -359,6 +366,9 @@ sub file_extension ($) {
 #
 sub get_configfiles {
 	if (defined $main::options{'c'}) {
+		if (!$main::ext_cfgfile_allowed) {
+			die "Use of the --configfile option is disallowed by your system administrator";
+		}
 		$main::configurationfile = $main::options{'c'};
 	} else {
 		$main::configurationfile = $main::config_location
@@ -368,19 +378,45 @@ sub get_configfiles {
 	if (!-e $main::configurationfile) {
 		die ("Configfile $main::configurationfile does not exist\n");
 	}
+
+	@main::replacefiles = ();
+	if (!defined $main::options{'R'} && $main::options{'r'} ne "n") {
+		my $std_replacefile = $main::config_location
+			. ($main::config_location eq '' ? '' : '/') . 'SQLTeX_r.dat';
+		if (!-e $std_replacefile) {
+			warn ("replace file $std_replacefile does not exist\n");
+			$std_replacefile = "";
+		}		
+		my $adl_replacefile = "";
+		if (defined $main::options{'r'}) {
+			if (!-e $main::options{'r'}) {
+				warn ("replace file $main::options{'r'} does not exist\n");
+			} else {		
+				$adl_replacefile = $main::options{'r'};
+			}
+		}
+		my $rf_cnt = 0;
+		if ($adl_replacefile ne "") {
+			$main::replacefiles[$rf_cnt++] = $adl_replacefile;
+		}
+		if ($std_replacefile ne "") {
+			$main::replacefiles[$rf_cnt++] = $std_replacefile;
+		}
+	}
+		
+#	if (defined $main::options{'r'}) {
+#		$main::replacefile = $main::options{'r'};
+#	} else {
+#		$main::replacefile = $main::config_location
+#			. ($main::config_location eq '' ? '' : '/')
+#			. 'SQLTeX_r.dat'
+#			unless (defined $main::options{'R'});
+#	}
 	
-	if (defined $main::options{'r'}) {
-		$main::replacefile = $main::options{'r'};
-	} else {
-		$main::replacefile = $main::config_location
-			. ($main::config_location eq '' ? '' : '/')
-			. 'SQLTeX_r.dat'
-			unless (defined $main::options{'R'});
-	}
-	if (defined $main::replacefile && !-e $main::replacefile) {
-		warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
-		undef $main::replacefile;
-	}
+#	if (defined $main::replacefile && !-e $main::replacefile) {
+#		warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
+#		undef $main::replacefile;
+#	}
 	
 	return;
 }
@@ -438,9 +474,9 @@ sub get_filenames {
 #####
 # Trim functions 
 #
-sub ltrim { my $s = shift; $s =~ s/^\s+//;       return $s };
-sub rtrim { my $s = shift; $s =~ s/\s+$//;       return $s };
-sub  trim { my $s = shift; $s =~ s/^\s+|\s+$//g; return $s };
+sub ltrim { my $s = shift; $s =~ s/^\s+//; return $s; }
+sub rtrim { my $s = shift; $s =~ s/\s+$//; return $s; }
+sub  trim { my $s = shift; return ltrim(rtrim($s));   }
 
 #######
 # Connect to the database
@@ -543,7 +579,7 @@ sub db_connect($$) {
 			,'db' => $db
 		);
 	}
-	$main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &just_died (1); # TODO Proper errorhandling
+	$main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &signal_message (1);
 	return;
 }
 
@@ -633,7 +669,7 @@ sub sql_row ($$) {
 	$stat_handle->execute ();
 
 	if ($main::setarr) {
-		&just_died (7) if (defined $main::arr[$main::arr_no] && !$main::multidoc); # TODO Proper errorhandling
+		&signal_message (7) if (defined $main::arr[$main::arr_no] && !$main::multidoc);
 		@main::arr[$main::arr_no] = ();
 		while (my $ref = $stat_handle->fetchrow_hashref()) {
 			foreach my $k (keys %$ref) {
@@ -647,7 +683,7 @@ sub sql_row ($$) {
 	
 	while (@values = $stat_handle->fetchrow_array ()) {
 		$fc = $#values + 1;
-		if (defined $main::replacefile) {
+		if ($#main::replacefiles >= 0) {
 			my $list_cnt = 0;
 			foreach (@values) {
 				$values[$list_cnt] = replace_values ($values[$list_cnt]);
@@ -659,7 +695,7 @@ sub sql_row ($$) {
 	$stat_handle->finish ();
 
 	if ($#return_values < 0) {
-		&just_died (4); # TODO Proper errorhandling
+		&signal_message (4);
 	}
 
 	$rc = $#return_values + 1;
@@ -693,17 +729,17 @@ sub sql_field ($$) {
 	$stat_handle->finish ();
 
 	if ($#result < 0) {
-		&just_died (4); # TODO Proper errorhandling
+		&signal_message (4);
 	} elsif ($#result > 0) {
-		&just_died (5); # TODO Proper errorhandling
+		&signal_message (5);
 	} else {
 		&print_message ("Found 1 value: \"$result[0]\"");
 		if ($main::setvar) {
-			&just_died (7) if (defined $main::var[$main::var_no] && !$main::multidoc); # TODO Proper errorhandling
+			&signal_message (7) if (defined $main::var[$main::var_no] && !$main::multidoc);
 			$main::var[$main::var_no] = $result[0];
 			return '';
 		} else {
-			if (defined $main::replacefile) {
+			if ($#main::replacefiles >= 0) {
 				return (replace_values ($result[0]));
 			} else {
 				return ($result[0]);
@@ -717,7 +753,7 @@ sub sql_field ($$) {
 #
 sub sql_start ($) {
 	my $arr_no = shift;
-	&just_died (11) if (!defined $main::arr[$arr_no]); # TODO Proper errorhandling
+	&signal_message (11) if (!defined $main::arr[$arr_no]);
 	if (@main::current_array) {
 		@main::current_array = ();
 	}
@@ -890,7 +926,7 @@ sub sql_setparams ($$) {
 	$stat_handle->finish ();
 
 	if ($#return_values < 0) {
-		&just_died (8); # TODO Proper errorhandling
+		&signal_message (8);
 	}
 
 	&print_message ('Multidocument parameters found; ' . $#return_values+1 ." documents will be created: handle document $main::multidoc_cnt") unless ($main::multidoc_cnt == 0);
@@ -935,25 +971,17 @@ sub sql_system ($) {
 }
 
 ##### 
-# Some error handling (mainly cleanup stuff)
+# Simple error handling
 # Files will be closed if opened, and if no sql output was written yet,
 # the outputfile will be removed.
-# FIXME We need some decent errorhandling
 #
-sub just_died ($) {
+sub signal_message ($) {
 	my $step = shift;
-	my $Resurect = 0;
+	my $can_continue = 0;
 
-	$Resurect = 1 if ($step == 4 && $main::NULLallowed);
+	$can_continue = 1 if ($step == 4 && $main::NULLallowed);
 
-	if ($step >= 1 && !$Resurect) {
-#		close FI;
-#		close FO;
-	}
-	if ($step > 2 && !$Resurect) {
-#		$main::db_handle->disconnect();
-	}
-	if ($step >= 1 && $step <= 2 && !$Resurect) {
+	if ($step >= 1 && $step <= 2 && !$can_continue) {
 		unlink ($main::outputfile);
 	}
 
@@ -961,7 +989,9 @@ sub just_died ($) {
 	# Step specific exit
 	#
 	my $msg;
-	if ($step == 2) {
+	if ($step == 1) {
+		$msg = "noerror opening database at line $main::lcount[$main::fcount]";
+	} elsif ($step == 2) {
 		$msg = "no database opened at line $main::lcount[$main::fcount]";
 	} elsif ($step == 3) {
 		$msg = "insufficient parameters to substitute variable on line $main::lcount[$main::fcount]";
@@ -992,7 +1022,7 @@ sub just_died ($) {
 		}
 	}
 	warn "$msg\n";
-	return if ($Resurect);
+	return if ($can_continue);
 	exit (1);
 }
 
@@ -1047,7 +1077,7 @@ sub parse_command ($$$) {
 		while ($statement =~ /\$VAR[0-9]/) {
 			my $varno = $&;
 			$varno =~ s/\$VAR//;
-			&just_died (6) if (!defined ($main::var[$varno])); # TODO Proper errorhandling
+			&signal_message (6) if (!defined ($main::var[$varno]));
 			$statement =~ s/\$VAR$varno/$main::var[$varno]/g;
 		}
 		if ($statement =~ /\$PAR/ && ($main::multidoc_cnt > 0) && $main::multidoc) {
@@ -1067,7 +1097,7 @@ sub parse_command ($$$) {
 		return 0;
 	}
 
-	&just_died (2) if (!$main::db_opened); # TODO Proper errorhandling
+	&signal_message (2) if (!$main::db_opened);
 	if ($cmdfound eq $main::configuration{'sql_field'}) {
 		$main::line = $lin1 . &sql_field($options, $statement) . $lin2;
 	} elsif ($cmdfound eq $main::configuration{'sql_row'}) {
@@ -1087,19 +1117,19 @@ sub parse_command ($$$) {
 		&sql_start($statement);
 		$main::line = $lin1 . $lin2;
 	} elsif ($cmdfound eq $main::configuration{'sql_use'}) {
-		&just_died (12) if (!@main::current_array); # TODO Proper errorhandling
+		&signal_message (12) if (!@main::current_array);
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_use'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound eq $main::configuration{'sql_end'}) {
 		$main::line = $lin1 . &sql_end() . $lin2;
 	} elsif ($cmdfound eq $main::configuration{'sql_endif'}) {
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_endif'} . "{}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound eq $main::configuration{'sql_if'}) {
-		&just_died (13) if (!@main::current_array); # TODO Proper errorhandling
+		&signal_message (13) if (!@main::current_array);
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_if'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound =~ /$main::configuration{'sql_system'}/) {
 		$main::line = $lin1 . &sql_system($raw_statement) . $lin2;
 	} else {
-		&just_died (10); # TODO Proper errorhandling
+		&signal_message (10);
 	}
 	return 0;
 }
@@ -1119,24 +1149,27 @@ sub read_input($$$$) {
 	while ($main::line = <$fileIn>) {
 		$main::lcount[$main::fcount]++;
 
-		next if ($main::line =~ /^\s*%/);
-		if ($main::line =~ /(.*?)(\\in(put|clude))(\s*?)\{(.*?)\}(.*)/) {
-			print $output_handle "$1" unless ($output_handle == -1);
-			&read_input($5, $output_handle, $multidoc_par);
-			return if ($main::restart);
-			print $output_handle "$6\n" unless ($output_handle == -1);
-		}
-		my $cmdPrefix = $main::configuration{'cmd_prefix'};
-		if (@main::current_array) {
-			# Inside loop contect the \sqlsystem{} command can contain \sqluse{}
-			$main::line =~ s/$cmdPrefix$main::configuration{'sql_system'}/$main::configuration{'last_cmd_prefix'}$main::configuration{'sql_system'}/;	
-		}
-		while (($main::line =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($main::line =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
-			if (&parse_command($&, $multidoc_par, $fileIn) && $main::multidoc && ($main::multidoc_cnt == 0)) {
-				close $fileIn;
-				$main::fcount--;
-				$main::restart = 1;
-				return;
+		if ($main::line =~ /^\s*%/) {
+			next if (!$main::configuration{'write_comments'});
+		} else {
+			if ($main::line =~ /(.*?)(\\in(put|clude))(\s*?)\{(.*?)\}(.*)/) {
+				print $output_handle "$1" unless ($output_handle == -1);
+				&read_input($5, $output_handle, $multidoc_par);
+				return if ($main::restart);
+				print $output_handle "$6\n" unless ($output_handle == -1);
+			}
+			my $cmdPrefix = $main::configuration{'cmd_prefix'};
+			if (@main::current_array) {
+				# Inside loop contect the \sqlsystem{} command can contain \sqluse{}
+				$main::line =~ s/$cmdPrefix$main::configuration{'sql_system'}/$main::configuration{'last_cmd_prefix'}$main::configuration{'sql_system'}/;	
+			}
+			while (($main::line =~ /\\$cmdPrefix[a-z]+(\[|\{)/) && !($main::line =~ /\\\\$cmdPrefix[a-z]+(\[|\{)/)) {
+				if (&parse_command($&, $multidoc_par, $fileIn) && $main::multidoc && ($main::multidoc_cnt == 0)) {
+					close $fileIn;
+					$main::fcount--;
+					$main::restart = 1;
+					return;
+				}
 			}
 		}
 		if (@main::current_array && $#main::current_array >= 0) {
@@ -1205,6 +1238,8 @@ sub process_file {
 	,'rfile_comment'	 => ';'
 	,'rfile_regexploc'	 => '...'
 	,'rfile_regexp'		 => 're(...)'
+	,'multi_rfile'		 => 1
+	,'write_comments'	 => 0
 	,'cmd_prefix'		 => 'sql'
 	,'sql_system'		 => 'system'
 	,'sql_open'			 => 'db'
@@ -1250,13 +1285,6 @@ sub process_file {
 	}
 }
 
-# Check config
-# Used for loops, should not start with $main::configuration{'cmd_prefix'} !!
-if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/
-	|| $main::configuration{'last_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/) {
-	die "Configuration items 'alt_cmd_prefix' and ĺast_cnd_prefix' cannot start with $main::configuration{'cmd_prefix'}";
-}
-
 $main::version = '2.2.1';
 $main::rdate = 'Xxx xx, 202x';
 
@@ -1279,6 +1307,13 @@ if (defined $main::configurationfile) {
 	close CF;
 }
 
+# Check config
+# Used for loops, should not start with $main::configuration{'cmd_prefix'} !!
+if ($main::configuration{'alt_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/
+	|| $main::configuration{'last_cmd_prefix'} =~ /^$main::configuration{'cmd_prefix'}/) {
+	die "Configuration items 'alt_cmd_prefix' and ĺast_cnd_prefix' cannot start with $main::configuration{'cmd_prefix'}";
+}
+
 &get_filenames;
 
 if (!$main::multidoc && -e "$main::outputfile") {
@@ -1286,23 +1321,28 @@ if (!$main::multidoc && -e "$main::outputfile") {
 		unless (defined $main::options{'f'});
 }
 
-if (defined $main::replacefile) {
+{
 	my $repl_cnt = '000';
 	@main::repl_order = ();
-	open (RF, "<$main::replacefile");
-	while ($main::line = <RF>) {
-		next if ($main::line =~ /^\s*$main::configuration{'rfile_comment'}/);
-		chomp $main::line;
-		$main::line =~ s/\t+/\t/;
-		my ($rk, $rv) = split /\t/, $main::line;
-		if ($rk ne '') {
-			push @main::repl_order, $rk;
-			$main::repl_key{$rk} = "$main::configuration{'repl_step'}$repl_cnt";
-			$main::repl_val{"$main::configuration{'repl_step'}$repl_cnt"} = $rv;
-			$repl_cnt++;
+	for (my $rf_cnt = 0; $rf_cnt <= $#main::replacefiles; $rf_cnt++) {
+		open (RF, "<$main::replacefiles[$rf_cnt]");
+		while ($main::line = <RF>) {
+			next if ($main::line =~ /^\s*$main::configuration{'rfile_comment'}/);
+			chomp $main::line;
+			$main::line =~ s/\t+/\t/;
+			my ($rk, $rv) = split /\t/, $main::line;
+			if ($rk ne '') {
+				push @main::repl_order, $rk;
+				$main::repl_key{$rk} = "$main::configuration{'repl_step'}$repl_cnt";
+				$main::repl_val{"$main::configuration{'repl_step'}$repl_cnt"} = $rv;
+				$repl_cnt++;
+			}
+		}
+		close RF;
+		if (!$main::configuration{'multi_rfile'}) {
+			last;
 		}
 	}
-	close RF;
 }
 
 # Start processing
