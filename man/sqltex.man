@@ -5,7 +5,7 @@
 - a preprocessor to enable the use of SQL statements in LaTeX documents.
 
 .SH SYNOPSIS
-.B SQLTeX
+.B sqltex
 .RB <INPUT-FILE>
 .RB [PARAMETERS]
 .RB [OPTIONS]
@@ -37,7 +37,7 @@ These parameters are taken from the commandline.
 .SH OPTIONS
 
 .IP "\fB-c|--configfile\fP <file>"
-SQLTeX configuration file.
+SQLTeX configuration file. This option might be disallowed by your systems administrator.
 
 .IP "\fB-E|--file-extension\fP <string>"
 Replace input file extension in outputfile: 'input.tex' will be 'input.string'.
@@ -93,6 +93,14 @@ Same as -m, but with the parameter in the filename i.s.o. a serial number
 .IP "\fB-o|--output\fP <file>"
 Specify an output file. Cannot be used with '--file-extension', '--filename-extend' or the '--multidoc' options.
 
+.IP "\fB-S|--skip-empty-lines"
+All SQLTeX commands will be removed from the input line or replaced by the corresponding value. The rest of the input line is written to the output file.
+This includes lines that only contain a SQLTeX command (and a newline character). This will result in an empty line in the output file.
+By specifying this option, these empty lines will be skipped. Lines that were empty in the input will be written.
+
+.IP "-C|--write-comments"
+LaTeX comments in the input file will be skipped by default. With this option, comments will also be copied to the output file.
+
 .IP "\fB-p|--prefix\fP <prefix>"
 Prefix used in the SQLTeX file. Default is 'sql' (see documentation)
 
@@ -105,9 +113,6 @@ Specify a file that contains replace characters. This is a list with two tab-sep
 .IP "\fB-R|-rn|--no-replacementfile\fP"
 Do not use a replace file. '--replacementfile' '--no-replacementfile' are handled in the same order as they appear on the command line.
 
-.IP "\fB-l|--use-local-config\fP"
-Use the current installation directory as default location for the config- and replacement files in stead of '{SYSCONFDIR}' (linux only).
-
 .IP "\fB-s|--sqlserver\fP <server>"
 SQL server to connect to. Default is \'localhost\'
 
@@ -118,21 +123,24 @@ If the input file contains updates, execute them.
 .TP
 .I
 {SYSCONFDIR}/SQLTeX_r.dat
+Default replacement file. If your installation is part of TEX Live the file will redisde in the same directory as the sqltex executable
 .TP
 .I
 {SYSCONFDIR}/SQLTeX.cfg
+Default configuration file. If your installation is part of TEX Live the file will redisde in the same directory as the sqltex executable
 .TP
 .I
-{BINDIR}/SQLTeX
+{BINDIR}/sqltex
+The sqltex executable. The location might differ depending on your installation type, e.g. as part if the TEX Live distribution.
 
 .SH EXAMPLES
 .TP
-.BI SQLTeX\ --filename-extend\ _{P1}_{W}\ my_file\ code
+.BI sqltex\ --filename-extend\ _{P1}_{W}\ my_file\ code
 .TP
 Read input file 'my_file.tex' and generate 'myfile_code_Tue.tex' with the processed results.
 
 .TP
-.BI SQLTeX\ --file-extension\ _{P1}_{W}\ my_file\ code
+.BI sqltex\ --file-extension\ _{P1}_{W}\ my_file\ code
 .TP
 Read input file 'my_file.tex' and generate 'myfile._code_Tue' with the processed results.
 

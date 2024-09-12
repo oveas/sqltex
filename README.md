@@ -1,4 +1,4 @@
-SQLTeX v2.2
+SQLTeX v3.0
 ===========
 
 **SQLTeX** is a preprocessor to enable the use of SQL statements in LaTeX. It is a
@@ -37,12 +37,16 @@ Others database (Ingres, mSQL, ...) '*should work*'&trade;  but haven´t been te
 Installing SQLTeX
 -----------------
 
+Since version 3.0, **SQLTeX** is part of **TeX Live** and doesn't need further installation.
+
+If you are using a different LaTeX distro, please follow the steps below for your OS.
+
 ### Linux ###
 
 On a linux system, download the archive and unpack:
 
-    $ tar vxzf sqltex-2.2.tar.gz
-    $ cd sqltex-2.2
+    $ tar vxzf sqltex-3.0.tar.gz
+    $ cd sqltex-3.0
 
 Next, install **SQLTeX** with the following commands:
 
@@ -50,7 +54,7 @@ Next, install **SQLTeX** with the following commands:
     $ make
     $ sudo make install
 
-The _`options`_ in `configure` are optional. For an overview of available options
+The *options* in `configure` are optional. For an overview of available options
 type:
 
     $ ./configure --help
@@ -61,11 +65,10 @@ type:
 
 #### Windows ####
 
-This distribution contains an .EXE file that was generated using `PAR::Packer`
-with Strawberry Perl.
-
-The files `sqltex-2.2\SQLTeX.EXE`, `sqltex-2.2\src\SQLTeX.cfg` and `sqltex-2.2\src\SQLTeX_r.dat` must be placed manually
+The files `sqltex-3.0\sqltex`, `sqltex-3.0\src\SQLTeX.cfg` and `sqltex-3.0\src\SQLTeX_r.dat` must be placed manually
 in the directory of your choice, all in the same directory.
+
+Since v3.0 the `SQLTeX.EXE` binary is no longer provided in the distribution.
 
 #### OpenVMS ####
 
@@ -74,9 +77,9 @@ it manually.
 
 On OpenVMS it would be something like:
 
-    $ COPY [.SQLTEX-2_2.SRC]SQLTEX.PL SYS$SYSTEM:
-    $ COPY [.SQLTEX-2_2.SRC]SQLTEX.CFG SYS$SYSTEM:
-    $ COPY [.SQLTEX-2_2.SRC]SQLTEX_R.DAT SYS$SYSTEM:
+    $ COPY [.SQLTEX-3_0.SRC]SQLTEX. SYS$SYSTEM:SQLTEX.PL
+    $ COPY [.SQLTEX-3_0.SRC]SQLTEX.CFG SYS$SYSTEM:
+    $ COPY [.SQLTEX-3_0.SRC]SQLTEX_R.DAT SYS$SYSTEM:
     $ SET FILE/PROTECTION=(W:R) SYS$SYSTEM:SQLTEX*.*
 
 However, on OpenVMS you also need to define the command SQLTEX by setting a
@@ -108,6 +111,7 @@ installed in advance, since gcc is not available in a standard install of Mac OS
 
 Credits
 -------
+* **Karl Berry**       for integration in TeX Live
 * **Ingo Reich**       for the comment on Mac OS
 * **Johan W. Klüwer**  for verifying the SyBase support
 * **Paolo Cavallini**  for adding PostgreSQL support
@@ -119,8 +123,9 @@ The **SQLTeX** project is available from [GitHub](https://github.com/oveas/sqlte
 
 For bugs, questions and comments, please use the [issue tracker](https://github.com/oveas/sqltex/issues)
 
+Copyright (c) 2001-2024 - Oscar van Eijk, Oveas Functionality Provider
+
 This software is subject to the terms of the LaTeX Project Public License; 
 see [http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html](http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html)
   
-Copyright (c) 2001-2024 - Oscar van Eijk, Oveas Functionality Provider
 

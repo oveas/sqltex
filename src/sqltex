@@ -434,21 +434,7 @@ sub get_configfiles {
 			$main::replacefiles[$rf_cnt++] = $std_replacefile;
 		}
 	}
-		
-#	if (defined $main::options{'r'}) {
-#		$main::replacefile = $main::options{'r'};
-#	} else {
-#		$main::replacefile = $main::config_location
-#			. ($main::config_location eq '' ? '' : '/')
-#			. 'SQLTeX_r.dat'
-#			unless (defined $main::options{'R'});
-#	}
-	
-#	if (defined $main::replacefile && !-e $main::replacefile) {
-#		warn ("replace file $main::replacefile does not exist\n") unless ($main::replacefile eq "n");
-#		undef $main::replacefile;
-#	}
-	
+
 	return;
 }
 
@@ -640,16 +626,10 @@ sub check_options ($) {
 		if ($opt =~ /^fldsep=/i) {
 			$main::fldsep = qq{$'};
 			$main::fldsep =~ s/NEWLINE/\n/;
-#			if ($main::fldsep eq 'NEWLINE') {
-#				$main::fldsep = "\n";
-#			}
 		}
 		if ($opt =~ /^rowsep=/i) {
 			$main::rowsep = qq{$'};
 			$main::rowsep =~ s/NEWLINE/\n/;
-#			if ($main::rowsep eq 'NEWLINE') {
-#				$main::rowsep = "\n";
-#			}
 		}
 	}
 }
