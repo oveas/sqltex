@@ -11,7 +11,7 @@
 	,unicode]{hyperref}
 \begin{document}
 \title{SQL\TeX\ v\sqltexversion}
-\date{xxxx xx, 2024}
+\date{Sep 20, 2024}
 \author{Oscar van Eijk}
 \maketitle
 \hrulefill
@@ -109,7 +109,7 @@ After installation, the archive and unpack- directory can be removed.
 
 \subsubsection{Windows}
 
-\noindent\hspace{-3mm}\textit{\underline{Note:}}Since v3.0, the binary \texttt{SQLTEX.EXE} for Windows is not included in the distribution anymore\footnote{ It can be generated with any (portable) perl version for Windows, like Strawberry Perl (\url{https://strawberryperl.com/}), with \texttt{PAR::Packer} (\url{https://metacpan.org/pod/PAR::Packer}) using the command:\\
+\noindent\hspace{-3mm}\textit{\underline{Note:}}Since v3.0, the binary \texttt{SQLTEX.EXE} for Windows is not included in the distribution anymore\footnote{ It can be generated with any (portable) perl version for Windows, like Strawberry Perl (\url{https://strawberryperl.com/}\label{winexe}), with \texttt{PAR::Packer} (\url{https://metacpan.org/pod/PAR::Packer}) using the command:\\
 \texttt{pp -o sqltex.exe sqltex}}
 
 \vs
@@ -777,7 +777,7 @@ By specifying this option, these empty lines will be skipped. Lines that were em
 \item[\texttt{--prefix \textit{prefix}, -p \textit{prefix}}] prefix used in the SQL\TeX\ file. Default is \texttt{sql} (see also section~\ref{config}
 on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{cmd\_prefix}.
 
-\item[\texttt{--password \textit{[password]}, -P} \textit{[password]}] database password. The value is optional; if omitted, SQL\TeX\ will prompt for a password. This overwrites the password in the input file.\\
+\item[\texttt{--password \textit{[password]}, -P} \textit{[password]}] database password. The value is optional; if omitted, SQL\TeX\ will prompt for a password. This overwrites the password in the input file.
 
 \item[\texttt{--quiet, -q}] run in quiet mode.
 
@@ -966,15 +966,16 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 \section{History}
 
 \begin{description}
-\item[v3.0] \textit{released: xxx xx, 202x}
+\item[v3.0] \textit{released: Sep 20, 2024}
 \begin{itemize}
 \item Made it possible to run SQL\TeX\ directly from the distribution without \texttt{configure} and \texttt{make [install]} to make integration in \TeX\ Live possible.
 \item Renamed the script to \texttt{sqltex}. For backwards compatibility, during installation on linux a symbolic link \texttt{SQLTeX} is created.
-\item The \texttt{SQLTeX.exe} binary is no longer included in the distribution.
+\item The \texttt{SQLTeX.exe} binary is no longer included in the distribution (see footnote \footref{winexe} on page \pageref{winexe}).
 \item Removed support for the \texttt{--use-local-config} commandline option. The options \texttt{--configfile} and \texttt{--replacementfile} can be used instead.
-\item Fixed ordering in the replacement file and added support for multiple replacement files.
 \item Added an option to disable the \texttt{--configfile} command line option (see note on page \pageref{cfg:disable}).
-\item Added the \texttt{--skip-empty-lines} and \texttt{--write-comments} commandline options
+\item Added the \texttt{--skip-empty-lines} and \texttt{--write-comments} commandline options.
+\item Added support for multiple replacement files.
+\item Fix: ordering in the replacement file.
 \end{itemize}
 
 \item[v2.2] \textit{released: Jul 31, 2024}

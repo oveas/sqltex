@@ -16,7 +16,7 @@ AC_PREREQ([2.69])
 # Ensure configure can check for the required perl modules.
 m4_include([aclocal/ax_prog_perl_modules.m4])
 
-AC_INIT([SQLTeX], [2.2], [support@oveas.com])
+AC_INIT([SQLTeX], [3.0], [support@oveas.com])
 
 AM_INIT_AUTOMAKE
 
