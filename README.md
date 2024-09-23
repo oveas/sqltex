@@ -68,7 +68,7 @@ type:
 The files `sqltex-3.0\sqltex`, `sqltex-3.0\src\SQLTeX.cfg` and `sqltex-3.0\src\SQLTeX_r.dat` must be placed manually
 in the directory of your choice, all in the same directory.
 
-Since v3.0 the `SQLTeX.EXE` binary is no longer provided in the distribution.
+Since v3.0 the `SQLTeX.EXE` binary is no longer provided in the distribution[^1].
 
 #### OpenVMS ####
 
@@ -129,3 +129,4 @@ This software is subject to the terms of the LaTeX Project Public License;
 see [http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html](http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html)
   
 
+[^1]: Dince I forgot to remove this file from the `makefile`, the 3.0 release still contains a Windows executable, but this is still v2.2. A new SQLTeX.exe for v3.0 has not been generated. In future releases the v2.2 executable will also be removed.
