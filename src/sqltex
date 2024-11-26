@@ -33,7 +33,7 @@ $main::ext_cfgfile_allowed = 1;
 #   v2.1-2   Jun 25, 2023 (test version parameter in sql_setparams(), no official release)
 #   v2.1-3   Nov 30, 2023 (test version \sqlif-\sqlendif & \sqlsystem, no official release)
 #   v2.2     Jul 31, 2024
-#   v3.0     Sep 20, 202x
+#   v3.0     Sep 20, 2024
 # Refer to the documentation for changes per release
 #
 # TODO:
@@ -68,6 +68,7 @@ sub parse_options {
 		, 'configfile|c=s' => \$main::options{'c'}
 		, 'replacementfile|r=s' => \$main::options{'r'}
 		, 'no-replacementfile|R' => \$main::options{'R'}
+		, 'no-default-replacefile|n' => \$main::options{'n'}
 		, 'output|o=s' => \$main::options{'o'}
 		, 'skip-empty-lines|-S' => \$main::options{'S'}
 		, 'write-comments|-C' => \$main::options{'C'}
@@ -116,6 +117,9 @@ sub parse_options {
 	$optcheck++ if (defined $main::options{'r'});
 	$optcheck++ if (defined $main::options{'R'});
 	die ("options \"-r\" and \"-R\" cannot be combined\n") if ($optcheck > 1);
+
+	die ("option \"-n\" cannot be given without \"-r\"\n")
+		if (defined $main::options{'n'} && !defined $main::options{'r'});
 
 	$main::NULLallowed = 1 if (defined $main::options{'N'});
 	$main::configuration{'cmd_prefix'} = $main::options{'p'} if (defined $main::options{'p'});
@@ -258,8 +262,14 @@ sub print_help {
 	$helptext .= "               fields per line. The first field holds a string that will be replaced in the SQL output\n";
 	$helptext .= "               by the second string.\n";
 	$helptext .= "               By default the file \'$main::config_location/SQLTeX_r.dat\' is used.\n";
-	$helptext .= "               This default file will still be read after the given replacement file, unless support for\n";
-	$helptext .= "               multiple replacement files is disabled in the configuration.\n\n";
+	$helptext .= "               This default file will still be read after the given replacement file, unless the option\n";
+	$helptext .= "               --no-default-replacefiles is given as welll.\n\n";
+
+	$helptext .= "       --no-default-replacefile\n";
+	$helptext .= "       -n\n";
+	$helptext .= "               use only the replacement file given with the --replacementfile option and ignore the\n";
+	$helptext .= "               default replacement file.\n";
+	$helptext .= "               This option cannot be given without --replacementfile.\n\n";
 
 	$helptext .= "       --no-replacementfile\n";
 	$helptext .= "       -R\n";
@@ -412,11 +422,14 @@ sub get_configfiles {
 
 	@main::replacefiles = ();
 	if (!defined $main::options{'R'} && $main::options{'r'} ne "n") {
-		my $std_replacefile = $main::config_location
-			. ($main::config_location eq '' ? '' : '/') . 'SQLTeX_r.dat';
-		if (!-e $std_replacefile) {
-			warn ("replace file $std_replacefile does not exist\n");
-			$std_replacefile = "";
+		my $std_replacefile = "";
+		if (!defined $main::options{'n'}) {
+			$std_replacefile = $main::config_location
+				. ($main::config_location eq '' ? '' : '/') . 'SQLTeX_r.dat';
+			if (!-e $std_replacefile) {
+				warn ("replace file $std_replacefile does not exist\n");
+				$std_replacefile = "";
+			}
 		}		
 		my $adl_replacefile = "";
 		if (defined $main::options{'r'}) {

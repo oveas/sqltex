@@ -174,9 +174,6 @@ outputfile with the name \texttt{db-docstx.tex}.
 \item[def\_out\_is\_in] By default, when no output file is specified or an output file without (relative) path is given, the output file will be generated in the current directory.\\
 This behaviour changed in version 2.1. In older version, the location of the output file always was the same as the input file location. To revert to the old behaviour, set \texttt{def\_out\_is\_in} to `\texttt{1}'\footnote{ Note the pre-v2.1 implementation also contained a bug: if the output file name contained an absolute or relative path, this path was always taken as relative from the input file location. In the new implementation, \texttt{def\_out\_is\_in} is ignored if the output file name contains a path.}.
   
-\item[multi\_rfile]If the commandline option \texttt{--replacementfile} is given, by default the given replacement file will be parsed and after that the default replacement file will be parsed as well.\\
-If only the given replacement file should be parsed skipping the default file, set this value to \texttt{0}.
-
 \item[rfile\_comment] The comment-sign used in replace files. If this is empty, comments are not allowed in
 the replace files.
 
@@ -782,7 +779,10 @@ on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{cmd\
 \item[\texttt{--quiet, -q}] run in quiet mode.
 
 \item[\texttt{--replacementfile \textit{replace}, -r \textit{replace}}] Specify a file that contains the replace characters (see section~\ref{replfiles}). \\
-Default is \texttt{SQLTeX{\_}r.dat} in the systems default location (see section \ref{replfiles}). This default file will always be used after the given replacement file, unless \texttt{multi\_rfile} is set to \texttt{0} in the configuration (see secion \ref{config}).
+Default is \texttt{SQLTeX{\_}r.dat} in the systems default location (see section \ref{replfiles}). This default file will always be used after the given replacement file, unless the option \texttt{--no-default-replacefiles} is given as well.
+
+\item[\texttt{--no-default-replacefiles, -n}] Use only the replacement file given with the \texttt{--replacementfile} option and ignore the default replacement file.\\
+This option cannot be given without \texttt{--replacementfile}.
 
 \item[\texttt{--no-replacementfile, -R}] Do not use a replace file. \texttt{--no-replacementfile} and \texttt{--replacementfile \textit{file}} are handled in the same order as
 they appear on the command line, overwriting each other.\\
@@ -965,7 +965,16 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 
 \section{History}
 
+
 \begin{description}
+
+
+\item[v3.1] \textit{released: Xxx xx, 20xx}
+\begin{itemize}
+\item Added the option \texttt{--no-default-replacefiles} to ignore use of default replacement file when a replacement file was given with \texttt{--replacementfile}.\\
+With this change, the config setting \texttt{multi\_rfile}, introduced in v3.0, is now discouraged.
+\end{itemize}
+
 \item[v3.0] \textit{released: Sep 20, 2024}
 \begin{itemize}
 \item Made it possible to run SQL\TeX\ directly from the distribution without \texttt{configure} and \texttt{make [install]} to make integration in \TeX\ Live possible.

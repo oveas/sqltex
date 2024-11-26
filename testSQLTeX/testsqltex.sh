@@ -67,8 +67,10 @@ testcase_3 () {
 testcase_4 () {
 	echo ""
 	echo " * Testcase 4: verify replacement function..."
-	perl $SQLTeXLocation/sqltex --configfile $SQLTeXLocation/SQLTeX.cfg --replacementfile $SQLTeXLocation/SQLTeX_r.dat --user $USR --password $PWD --sqlserver $HST --quiet --replace $SQLTeXTestLocation/sqltex-tc4_rpl.dat --filename-extend _nl sqltex-tc4.tex
-	check_result 4 nl
+	perl $SQLTeXLocation/sqltex --configfile $SQLTeXLocation/SQLTeX.cfg --replacementfile $SQLTeXLocation/SQLTeX_r.dat --user $USR --password $PWD --sqlserver $HST --quiet --replace $SQLTeXTestLocation/sqltex-tc4_rpl.dat --filename-extend _nl1 sqltex-tc4.tex
+	perl $SQLTeXLocation/sqltex --configfile $SQLTeXLocation/SQLTeX.cfg --replacementfile $SQLTeXLocation/SQLTeX_r.dat --user $USR --password $PWD --sqlserver $HST --quiet --replace $SQLTeXTestLocation/sqltex-tc4_rpl.dat --no-default-replacefile --filename-extend _nl2 sqltex-tc4.tex
+	check_result 4 nl1
+	check_result 4 nl2
 }
 
 # Testcase 5: multi document

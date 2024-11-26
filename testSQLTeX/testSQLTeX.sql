@@ -101,6 +101,7 @@ DROP TABLE IF EXISTS `testsqltex`.`text_strings` ;
 
 CREATE TABLE IF NOT EXISTS `testsqltex`.`text_strings` (
   `nr` INT NOT NULL AUTO_INCREMENT,
+  `testcase` INT NOT NULL,
   `txt` VARCHAR(120) NULL,
   PRIMARY KEY (`nr`))
 ENGINE = InnoDB;
@@ -184,12 +185,13 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `testsqltex`;
-INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('$_%&<>{}#\~');
-INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('<p align="left">Paragraph</p>');
-INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('Line1<br>Line2');
-INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('Line3<br/>Line4');
-INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('<h1>Header 1</h1>');
-INSERT INTO `testsqltex`.`text_strings` (`txt`) VALUES ('<h2 style="background-color: white;">Header 2</h2>');
+INSERT INTO `testsqltex`.`text_strings` (`testcase`, `txt`) VALUES (9, '$_%&<>{}#\~');
+INSERT INTO `testsqltex`.`text_strings` (`testcase`, `txt`) VALUES (9, '<p align="left">Paragraph</p>');
+INSERT INTO `testsqltex`.`text_strings` (`testcase`, `txt`) VALUES (9, 'Line1<br>Line2');
+INSERT INTO `testsqltex`.`text_strings` (`testcase`, `txt`) VALUES (9, 'Line3<br/>Line4');
+INSERT INTO `testsqltex`.`text_strings` (`testcase`, `txt`) VALUES (9, '<h1>Header 1</h1>');
+INSERT INTO `testsqltex`.`text_strings` (`testcase`, `txt`) VALUES (9, '<h2 style="background-color: white;">Header 2</h2>');
+INSERT INTO `testsqltex`.`text_strings` (`testcase`, `txt`) VALUES (4, 'Alle prijzen zijn\\\\inclusief 21% BTW.');
 
 COMMIT;
 
