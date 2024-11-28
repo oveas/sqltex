@@ -273,8 +273,8 @@ the word ``LaTeX'' will be changed, but ``latex'' is untouched.
 
 \vspace{3mm}
 
-Different replace files can be created. To select a different replace file for a certain SQL\TeX\ source, use the commandline option
-`\texttt{--replacementfile \textit{filename}}'. To disable the use of replace files, use `\texttt{no-replacementfile}'.
+Different replace files can be created. To select a different replace file for a certain SQL\TeX\ source, use the commandline option `\texttt{--replacementfile \textit{filename}}'\\
+To disable the use of replace files, use the option `\texttt{--no-default-replacefile}' and omit `\texttt{--replacementfile}'.
 
 \subsubsection{Regular expressions}\label{regexp}
 
@@ -778,15 +778,10 @@ on page~\pageref{prefix}. This overwrites the configurarion setting \texttt{cmd\
 
 \item[\texttt{--quiet, -q}] run in quiet mode.
 
-\item[\texttt{--replacementfile \textit{replace}, -r \textit{replace}}] Specify a file that contains the replace characters (see section~\ref{replfiles}). \\
-Default is \texttt{SQLTeX{\_}r.dat} in the systems default location (see section \ref{replfiles}). This default file will always be used after the given replacement file, unless the option \texttt{--no-default-replacefiles} is given as well.
+\item[\texttt{--replacementfile \textit{replace}, -r \textit{replace}}] Specify an additional file that contains the replace characters (see section~\ref{replfiles}). \\
+Default is \texttt{SQLTeX{\_}r.dat} in the systems default location (see section \ref{replfiles}). This default file will always be used after the given replacement file, unless the option \texttt{--no-default-replacefile} is given as well.
 
-\item[\texttt{--no-default-replacefiles, -n}] Use only the replacement file given with the \texttt{--replacementfile} option and ignore the default replacement file.\\
-This option cannot be given without \texttt{--replacementfile}.
-
-\item[\texttt{--no-replacementfile, -R}] Do not use a replace file. \texttt{--no-replacementfile} and \texttt{--replacementfile \textit{file}} are handled in the same order as
-they appear on the command line, overwriting each other.\\
-For backwards compatibility, \texttt{-rn} is also still supported.
+\item[\texttt{--no-default-replacefile, -n}] Ignore the default replacement file. If the option \texttt{--replacementfile} was given, only the additional replacement file will be used, otherwise no replacement file at all.
 
 \item[\texttt{--sqlserver \textit{server}, -s \textit{server}}] SQL server to connect to. Default is \texttt{localhost}.
 
@@ -971,8 +966,9 @@ see \url{http://www.ctan.org/tex-archive/help/Catalogue/licenses.lppl.html}.
 
 \item[v3.1] \textit{released: Xxx xx, 20xx}
 \begin{itemize}
-\item Added the option \texttt{--no-default-replacefiles} to ignore use of default replacement file when a replacement file was given with \texttt{--replacementfile}.\\
+\item Added the option \texttt{--no-default-replacefile} to ignore use of default replacement file.\\
 With this change, the config setting \texttt{multi\_rfile}, introduced in v3.0, is now discouraged.
+\item Removed the option \texttt{--no-replacementfile} from the documentation. The option is still supported but now deprecated; the same result is achieved by omitting \texttt{--replacementfile} and specifying \texttt{--no-default-replacefile}.
 \end{itemize}
 
 \item[v3.0] \textit{released: Sep 20, 2024}

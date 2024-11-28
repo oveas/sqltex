@@ -118,9 +118,6 @@ sub parse_options {
 	$optcheck++ if (defined $main::options{'R'});
 	die ("options \"-r\" and \"-R\" cannot be combined\n") if ($optcheck > 1);
 
-	die ("option \"-n\" cannot be given without \"-r\"\n")
-		if (defined $main::options{'n'} && !defined $main::options{'r'});
-
 	$main::NULLallowed = 1 if (defined $main::options{'N'});
 	$main::configuration{'cmd_prefix'} = $main::options{'p'} if (defined $main::options{'p'});
 
@@ -258,24 +255,17 @@ sub print_help {
 
 	$helptext .= "       --replacementfile <file>\n";
 	$helptext .= "       -r <file>\n";
-	$helptext .= "               specify a file that contains replace characters. This is a list with two tab-separated\n";
-	$helptext .= "               fields per line. The first field holds a string that will be replaced in the SQL output\n";
-	$helptext .= "               by the second string.\n";
-	$helptext .= "               By default the file \'$main::config_location/SQLTeX_r.dat\' is used.\n";
+	$helptext .= "               specify an additional file that contains replace characters. This is a list with two tab-\n";
+	$helptext .= "               separated fields per line. The first field holds a string that will be replaced in the\n";
+	$helptext .= "               SQL output by the second string.\n";
+	$helptext .= "               By default only the file \'$main::config_location/SQLTeX_r.dat\' is used.\n";
 	$helptext .= "               This default file will still be read after the given replacement file, unless the option\n";
-	$helptext .= "               --no-default-replacefiles is given as welll.\n\n";
+	$helptext .= "               --no-default-replacefile is given as well.\n\n";
 
 	$helptext .= "       --no-default-replacefile\n";
 	$helptext .= "       -n\n";
-	$helptext .= "               use only the replacement file given with the --replacementfile option and ignore the\n";
-	$helptext .= "               default replacement file.\n";
-	$helptext .= "               This option cannot be given without --replacementfile.\n\n";
-
-	$helptext .= "       --no-replacementfile\n";
-	$helptext .= "       -R\n";
-	$helptext .= "               do not use a replace file. \'--replacementfile\' \'--no-replacementfile\' are handled\n";
-	$helptext .= "               in the same order as they appear on the command line.\n";
-	$helptext .= "               For backwards compatibility, -rn is also still supported.\n\n";
+	$helptext .= "               ignore the default replacement file. If the option --replacementfile was given, only the \n";
+	$helptext .= "               additional replacement file will be used, otherwise no replacement file at all.\n";
 
 	$helptext .= "       --sqlserver <server>\n";
 	$helptext .= "       -s <server>\n";
@@ -1312,8 +1302,8 @@ sub process_file {
 	}
 }
 
-$main::version = '3.0';
-$main::rdate = 'Sep 20, 2024';
+$main::version = '3.0.1-DEV';
+$main::rdate = 'Nov 27, 2024';
 
 &parse_options;
 &get_configfiles;
