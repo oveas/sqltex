@@ -218,6 +218,9 @@ With the default configuration this command is ``\texttt{\bs sqlend}''.
 
 \item[sqlsystem\_allowed] Set this to ``1'' to allow the use of the \texttt{\bs sqlsystem} command (see section~\ref{sqlsystem}).
 
+\item[enable\_character\_set]\index{mysql!character set}\index{utf8} Most databases use UTF8, so by default the \textsl{mysql\_enable\_utf8mb4} is enabled in the configuration file. To enable another charachter set, change the default value \textsl{utf8mb4} for this setting to the desired value. Outcomment or remove this setting to disable this.\\
+\textit{Note:} This setting is used only for when the DB Driver is set to MySQL. SQL\TeX\ does not check for correctness of the setting. Only a warning will be given while processing.
+
 \item[repl\_step] Replacing strings (see section~\ref{replfiles} below) is done two steps, to prevent values from being replaced twice.
 This setting---followed by a three-digit integer - ``000'' to ``999''---is used in the first step and replaces values from the first column.
 In the second step, values from the second column replace the temporary value. \\

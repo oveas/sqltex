@@ -599,7 +599,13 @@ sub db_connect($$) {
 			,'db' => $db
 		);
 	}
-	$main::db_handle = DBI->connect ($data_source, $un, $pw, { RaiseError => 0, PrintError => 1 }) || &signal_message (1);
+
+	my %connect_attribs = ( RaiseError => 0, PrintError => 1 );
+	if (defined $main::configuration{'enable_character_set'} && $main::configuration{'dbdriver'} eq 'mysql') {
+		$connect_attribs{$main::configuration{'enable_character_set'}} = 1;
+	}
+	$main::db_handle = DBI->connect ($data_source, $un, $pw, \%connect_attribs) || &signal_message (1);
+
 	return;
 }
 
