@@ -42,7 +42,7 @@ $main::ext_cfgfile_allowed = 1;
 #
 ################################################################################
 #
-#use strict;
+use strict;
 use DBI;
 use Getopt::Long;
 Getopt::Long::Configure ("bundling");
@@ -604,7 +604,7 @@ sub db_connect($$) {
 	if (defined $main::configuration{'enable_character_set'} && $main::configuration{'dbdriver'} eq 'mysql') {
 		$connect_attribs{$main::configuration{'enable_character_set'}} = 1;
 	}
-	$main::db_handle = DBI->connect ($data_source, $un, $pw, \%connect_attribs) || &signal_message (1);
+	$main::db_handle = DBI->connect ($data_source, $un, $pw, \%connect_attribs) || &signal_message ("error opening database at line $main::lcount[$main::fcount]", 0, 1);
 
 	return;
 }
@@ -689,7 +689,7 @@ sub sql_row ($$) {
 	$stat_handle->execute ();
 
 	if ($main::setarr) {
-		&signal_message (7) if (defined $main::arr[$main::arr_no] && !$main::multidoc);
+		&signal_message ("trying to overwrite an existing variable on line $main::lcount[$main::fcount]") if (defined $main::arr[$main::arr_no] && !$main::multidoc);
 		@main::arr[$main::arr_no] = ();
 		while (my $ref = $stat_handle->fetchrow_hashref()) {
 			foreach my $k (keys %$ref) {
@@ -715,7 +715,7 @@ sub sql_row ($$) {
 	$stat_handle->finish ();
 
 	if ($#return_values < 0) {
-		&signal_message (4);
+		&signal_message ("no result set found on line $main::lcount[$main::fcount]", $main::NULLallowed);
 	}
 
 	$rc = $#return_values + 1;
@@ -749,13 +749,13 @@ sub sql_field ($$) {
 	$stat_handle->finish ();
 
 	if ($#result < 0) {
-		&signal_message (4);
+		&signal_message ("no result set found on line $main::lcount[$main::fcount]", $main::NULLallowed);
 	} elsif ($#result > 0) {
-		&signal_message (5);
+		&signal_message ("result set too big on line $main::lcount[$main::fcount]");
 	} else {
 		&print_message ("Found 1 value: \"$result[0]\"");
 		if ($main::setvar) {
-			&signal_message (7) if (defined $main::var[$main::var_no] && !$main::multidoc);
+			&signal_message ("trying to overwrite an existing variable on line $main::lcount[$main::fcount]") if (defined $main::var[$main::var_no] && !$main::multidoc);
 			$main::var[$main::var_no] = $result[0];
 			return '';
 		} else {
@@ -773,7 +773,7 @@ sub sql_field ($$) {
 #
 sub sql_start ($) {
 	my $arr_no = shift;
-	&signal_message (11) if (!defined $main::arr[$arr_no]);
+	&signal_message ("start using a non-existing array on line $main::lcount[$main::fcount]") if (!defined $main::arr[$arr_no]);
 	if (@main::current_array) {
 		@main::current_array = ();
 	}
@@ -938,7 +938,7 @@ sub sql_setparams ($$) {
 	$stat_handle->execute ();
 
 	for (my $i = 0; @values = $stat_handle->fetchrow_array (); $i++) {
-		for ($j = 0; $j <= $#values; $j++) {
+		for (my $j = 0; $j <= $#values; $j++) {
 			$return_values[$i][$j] = $values[$j];
 		}
 	}
@@ -946,7 +946,7 @@ sub sql_setparams ($$) {
 	$stat_handle->finish ();
 
 	if ($#return_values < 0) {
-		&signal_message (8);
+		&signal_message ("no parameters for multidocument found on line $main::lcount[$main::fcount]");
 	}
 
 	&print_message ('Multidocument parameters found; ' . $#return_values+1 ." documents will be created: handle document $main::multidoc_cnt") unless ($main::multidoc_cnt == 0);
@@ -990,59 +990,30 @@ sub sql_system ($) {
 	return $return_value;
 }
 
-##### 
+#####
 # Simple error handling
 # Files will be closed if opened, and if no sql output was written yet,
 # the outputfile will be removed.
 #
-sub signal_message ($) {
-	my $step = shift;
-	my $can_continue = 0;
+# Parameters:
+#   $msg - error message to print
+#   $non_fatal - 1 if the error is non-fatal, 0 otherwise (default: 0)
+#   $unlink_output - 1 if the output file should be removed, 0 otherwise (default: 0)
+#
+sub signal_message {
+	my ($msg, $non_fatal, $unlink_output) = @_;
+	$non_fatal //= 0;
+	$unlink_output //= 0;
 
-	$can_continue = 1 if ($step == 4 && $main::NULLallowed);
+	unlink ($main::outputfile) if ($unlink_output);
 
-	if ($step >= 1 && $step <= 2 && !$can_continue) {
-		unlink ($main::outputfile);
-	}
-
-	#####
-	# Step specific exit
-	#
-	my $msg;
-	if ($step == 1) {
-		$msg = "noerror opening database at line $main::lcount[$main::fcount]";
-	} elsif ($step == 2) {
-		$msg = "no database opened at line $main::lcount[$main::fcount]";
-	} elsif ($step == 3) {
-		$msg = "insufficient parameters to substitute variable on line $main::lcount[$main::fcount]";
-	} elsif ($step == 4) {
-		$msg = "no result set found on line $main::lcount[$main::fcount]";
-	} elsif ($step == 5) {
-		$msg = "result set too big on line $main::lcount[$main::fcount]";
-	} elsif ($step == 6) {
-		$msg = "trying to substitute with non existing on line $main::lcount[$main::fcount]";
-	} elsif ($step == 7) {
-		$msg = "trying to overwrite an existing variable on line $main::lcount[$main::fcount]";
-	} elsif ($step == 8) {
-		$msg = "no parameters for multidocument found on line $main::lcount[$main::fcount]";
-#	} elsif ($step == 9) {
-#		$msg = "too many fields returned in multidocument mode on $main::lcount[$main::fcount]";
-	} elsif ($step == 10) {
-		$msg = "unrecognized command on line $main::lcount[$main::fcount]";
-	} elsif ($step == 11) {
-		$msg = "start using a non-existing array on line $main::lcount[$main::fcount]";
-	} elsif ($step == 12) {
-		$msg = "\\sqluse command encountered outside loop context on line $main::lcount[$main::fcount]";
-	} elsif ($step == 13) {
-		$msg = "\\sqlif command encountered outside loop context on line $main::lcount[$main::fcount]";
-	}
 	if ($main::fcount > 0) {
 		for (my $fcnt = 0; $fcnt < $main::fcount; $fcnt++) {
 			$msg .= ', file included from line '.$main::lcount[$fcnt];
 		}
 	}
 	warn "$msg\n";
-	return if ($can_continue);
+	return if ($non_fatal);
 	exit (1);
 }
 
@@ -1097,7 +1068,7 @@ sub parse_command ($$$) {
 		while ($statement =~ /\$VAR[0-9]/) {
 			my $varno = $&;
 			$varno =~ s/\$VAR//;
-			&signal_message (6) if (!defined ($main::var[$varno]));
+			&signal_message ("trying to substitute with non existing on line $main::lcount[$main::fcount]") if (!defined ($main::var[$varno]));
 			$statement =~ s/\$VAR$varno/$main::var[$varno]/g;
 		}
 		if ($statement =~ /\$PAR/ && ($main::multidoc_cnt > 0) && $main::multidoc) {
@@ -1117,7 +1088,7 @@ sub parse_command ($$$) {
 		return 0;
 	}
 
-	&signal_message (2) if (!$main::db_opened);
+	&signal_message ("no database opened at line $main::lcount[$main::fcount]", 0, 1) if (!$main::db_opened);
 	if ($cmdfound eq $main::configuration{'sql_field'}) {
 		$main::line = $lin1 . &sql_field($options, $statement) . $lin2;
 	} elsif ($cmdfound eq $main::configuration{'sql_row'}) {
@@ -1137,19 +1108,19 @@ sub parse_command ($$$) {
 		&sql_start($statement);
 		$main::line = $lin1 . $lin2;
 	} elsif ($cmdfound eq $main::configuration{'sql_use'}) {
-		&signal_message (12) if (!@main::current_array);
+		&signal_message ("\\sqluse command encountered outside loop context on line $main::lcount[$main::fcount]") if (!@main::current_array);
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_use'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound eq $main::configuration{'sql_end'}) {
 		$main::line = $lin1 . &sql_end() . $lin2;
 	} elsif ($cmdfound eq $main::configuration{'sql_endif'}) {
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_endif'} . "{}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound eq $main::configuration{'sql_if'}) {
-		&signal_message (13) if (!@main::current_array);
+		&signal_message ("\\sqlif command encountered outside loop context on line $main::lcount[$main::fcount]") if (!@main::current_array);
 		$main::line = $lin1 . "\\" . $main::configuration{'alt_cmd_prefix'} . $main::configuration{'sql_if'} . "{" . $statement . "}" . $lin2; # Restore the line, will be processed later
 	} elsif ($cmdfound =~ /$main::configuration{'sql_system'}/) {
 		$main::line = $lin1 . &sql_system($raw_statement) . $lin2;
 	} else {
-		&signal_message (10);
+		&signal_message ("unrecognized command on line $main::lcount[$main::fcount]");
 	}
 	return 0;
 }
